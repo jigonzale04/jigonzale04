@@ -5,7 +5,7 @@
 📍 Saint Louis, MO → West Lafayette, IN  
 💡 Passionate about AI, Analytics, and Data Visualization  
 
-📄 [Download my CV (PDF)](https://github.com/JuanGonzalezEspinosa/JuanGonzalezEspinosa/raw/main/Gonzalez-Espinosa%20CV_Jan25_c.pdf)
+📄 [Download my CV (PDF)]https://github.com/jigonzale04/jigonzale04/blob/main/Gonzalez-Espinosa%20CV_Jan25.pdf)
 
 🔗 Connect with me:
 - [LinkedIn]([https://linkedin.com/in/TU_PERFIL](https://www.linkedin.com/in/juangonzalez-espinosa/))
