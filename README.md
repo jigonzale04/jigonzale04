@@ -8,5 +8,5 @@
 📄 [Download my CV (PDF)] (https://github.com/jigonzale04/jigonzale04/blob/main/Gonzalez-Espinosa%20CV_Jan25.pdf)
 
 🔗 Connect with me:
-- [LinkedIn] ([[https://www.linkedin.com/in/juangonzalez-espinosa/)]]
-- [Google Scholar] ([https://scholar.google.com](https://scholar.google.com/citations?user=dxbl4oEAAAAJ&hl=en))
+- [LinkedIn] (https://www.linkedin.com/in/juangonzalez-espinosa/)
+- [Google Scholar] (https://scholar.google.com/citations?user=dxbl4oEAAAAJ&hl=en)
