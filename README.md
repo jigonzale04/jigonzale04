@@ -217,7 +217,6 @@ Upload a **CV and a job description** — the agent analyzes fit, identifies gap
 ## 📬 Contact
 
 | | |
-|---|---|
 | 📧 Email | gonz1400@purdue.edu |
 | 🏛️ Office | Krannert Hall 533 · 155 S Grant St · West Lafayette, IN 47907 |
 | 💼 LinkedIn | [linkedin.com/in/juanignacio-gonzalez](https://www.linkedin.com/in/juanignacio-gonzalez/?locale=en) |
