@@ -30,7 +30,7 @@
 
 I am a **Clinical Assistant Professor** at the **Mitch Daniels School of Business, Purdue University** (Quantitative Methods Department), where I teach Data Mining, AI for Business Analytics, and Six Sigma & Quality Analytics at both the undergraduate and graduate levels.
 
-I hold a **Ph.D. in Management Science** (EGADE Business School, Tecnológico de Monterrey) and have accumulated 20+ years spanning industry marketing management, executive roles as **Chief Data Scientist** and **Director of Intelligence & Data Science** at Universidad de Monterrey, and faculty and visitin scholar positions across Mexico, the US, Peru, and Poland.
+I hold a **Ph.D. in Management Science** (EGADE Business School, Tecnológico de Monterrey) and have accumulated 20+ years spanning industry marketing management, executive roles as **Chief Data Scientist** and **Director of Intelligence & Data Science** at Universidad de Monterrey, and faculty and visiting scholar positions across Mexico, the US, Peru, and Poland.
 
 My work sits at the crossroads of **business strategy and applied AI**: I build ML/DL models, deploy them as interactive applications, and teach practitioners and students how to use them for real decisions — without needing to be coders themselves.
 
