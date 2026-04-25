@@ -42,9 +42,8 @@ My work sits at the crossroads of **business strategy and applied AI**: I build 
 
 | Degree / Program | Institution | Year |
 |---|---|---|
-| 🎓 Ph.D. Management Science | EGADE Business School · Tec de Monterrey | 2016 |
+| 🎓 Ph.D. Management Science | EGADE Business School · Tec de Monterrey · *Research Stay: Fisher College of Business, Ohio State University* | 2016 |
 | 🎓 M.B.A. | EGADE Business School · Tec de Monterrey | 2007 |
-| 🎓 B.A. Marketing *(Honors — Mention of Excellence)* | ITESM Monterrey | 1998 |
 | 📜 PG Program: AI Agents for Business Applications | UT Austin McCombs · Great Learning | 2025–2026 |
 | 📜 SQL & Databases | Great Learning | 2025 |
 | 📜 Generative AI for NLP | Great Learning | 2024 |
@@ -219,7 +218,6 @@ Upload a **CV and a job description** — the agent analyzes fit, identifies gap
 | 💼 LinkedIn | [linkedin.com/in/juanignacio-gonzalez](https://www.linkedin.com/in/juanignacio-gonzalez/?locale=en) |
 | 🎓 Purdue Profile | [business.purdue.edu/directory](https://business.purdue.edu/directory/bio.php?username=gonz1400) |
 | 🤗 HuggingFace | [huggingface.co/jigonzale040](https://huggingface.co/jigonzale040) |
-| 📞 Phone | +(314) 412-5998 |
 
 ---
 
