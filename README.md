@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/jigonzale04/jigonzale04/banner.svg" alt="Juan Ignacio González-Espinosa — Clinical Assistant Professor, Purdue University" width="100%"/>
+<img src="https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/banner.svg" alt="Juan Ignacio González-Espinosa — Clinical Assistant Professor, Purdue University" width="100%"/>
 
 </div>
 
