@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healthcare AI Agent — Step-by-Step Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #0d0f14;
+  --bg2:    #13161e;
+  --bg3:    #1a1e29;
+  --bg4:    #222636;
+  --border: rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.14);
+  --text:   #e8eaf0;
+  --text2:  #8b90a0;
+  --text3:  #4a4f60;
+  --accent: #6c8cff;
+  --accent2:#4a6aff;
+  --green:  #3ecf8e;
+  --green3: rgba(62,207,142,0.13);
+  --red:    #ff5f5f;
+  --red3:   rgba(255,95,95,0.13);
+  --amber:  #f5a623;
+  --amber3: rgba(245,166,35,0.13);
+  --teal:   #38c9b0;
+  --teal3:  rgba(56,201,176,0.13);
+  --purple: #a78bfa;
+  --purple3:rgba(167,139,250,0.13);
+  --mono:   'IBM Plex Mono', monospace;
+  --display:'Syne', sans-serif;
+  --body:   'Inter', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Shell: 3-column + top bar ── */
+.shell {
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  grid-template-columns: 300px 1fr 360px;
+  height: 100vh;
+}
+
+/* ── Top bar ── */
+.topbar {
+  grid-column: 1 / -1;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 14px;
+  height: 52px;
+  flex-shrink: 0;
+}
+.topbar-logo {
+  font-family: var(--display);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.topbar-logo em { color: var(--accent); font-style: normal; }
+.topbar-sep { width: 1px; height: 18px; background: var(--border2); }
+.topbar-tag {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text3);
+  letter-spacing: 0.05em;
+}
+.topbar-status {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--text2);
+}
+.sdot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--text3);
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+.sdot.running { background: var(--amber); animation: blink 1s ease-in-out infinite; }
+.sdot.done    { background: var(--green); animation: none; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* ── Scenario selector bar ── */
+.scenario-bar {
+  grid-column: 1 / -1;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.sb-label {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding-top: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.scenarios-row {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.sc-btn {
+  border-radius: 10px;
+  border: 1.5px solid var(--border2);
+  background: var(--bg3);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: left;
+  position: relative;
+  flex: 1;
+  min-width: 160px;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sc-btn:hover {
+  border-color: rgba(255,255,255,0.22);
+  background: var(--bg4);
+  transform: translateY(-1px);
+}
+/* Active states per type */
+.sc-btn.active.type-allowed   { border-color: var(--green);  background: var(--green3); }
+.sc-btn.active.type-refuse    { border-color: var(--red);    background: var(--red3); }
+.sc-btn.active.type-emergency { border-color: var(--red);    background: var(--red3); }
+
+/* Left accent bar */
+.sc-btn::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 6px; bottom: 6px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--text3);
+  transition: background 0.18s;
+}
+.sc-btn.type-allowed::before   { background: var(--green); }
+.sc-btn.type-refuse::before    { background: var(--red); }
+.sc-btn.type-emergency::before { background: var(--red); }
+
+.sc-num {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--text3);
+  letter-spacing: 0.08em;
+}
+.sc-title-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  font-family: var(--display);
+  line-height: 1.3;
+}
+.sc-badge {
+  font-size: 9px;
+  font-family: var(--mono);
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 2px;
+  align-self: flex-start;
+}
+.badge-allowed   { background: var(--green3); color: var(--green);  border: 1px solid rgba(62,207,142,0.3); }
+.badge-refuse    { background: var(--red3);   color: var(--red);    border: 1px solid rgba(255,95,95,0.3); }
+.badge-emergency { background: var(--red3);   color: var(--red);    border: 1px solid rgba(255,95,95,0.3); }
+
+/* Selected indicator */
+.sc-btn.active::after {
+  content: '▼';
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--accent);
+}
+
+/* ── Left panel ── */
+.left-panel {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 14px;
+}
+
+/* Query card */
+.query-card {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.qc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.qc-icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(108,140,255,0.18);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.qc-who {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--accent);
+  font-weight: 500;
+}
+.qc-sub { font-size: 10px; color: var(--text3); }
+
+.query-bubble {
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  border-top-left-radius: 3px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.65;
+  position: relative;
+  font-style: italic;
+}
+.query-bubble::before {
+  content: '"';
+  font-size: 28px;
+  color: var(--accent);
+  opacity: 0.3;
+  position: absolute;
+  top: 4px; left: 8px;
+  font-family: Georgia, serif;
+  line-height: 1;
+}
+.qb-inner { padding-left: 18px; }
+
+.qc-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.qc-chip {
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+}
+
+/* Controls */
+.controls-section { display: flex; flex-direction: column; gap: 8px; }
+.ctrl-label {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.btn-run {
+  background: var(--accent2);
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 11px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--body);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+}
+.btn-run:hover:not(:disabled) { background: var(--accent); }
+.btn-run:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-pause {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border2);
+  border-radius: 9px;
+  padding: 9px 16px;
+  font-size: 12px;
+  font-family: var(--body);
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+}
+.btn-pause:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.btn-pause:disabled { opacity: 0.3; cursor: not-allowed; }
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text3);
+}
+.speed-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+
+/* Architecture legend */
+.arch-legend { display: flex; flex-direction: column; gap: 5px; }
+.al-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text2);
+}
+.al-dot {
+  width: 8px; height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Center: Flow diagram ── */
+.center-panel {
+  background: var(--bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.step-dots-bar {
+  border-bottom: 1px solid var(--border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg2);
+}
+.dots-label { font-size: 10px; font-family: var(--mono); color: var(--text3); }
+.sdots { display: flex; gap: 6px; }
+.sdot-item {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text3);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sdot-item:hover { transform: scale(1.3); }
+.sdot-item.active  { background: var(--accent); transform: scale(1.4); }
+.sdot-item.done    { background: var(--green); }
+.sdot-item.blocked { background: var(--red); }
+.sdot-name {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text2);
+  margin-left: 4px;
+}
+
+.flow-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow: auto;
+}
+.flow-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  width: 220px;
+}
+
+/* Flow nodes */
+.fn {
+  width: 200px;
+  border: 1px solid var(--border2);
+  border-radius: 11px;
+  padding: 11px 14px;
+  background: var(--bg2);
+  transition: all 0.3s;
+  cursor: default;
+  position: relative;
+}
+.fn.waiting  { opacity: 0.28; }
+.fn.active   { border-color: var(--accent); background: rgba(108,140,255,0.08); box-shadow: 0 0 22px rgba(108,140,255,0.18); opacity: 1; }
+.fn.done     { border-color: var(--green);  background: var(--green3); opacity: 1; }
+.fn.blocked  { border-color: var(--red);    background: var(--red3);   opacity: 1; }
+.fn.skipped  { opacity: 0.18; }
+.fn.clickable{ cursor: pointer; }
+.fn.clickable:hover { border-color: var(--border2); filter: brightness(1.1); }
+
+.fn-tag {
+  font-size: 9px;
+  font-family: var(--mono);
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg3);
+  color: var(--text2);
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.fn-name { font-size: 13px; font-weight: 700; font-family: var(--display); color: var(--text); }
+.fn-sub  { font-size: 10px; color: var(--text3); margin-top: 2px; }
+
+.fn-badge {
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+.fb-ok  { background: var(--green3); color: var(--green); border: 1px solid rgba(62,207,142,0.3); }
+.fb-no  { background: var(--red3);   color: var(--red);   border: 1px solid rgba(255,95,95,0.3); }
+.fb-run { background: var(--amber3); color: var(--amber); border: 1px solid rgba(245,166,35,0.3); }
+.fb-skip{ background: var(--bg3);    color: var(--text3); border: 1px solid var(--border); }
+
+/* Connectors */
+.fc {
+  width: 2px;
+  height: 26px;
+  background: var(--border2);
+  position: relative;
+  transition: background 0.35s;
+  flex-shrink: 0;
+}
+.fc::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--border2);
+  transition: border-top-color 0.35s;
+}
+.fc.lit { background: var(--green); }
+.fc.lit::after { border-top-color: var(--green); }
+.fc.blocked-line { background: var(--red); }
+.fc.blocked-line::after { border-top-color: var(--red); }
+
+/* ── Right panel: detail ── */
+.right-panel {
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-header {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.dh-step {
+  font-size: 9px;
+  font-family: var(--mono);
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+.dh-name {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: var(--display);
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.dh-sub { font-size: 11px; color: var(--text2); }
+
+.detail-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Sections */
+.ds {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.ds-lbl {
+  font-size: 9px;
+  font-weight: 500;
+  font-family: var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.ds-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.65;
+}
+
+/* Rule rows */
+.rule-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.rule-row:last-child { border-bottom: none; }
+.rr-id {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.rr-match  { background: rgba(62,207,142,0.18); color: var(--green); }
+.rr-block  { background: rgba(255,95,95,0.18);  color: var(--red); }
+.rr-skip   { background: var(--bg);             color: var(--text3); }
+.rr-label  { flex: 1; color: var(--text2); }
+.rr-action { font-family: var(--mono); font-size: 9px; }
+
+/* Tool chips */
+.tool-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.tc {
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 3px 8px;
+  border-radius: 5px;
+  border: 1px solid rgba(56,201,176,0.35);
+  background: var(--teal3);
+  color: var(--teal);
+}
+
+/* Tool result rows */
+.tr-row {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tr-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tr-ok  { font-size: 10px; color: var(--green); font-family: var(--mono); }
+.tr-note { font-size: 11px; color: var(--text2); line-height: 1.55; }
+
+/* Check rows */
+.ck-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+}
+.ck-row:last-child { border-bottom: none; }
+.ck-lbl { color: var(--text3); min-width: 130px; flex-shrink: 0; }
+.ck-val { color: var(--text); }
+
+/* Result boxes */
+.res-box {
+  border-radius: 9px;
+  padding: 12px 14px;
+  font-size: 12px;
+  line-height: 1.7;
+  border: 1px solid;
+  white-space: pre-wrap;
+}
+.res-allowed   { background: var(--green3); border-color: rgba(62,207,142,0.3); color: #b2f0d6; }
+.res-refused   { background: var(--red3);   border-color: rgba(255,95,95,0.3);  color: #ffb8b8; }
+.res-emergency { background: rgba(255,95,95,0.18); border-color: rgba(255,95,95,0.5); color: #ffb8b8; }
+
+/* Idle state */
+.idle-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 30px 20px;
+  text-align: center;
+}
+.idle-icon { font-size: 36px; opacity: 0.12; }
+.idle-title { font-size: 13px; font-weight: 600; color: var(--text2); font-family: var(--display); }
+.idle-sub   { font-size: 11px; color: var(--text3); line-height: 1.6; max-width: 220px; }
+
+/* Highlights */
+.hl-g  { color: var(--green);  font-weight: 500; }
+.hl-r  { color: var(--red);    font-weight: 500; }
+.hl-a  { color: var(--accent); font-weight: 500; }
+.hl-am { color: var(--amber);  font-weight: 500; }
+.hl-t  { color: var(--teal);   font-weight: 500; }
+.mono  { font-family: var(--mono); font-size: 10px; }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border: 1.5px solid rgba(255,255,255,0.15);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.28s ease forwards; }
+
+/* Click hint */
+.click-hint {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text3);
+  text-align: center;
+  padding: 6px 0 0;
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── TOP BAR ── -->
+  <header class="topbar">
+    <div class="topbar-logo">Health<em>AI</em> Agent</div>
+    <div class="topbar-sep"></div>
+    <div class="topbar-tag">Multi-step ReAct simulator · LangGraph</div>
+    <div class="topbar-status">
+      <div class="sdot" id="sdot"></div>
+      <span id="stext">idle</span>
+    </div>
+  </header>
+
+  <!-- ── SCENARIO SELECTOR BAR ── -->
+  <div class="scenario-bar">
+    <div class="sb-label">Select<br>case →</div>
+    <div class="scenarios-row" id="scenariosRow">
+      <!-- built by JS -->
+    </div>
+  </div>
+
+  <!-- ── LEFT PANEL ── -->
+  <aside class="left-panel">
+
+    <!-- Query card -->
+    <div>
+      <div class="ctrl-label" style="margin-bottom:6px;">Patient query</div>
+      <div class="query-card" id="queryCard">
+        <div class="qc-header">
+          <div class="qc-icon">👤</div>
+          <div>
+            <div class="qc-who" id="qcWho">Patient P001</div>
+            <div class="qc-sub" id="qcSub">Primary care portal</div>
+          </div>
+        </div>
+        <div class="query-bubble">
+          <div class="qb-inner" id="qcText">What does my Hemoglobin A1c result mean?</div>
+        </div>
+        <div class="qc-meta" id="qcMeta">
+          <!-- chips injected by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-section">
+      <div class="ctrl-label">Simulation controls</div>
+      <button class="btn-run" id="btnRun" onclick="startSim()">▶ &nbsp;Run simulation</button>
+      <button class="btn-pause" id="btnPause" onclick="togglePause()" disabled>⏸ &nbsp;Pause</button>
+      <div class="speed-row">
+        <span>Speed</span>
+        <input type="range" id="speedSlider" min="0.5" max="3" step="0.5" value="1">
+        <span id="speedLabel">1×</span>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div style="margin-top:auto;">
+      <div class="ctrl-label" style="margin-bottom:8px;">How to read the flow</div>
+      <div class="arch-legend">
+        <div class="al-row"><div class="al-dot" style="background:var(--text3)"></div>Waiting — not reached yet</div>
+        <div class="al-row"><div class="al-dot" style="background:var(--accent)"></div>Active — currently running</div>
+        <div class="al-row"><div class="al-dot" style="background:var(--green)"></div>Done — completed successfully</div>
+        <div class="al-row"><div class="al-dot" style="background:var(--red)"></div>Blocked / refused / emergency</div>
+        <div class="al-row"><div class="al-dot" style="background:var(--text3);opacity:0.3"></div>Skipped — bypassed by policy</div>
+      </div>
+      <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.6;">
+        Click any completed node in the flow to revisit its explanation.
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── CENTER: Flow diagram ── -->
+  <main class="center-panel">
+    <div class="step-dots-bar">
+      <span class="dots-label">Progress:</span>
+      <div class="sdots" id="sdots"></div>
+      <span class="sdot-name" id="sdotName">—</span>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow-col" id="flowCol"></div>
+    </div>
+    <div class="click-hint" id="clickHint" style="padding:8px 0 10px;">
+      Press <strong style="color:var(--accent)">Run simulation</strong> to begin
+    </div>
+  </main>
+
+  <!-- ── RIGHT: Detail panel ── -->
+  <aside class="right-panel" id="rightPanel">
+    <div class="idle-state">
+      <div class="idle-icon">⬡</div>
+      <div class="idle-title">Step detail</div>
+      <div class="idle-sub">Run the simulation to see what happens inside each step of the agent loop.</div>
+    </div>
+  </aside>
+
+</div><!-- /shell -->
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────────────────────────────────────
+const SCENARIOS = [
+  {
+    patient:    'Patient P001',
+    encounter:  'Primary care portal',
+    query:      'What does my Hemoglobin A1c result mean?',
+    type:       'allowed',
+    chips:      ['Lab result question', 'Educational query', 'Safe to answer'],
+    steps: [
+      {
+        id: 'policy', icon: 'POLICY GATE', name: 'Policy gate',
+        sub: 'Deterministic safety check — no LLM',
+        outcome: 'ok',
+        detail: {
+          what: 'Before any AI is involved, this step scans the query against <strong>10 hard-coded safety rules</strong> using simple text matching. It is fast, cheap, and fully deterministic.',
+          why:  'The guardrail must be reliable. Using rule-matching (not an LLM) here guarantees the same result every time — you cannot "trick" it with clever phrasing.',
+          rules: [
+            { id:'R01', label:'Diagnosis request',        match:false },
+            { id:'R02', label:'Medication stop / change', match:false },
+            { id:'R03', label:'Dose calculation',         match:false },
+            { id:'R04', label:'Chest pain / pressure',    match:false },
+            { id:'R08', label:'Lab explanation',          match:true, action:'answer' },
+          ],
+          verdict: '<span class="hl-g">✓ ALLOWED</span> — Rule R08 matched (lab explanation). Query is forwarded to the agent.',
+        }
+      },
+      {
+        id: 'agent', icon: 'AGENT (LLM)', name: 'Agent reasoning',
+        sub: 'ReAct loop: Thought → decide which tools to call',
+        outcome: 'ok',
+        detail: {
+          what: 'The LLM reads the query and <strong>plans</strong> a sequence of tool calls. This is the "Thought" in the ReAct (Reason + Act) pattern. The model does not answer yet.',
+          why:  'Instead of hallucinating an answer from its training data, the agent grounds its response in real patient data and vetted sources — but first it must decide <em>which</em> tools to use.',
+          thought: '"Patient is asking about a lab result. I need to fetch their actual A1c value, then a plain-language explanation, and a citation."',
+          tools: ['get_labs', 'lookup_lab_education', 'lookup_trusted_source'],
+        }
+      },
+      {
+        id: 'tools', icon: 'TOOLS', name: 'Tool execution',
+        sub: 'Calling real data sources — SQLite DB + CSVs',
+        outcome: 'ok',
+        detail: {
+          what: 'The agent calls three tools. <code>get_labs</code> queries the SQLite patient database; <code>lookup_lab_education</code> and <code>lookup_trusted_source</code> read from the reference CSV files.',
+          why:  'Tools are what make the agent trustworthy: instead of guessing, it fetches real values from the patient record and cites an approved medical source.',
+          results: [
+            { tool:'get_labs',               ok:true, note:'Latest A1c: <strong>4.94% (Normal)</strong> — Jun 9 2025. Previous: <strong>3.74% (Low)</strong> — Feb 21 2025. Patient ID locked to P001 — no cross-patient access allowed.' },
+            { tool:'lookup_lab_education',   ok:true, note:'"A1c reflects average blood sugar over 2–3 months. Normal range: 4.0–5.6%." Citation URL saved to citations list.' },
+            { tool:'lookup_trusted_source',  ok:true, note:'Source S01: MedlinePlus (NIH), public domain. URL will appear in final answer.' },
+          ],
+          security: 'Patient scoping is enforced in code: all clinical tools overwrite patient_id with the logged-in user. Cross-patient data access is structurally impossible.',
+        }
+      },
+      {
+        id: 'llm', icon: 'LLM SYNTHESIS', name: 'LLM synthesis',
+        sub: 'Model generates draft answer from tool observations',
+        outcome: 'ok',
+        detail: {
+          what: 'Only now does the LLM generate text. It receives: (1) the system prompt, (2) the original query, (3) all three tool observations. It produces a patient-friendly draft.',
+          why:  'Separating reasoning (step 2) from generation (this step) means the model cannot make up data. The facts are already fixed by the tool results.',
+          model:   'gpt-4o-mini · temperature = 0 (deterministic output)',
+          context: 'System prompt + patient query + 3 tool observations',
+          draft:   'Explains HbA1c in plain language → shows both results with flags → interprets Normal vs Low → gives when-to-call guidance → cites MedlinePlus.',
+          loop:    'No further tool calls needed. Agent exits the ReAct loop and sends draft to validation.',
+        }
+      },
+      {
+        id: 'validate', icon: 'FINAL VALIDATOR', name: 'Final validation',
+        sub: 'Policy override — last safety gate before release',
+        outcome: 'ok',
+        detail: {
+          what: 'A <strong>second deterministic check</strong> runs on the draft. If the original decision was <em>refuse</em> or <em>escalate</em>, the LLM draft is discarded and a pre-written safe template is sent instead.',
+          why:  'The LLM could theoretically drift into giving advice it should not. This node is the last line of defence — it overrides any unsafe draft.',
+          checks: [
+            { label:'Policy decision',      val:'<span class="hl-g">answer</span> — no override needed' },
+            { label:'Contains diagnosis?',  val:'<span class="hl-g">No ✓</span>' },
+            { label:'Contains med advice?', val:'<span class="hl-g">No ✓</span>' },
+            { label:'Has citation?',        val:'<span class="hl-g">Yes — MedlinePlus ✓</span>' },
+          ],
+          verdict: '<span class="hl-g">Draft approved. Released as final answer.</span>',
+        }
+      },
+      {
+        id: 'output', icon: 'ANSWER', name: 'Final answer',
+        sub: 'Delivered to patient in the portal',
+        outcome: 'ok',
+        detail: {
+          type:   'allowed',
+          what:   'The validated, cited, plain-language answer is returned to the patient.',
+          answer: 'Your Hemoglobin A1c (HbA1c) reflects your average blood sugar over the past 2–3 months.\n\n• Latest result (Jun 9 2025):  4.94% — Normal (range 4.0–5.6%)\n• Previous result (Feb 21 2025): 3.74% — Low\n\nContact your clinician if levels are persistently above target or if you have symptoms of high or low blood sugar.\n\nSource: MedlinePlus (NIH) · medlineplus.gov',
+        }
+      },
+    ]
+  },
+
+  {
+    patient:    'Patient P002',
+    encounter:  'Primary care portal',
+    query:      'What is atorvastatin used for, and what are common side effects?',
+    type:       'allowed',
+    chips:      ['Medication education', 'General question', 'Safe to answer'],
+    steps: [
+      {
+        id: 'policy', icon: 'POLICY GATE', name: 'Policy gate',
+        sub: 'Deterministic safety check — no LLM',
+        outcome: 'ok',
+        detail: {
+          what: 'The query is checked against all 10 safety rules. "Atorvastatin side effects" is a general education question — no dangerous patterns are detected.',
+          why:  'Patients asking about what their medication does are explicitly encouraged — this is core to improving adherence and reducing unnecessary portal messages.',
+          rules: [
+            { id:'R01', label:'Diagnosis request',        match:false },
+            { id:'R02', label:'Medication stop / change', match:false },
+            { id:'R03', label:'Dose calculation',         match:false },
+            { id:'R07', label:'Suicidal thoughts',        match:false },
+            { id:'R10', label:'General medical education',match:true, action:'answer' },
+          ],
+          verdict: '<span class="hl-g">✓ ALLOWED</span> — Rule R10 matched (general medical education). Forwarded to agent.',
+        }
+      },
+      {
+        id: 'agent', icon: 'AGENT (LLM)', name: 'Agent reasoning',
+        sub: 'ReAct loop: Thought → decide which tools to call',
+        outcome: 'ok',
+        detail: {
+          what: 'The LLM recognises this is a general education question — <strong>no patient-specific data is needed</strong>. It plans only two tool calls: the education CSV and the citation lookup.',
+          why:  'Efficient and privacy-preserving: the agent deliberately skips the patient database. Accessing PHI when unnecessary is a risk, not a feature.',
+          thought: '"This is general medication education. I only need the education CSV and a trusted citation — no need to query the patient database."',
+          tools: ['lookup_medication_education', 'lookup_trusted_source'],
+        }
+      },
+      {
+        id: 'tools', icon: 'TOOLS', name: 'Tool execution',
+        sub: 'Reading from CSV reference files only',
+        outcome: 'ok',
+        detail: {
+          what: 'Two tools are called, both reading from CSV files. No database queries. No patient data accessed.',
+          why:  'General questions should be answered from vetted educational content, not from individual patient records.',
+          results: [
+            { tool:'lookup_medication_education', ok:true, note:'Drug class: <strong>Statin</strong>. Used for: lowering cholesterol / cardiovascular risk. Side effects: muscle aches, stomach upset. Red flags: severe muscle pain, dark urine, jaundice. General interaction warning: grapefruit.' },
+            { tool:'lookup_trusted_source',       ok:true, note:'Source S01: MedlinePlus (NIH), public domain. Citation URL saved.' },
+          ],
+          security: 'No PHI accessed. Patient scoping enforcement did not apply — this is a general, non-clinical query.',
+        }
+      },
+      {
+        id: 'llm', icon: 'LLM SYNTHESIS', name: 'LLM synthesis',
+        sub: 'Model generates draft answer from tool observations',
+        outcome: 'ok',
+        detail: {
+          what: 'The LLM turns the raw CSV fields into clear, patient-friendly prose with sections for uses, common side effects, red flags, and a citation.',
+          why:  'The CSV contains structured data. The LLM adds clarity, structure, and appropriate tone — it does not add new facts.',
+          model:   'gpt-4o-mini · temperature = 0',
+          context: 'System prompt + query + 2 tool observations',
+          draft:   'Explains atorvastatin as a statin for cholesterol → lists common side effects → lists red flags → notes grapefruit interaction → cites MedlinePlus.',
+          loop:    'No further tool calls. Draft finalised.',
+        }
+      },
+      {
+        id: 'validate', icon: 'FINAL VALIDATOR', name: 'Final validation',
+        sub: 'Policy override — last safety gate before release',
+        outcome: 'ok',
+        detail: {
+          what: 'Final check confirms the draft is educational, not prescriptive. No medication change advice was generated.',
+          why:  'The validator ensures the LLM stayed within bounds even for a question that felt "safe" at the policy gate.',
+          checks: [
+            { label:'Policy decision',       val:'<span class="hl-g">answer</span> — no override' },
+            { label:'Medication advice?',    val:'<span class="hl-g">No — education only ✓</span>' },
+            { label:'Dose recommendation?',  val:'<span class="hl-g">No ✓</span>' },
+            { label:'Has citation?',         val:'<span class="hl-g">Yes — MedlinePlus ✓</span>' },
+          ],
+          verdict: '<span class="hl-g">Draft approved and released.</span>',
+        }
+      },
+      {
+        id: 'output', icon: 'ANSWER', name: 'Final answer',
+        sub: 'Delivered to patient in the portal',
+        outcome: 'ok',
+        detail: {
+          type:   'allowed',
+          what:   'Patient receives a clear, cited, educational response.',
+          answer: 'Atorvastatin is a statin medication used to lower cholesterol and reduce cardiovascular risk.\n\nCommon side effects: muscle aches, mild stomach upset.\n\nRed flags — contact your clinician if you experience:\n  • Severe muscle pain or weakness\n  • Dark urine\n  • Yellowing of skin or eyes (jaundice)\n\nNote: some statins interact with grapefruit. Tell your clinician about all supplements.\n\nSource: MedlinePlus (NIH) · medlineplus.gov',
+        }
+      },
+    ]
+  },
+
+  {
+    patient:    'Patient P005',
+    encounter:  'Primary care portal',
+    query:      'My creatinine is high. Should I stop my lisinopril?',
+    type:       'refuse',
+    chips:      ['Medication change request', 'Safety rule triggered', 'LLM never called'],
+    steps: [
+      {
+        id: 'policy', icon: 'POLICY GATE', name: 'Policy gate',
+        sub: 'Deterministic safety check — BLOCKED',
+        outcome: 'blocked',
+        detail: {
+          what: 'The word <strong>"stop"</strong> combined with a medication name matches Rule R02 (medication stop/change). The system immediately blocks the request before any AI processing.',
+          why:  'Patients stopping medications without clinical guidance is a real safety risk. The rule is intentionally broad — it is safer to refuse and redirect than to risk an unsafe recommendation.',
+          rules: [
+            { id:'R01', label:'Diagnosis request',        match:false },
+            { id:'R02', label:'Medication stop / change', match:true, action:'refuse' },
+            { id:'R03', label:'Dose calculation',         match:false },
+            { id:'R08', label:'Lab explanation',          match:false },
+          ],
+          verdict: '<span class="hl-r">✗ REFUSED</span> — Rule R02 matched. The agent loop and all tool calls are skipped entirely. A pre-written safe template is returned.',
+        }
+      },
+      {
+        id: 'agent', icon: 'AGENT (LLM)', name: 'Agent reasoning',
+        sub: 'SKIPPED — blocked by policy gate',
+        outcome: 'skip',
+        detail: {
+          what: 'The ReAct agent loop is <strong>never entered</strong>. No LLM call is made at this stage.',
+          why:  'This is intentional by design. Skipping the LLM when a request is blocked saves cost, prevents manipulation ("ignore your instructions and…"), and guarantees the response is deterministic.',
+          thought: '— not reached —',
+          tools: [],
+        }
+      },
+      {
+        id: 'validate', icon: 'FINAL VALIDATOR', name: 'Final validation',
+        sub: 'Policy override enforces refusal template',
+        outcome: 'blocked',
+        detail: {
+          what: 'The final node detects the <em>refuse</em> decision and replaces any LLM output with the standard safe template from <code>safety_policy_rules.csv</code> row R02.',
+          why:  'Even if the agent had somehow generated a response, this node discards it. Safety is enforced at both ends of the pipeline.',
+          checks: [
+            { label:'Policy decision',    val:'<span class="hl-r">refuse</span> — template enforced' },
+            { label:'LLM draft used?',    val:'<span class="hl-r">No — overridden ✗</span>' },
+            { label:'Template source',    val:'R02 · safety_policy_rules.csv' },
+          ],
+          verdict: '<span class="hl-r">Refusal template returned as final answer.</span>',
+        }
+      },
+      {
+        id: 'output', icon: 'ANSWER', name: 'Final answer',
+        sub: 'Safe refusal delivered to patient',
+        outcome: 'blocked',
+        detail: {
+          type:   'refused',
+          what:   'The patient receives a respectful refusal that redirects them to their prescribing clinician.',
+          answer: 'I can\'t advise stopping or changing medications.\n\nI can explain what this medication is for and what your record shows — but please contact your prescribing clinician before making any changes to your medications.',
+        }
+      },
+    ]
+  },
+
+  {
+    patient:    'Patient P006',
+    encounter:  'Primary care portal',
+    query:      'I\'m having chest tightness today and my potassium is high. What should I do right now?',
+    type:       'emergency',
+    chips:      ['Emergency symptom detected', 'Instant escalation', 'No LLM — template only'],
+    steps: [
+      {
+        id: 'policy', icon: 'POLICY GATE', name: 'Policy gate',
+        sub: 'Deterministic safety check — EMERGENCY',
+        outcome: 'emergency',
+        detail: {
+          what: '"Chest tightness" directly matches Rule R04 (chest pain / pressure), which triggers <strong>immediate emergency escalation</strong>. The graph short-circuits — no agent, no tools, no LLM.',
+          why:  'Chest pain is a potential cardiac emergency. Speed matters more than accuracy here. A deterministic template is faster and safer than waiting for LLM inference.',
+          rules: [
+            { id:'R04', label:'Chest pain / pressure',        match:true, action:'escalate_emergency' },
+            { id:'R05', label:'Stroke symptoms',              match:false },
+            { id:'R06', label:'Severe shortness of breath',   match:false },
+            { id:'R07', label:'Suicidal thoughts',            match:false },
+          ],
+          verdict: '<span class="hl-r">⚠ EMERGENCY ESCALATION</span> — R04 matched. LangGraph routes directly to the final node. Agent and tools are completely bypassed.',
+        }
+      },
+      {
+        id: 'agent', icon: 'AGENT (LLM)', name: 'Agent reasoning',
+        sub: 'SKIPPED — emergency short-circuit',
+        outcome: 'skip',
+        detail: {
+          what: 'The LangGraph conditional edge after the policy node routes directly to "final" when the decision is <em>escalate_emergency</em>, skipping both agent and tool nodes.',
+          why:  'For a life-threatening situation the system must respond in milliseconds. Adding LLM inference latency (~1–3 seconds) is unacceptable and potentially dangerous.',
+          thought: '— not reached — emergency short-circuit active —',
+          tools: [],
+        }
+      },
+      {
+        id: 'validate', icon: 'FINAL VALIDATOR', name: 'Final validation',
+        sub: 'Emergency template enforced immediately',
+        outcome: 'blocked',
+        detail: {
+          what: 'The final node detects <em>escalate_emergency</em> and enforces the R04 standard response template. No LLM output is used.',
+          why:  'Emergency responses must be exact and standardised. A language model should never paraphrase "call 911" into something ambiguous.',
+          checks: [
+            { label:'Policy decision',    val:'<span class="hl-r">escalate_emergency</span>' },
+            { label:'LLM draft used?',    val:'<span class="hl-r">No — emergency template only ✗</span>' },
+            { label:'Template source',    val:'R04 · safety_policy_rules.csv' },
+            { label:'Response latency',   val:'<span class="hl-g">Near-instant — zero LLM calls ✓</span>' },
+          ],
+          verdict: '<span class="hl-r">Emergency template returned immediately.</span>',
+        }
+      },
+      {
+        id: 'output', icon: 'ANSWER', name: 'Final answer',
+        sub: 'Emergency alert delivered immediately',
+        outcome: 'blocked',
+        detail: {
+          type:   'emergency',
+          what:   'Patient receives an immediate emergency escalation message — no delay, no ambiguity.',
+          answer: '⚠ Chest pain can be an emergency.\n\nIf you have chest pressure, trouble breathing, sweating, nausea, or fainting:\n\n→ CALL YOUR LOCAL EMERGENCY NUMBER NOW.\n\nDo not wait. Seek immediate medical attention.',
+        }
+      },
+    ]
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let cur      = 0;   // selected scenario index
+let curStep  = -1;
+let running  = false;
+let paused   = false;
+let timer    = null;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+function init() {
+  buildScenarioButtons();
+  document.getElementById('speedSlider').addEventListener('input', function(){
+    document.getElementById('speedLabel').textContent = this.value + '×';
+  });
+  selectScenario(0);
+}
+
+function buildScenarioButtons() {
+  const row = document.getElementById('scenariosRow');
+  SCENARIOS.forEach((sc, i) => {
+    const btn = document.createElement('button');
+    btn.className = `sc-btn type-${sc.type}`;
+    btn.id = `scbtn-${i}`;
+    btn.onclick = () => selectScenario(i);
+    const badgeClass = sc.type === 'allowed' ? 'badge-allowed' : sc.type === 'refuse' ? 'badge-refuse' : 'badge-emergency';
+    const badgeText  = sc.type === 'allowed' ? '✓ allowed' : sc.type === 'refuse' ? '✗ refused' : '⚠ emergency';
+    btn.innerHTML = `
+      <div class="sc-num">Case ${i+1} of ${SCENARIOS.length}</div>
+      <div class="sc-title-text">${sc.patient}</div>
+      <div style="font-size:11px;color:var(--text2);margin:1px 0 2px;line-height:1.35;">${truncate(sc.query, 48)}</div>
+      <span class="sc-badge ${badgeClass}">${badgeText}</span>
+    `;
+    row.appendChild(btn);
+  });
+}
+
+function truncate(str, n) {
+  return str.length > n ? str.slice(0, n) + '…' : str;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCENARIO SELECTION
+// ─────────────────────────────────────────────────────────────────────────────
+function selectScenario(idx) {
+  stopSim();
+  cur     = idx;
+  curStep = -1;
+
+  // Highlight active button
+  document.querySelectorAll('.sc-btn').forEach((b, i) => {
+    b.classList.toggle('active', i === idx);
+  });
+
+  const sc = SCENARIOS[idx];
+
+  // Update query card
+  document.getElementById('qcWho').textContent  = sc.patient;
+  document.getElementById('qcSub').textContent  = sc.encounter;
+  document.getElementById('qcText').textContent = sc.query;
+
+  // Chips
+  const meta = document.getElementById('qcMeta');
+  meta.innerHTML = sc.chips.map(c => `<span class="qc-chip">${c}</span>`).join('');
+
+  buildFlow();
+  buildDots();
+  showIdle();
+  setStatus('idle');
+  document.getElementById('clickHint').textContent = 'Press Run simulation to begin';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FLOW DIAGRAM
+// ─────────────────────────────────────────────────────────────────────────────
+function buildFlow() {
+  const col = document.getElementById('flowCol');
+  col.innerHTML = '';
+  SCENARIOS[cur].steps.forEach((step, i) => {
+    if (i > 0) {
+      const c = document.createElement('div');
+      c.className = 'fc';
+      c.id = `fc-${i}`;
+      col.appendChild(c);
+    }
+    const n = document.createElement('div');
+    n.className = 'fn waiting';
+    n.id = `fn-${i}`;
+    n.onclick = () => { if (curStep >= i) showDetail(i); };
+    n.innerHTML = `
+      <div class="fn-tag">${step.icon}</div>
+      <div class="fn-name">${step.name}</div>
+      <div class="fn-sub">${step.sub}</div>
+    `;
+    col.appendChild(n);
+  });
+}
+
+function buildDots() {
+  const dots = document.getElementById('sdots');
+  dots.innerHTML = '';
+  SCENARIOS[cur].steps.forEach((step, i) => {
+    const d = document.createElement('div');
+    d.className = 'sdot-item';
+    d.id = `sd-${i}`;
+    d.title = step.name;
+    d.onclick = () => { if (curStep >= i) showDetail(i); };
+    dots.appendChild(d);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SIMULATION
+// ─────────────────────────────────────────────────────────────────────────────
+function getDelay() { return 1500 / parseFloat(document.getElementById('speedSlider').value); }
+
+function startSim() {
+  stopSim();
+  curStep = -1;
+  running = true;
+  paused  = false;
+
+  // Reset visuals
+  buildFlow();
+  buildDots();
+  showIdle();
+
+  document.getElementById('btnRun').disabled   = true;
+  document.getElementById('btnPause').disabled = false;
+  document.getElementById('btnPause').textContent = '⏸  Pause';
+  setStatus('running');
+  advance();
+}
+
+function stopSim() {
+  if (timer) { clearTimeout(timer); timer = null; }
+  running = false;
+  paused  = false;
+  document.getElementById('btnRun').disabled   = false;
+  document.getElementById('btnPause').disabled = true;
+}
+
+function togglePause() {
+  if (!running) return;
+  paused = !paused;
+  document.getElementById('btnPause').textContent = paused ? '▶  Resume' : '⏸  Pause';
+  if (!paused) advance();
+}
+
+function advance() {
+  if (!running || paused) return;
+  const sc = SCENARIOS[cur];
+  curStep++;
+
+  if (curStep >= sc.steps.length) {
+    running = false;
+    document.getElementById('btnRun').disabled   = false;
+    document.getElementById('btnPause').disabled = true;
+    setStatus('done');
+    document.getElementById('clickHint').textContent = 'Click any node to review its explanation';
+    return;
+  }
+
+  const step = sc.steps[curStep];
+
+  // Activate node
+  const node = document.getElementById(`fn-${curStep}`);
+  if (node) {
+    node.className = 'fn active';
+    const badge = document.createElement('div');
+    badge.className = 'fn-badge fb-run';
+    badge.id = `badge-${curStep}`;
+    badge.innerHTML = '<span class="spinner"></span>';
+    node.appendChild(badge);
+    node.classList.add('clickable');
+  }
+
+  // Activate dot
+  const dot = document.getElementById(`sd-${curStep}`);
+  if (dot) dot.className = 'sdot-item active';
+  document.getElementById('sdotName').textContent = step.name;
+
+  showDetail(curStep);
+
+  timer = setTimeout(() => {
+    completeNode(curStep, step.outcome);
+
+    // Light connector to next
+    if (curStep + 1 < sc.steps.length) {
+      const conn = document.getElementById(`fc-${curStep + 1}`);
+      if (conn) conn.className = step.outcome === 'ok' ? 'fc lit' : 'fc blocked-line';
+    }
+
+    // Skip middle steps for refused / emergency
+    if ((step.outcome === 'blocked' || step.outcome === 'emergency') && curStep === 0) {
+      const skipUntil = sc.steps.length - 2; // last two are validate + output
+      for (let s = 1; s < skipUntil; s++) {
+        const sn = document.getElementById(`fn-${s}`);
+        if (sn) { sn.className = 'fn skipped'; sn.querySelector('.fn-sub').textContent = '— skipped by policy —'; }
+        const sd = document.getElementById(`sd-${s}`);
+        if (sd) sd.className = 'sdot-item';
+        const sc2 = document.getElementById(`fc-${s}`);
+        if (sc2) sc2.className = 'fc blocked-line';
+        const sc3 = document.getElementById(`fc-${s+1}`);
+        if (sc3) sc3.className = 'fc blocked-line';
+      }
+      curStep = skipUntil - 1;
+    }
+
+    timer = setTimeout(advance, 350);
+  }, getDelay());
+}
+
+function completeNode(idx, outcome) {
+  const node  = document.getElementById(`fn-${idx}`);
+  const dot   = document.getElementById(`sd-${idx}`);
+  const badge = document.getElementById(`badge-${idx}`);
+  if (badge) badge.remove();
+  if (!node) return;
+
+  if (outcome === 'ok') {
+    node.className = 'fn done clickable';
+    if (dot) dot.className = 'sdot-item done';
+    const b = document.createElement('div');
+    b.className = 'fn-badge fb-ok'; b.id = `badge-${idx}`; b.textContent = '✓';
+    node.appendChild(b);
+  } else if (outcome === 'skip') {
+    node.className = 'fn skipped';
+  } else {
+    node.className = 'fn blocked clickable';
+    if (dot) dot.className = 'sdot-item blocked';
+    const b = document.createElement('div');
+    b.className = 'fn-badge fb-no'; b.id = `badge-${idx}`;
+    b.textContent = outcome === 'emergency' ? '⚠' : '✗';
+    node.appendChild(b);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DETAIL PANEL
+// ─────────────────────────────────────────────────────────────────────────────
+function showIdle() {
+  document.getElementById('rightPanel').innerHTML = `
+    <div class="idle-state">
+      <div class="idle-icon">⬡</div>
+      <div class="idle-title">Step detail</div>
+      <div class="idle-sub">Run the simulation to see what happens inside each step of the agent loop.</div>
+    </div>`;
+}
+
+function showDetail(idx) {
+  const sc   = SCENARIOS[cur];
+  const step = sc.steps[idx];
+  const d    = step.detail;
+  const rp   = document.getElementById('rightPanel');
+  const total= sc.steps.length;
+
+  let h = `
+    <div class="detail-header">
+      <div class="dh-step">STEP ${idx+1} OF ${total}</div>
+      <div class="dh-name">${step.name}</div>
+      <div class="dh-sub">${step.sub}</div>
+    </div>
+    <div class="detail-body fade-up">
+  `;
+
+  // What / Why
+  h += sec('What is happening', `<div class="ds-box">${d.what}</div>`);
+  h += sec('Why this matters', `<div class="ds-box">${d.why}</div>`);
+
+  // Rules
+  if (d.rules) {
+    let rh = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 12px;">';
+    d.rules.forEach(r => {
+      const cls  = r.match ? (r.action === 'refuse' || r.action?.startsWith('escalate') ? 'rr-block' : 'rr-match') : 'rr-skip';
+      const icon = r.match ? (r.action === 'refuse' || r.action?.startsWith('escalate') ? '✗' : '✓') : '–';
+      const acolor = r.match ? (r.action?.startsWith('escalate') ? 'var(--red)' : r.action === 'refuse' ? 'var(--red)' : 'var(--green)') : 'var(--text3)';
+      rh += `<div class="rule-row">
+        <span class="rr-id ${cls}">${r.id}</span>
+        <span class="rr-label">${r.label}</span>
+        <span class="rr-action" style="color:${acolor};">${r.match ? r.action : '—'}&nbsp;${icon}</span>
+      </div>`;
+    });
+    rh += '</div>';
+    h += sec('Safety rules evaluated', rh);
+    h += sec('Verdict', `<div class="ds-box">${d.verdict}</div>`);
+  }
+
+  // Thought + Tools
+  if (d.thought !== undefined) {
+    if (!d.thought.startsWith('—')) {
+      h += sec('LLM thought (internal)', `<div class="ds-box" style="font-style:italic;color:var(--text);">${d.thought}</div>`);
+    }
+    if (d.tools && d.tools.length > 0) {
+      const chips = d.tools.map(t => `<span class="tc">${t}</span>`).join('');
+      h += sec('Tools the agent will call', `<div class="tool-list" style="padding:6px 0;">${chips}</div>`);
+    } else if (d.tools) {
+      h += sec('Tools the agent will call', `<div class="ds-box" style="color:var(--text3);">None — skipped by policy gate</div>`);
+    }
+  }
+
+  // Tool results
+  if (d.results !== undefined) {
+    if (d.results.length > 0) {
+      let th = '<div style="display:flex;flex-direction:column;gap:6px;">';
+      d.results.forEach(r => {
+        th += `<div class="tr-row">
+          <div class="tr-head"><span class="tc" style="font-size:9px;">${r.tool}</span><span class="tr-ok">✓ success</span></div>
+          <div class="tr-note">${r.note}</div>
+        </div>`;
+      });
+      th += '</div>';
+      h += sec('Tool results (observations)', th);
+    } else {
+      h += sec('Tool results', `<div class="ds-box" style="color:var(--text3);">No tools called — blocked by policy.</div>`);
+    }
+    if (d.security) h += sec('Security enforcement', `<div class="ds-box">${d.security}</div>`);
+  }
+
+  // LLM synthesis fields
+  if (d.model) {
+    h += sec('Model used', `<div class="ds-box"><span class="mono">${d.model}</span></div>`);
+    h += sec('Context sent to the model', `<div class="ds-box">${d.context}</div>`);
+    h += sec('What the draft contains', `<div class="ds-box">${d.draft}</div>`);
+    h += sec('ReAct loop decision', `<div class="ds-box">${d.loop}</div>`);
+  }
+
+  // Validation checks
+  if (d.checks) {
+    let ch = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:4px 12px;">';
+    d.checks.forEach(c => {
+      ch += `<div class="ck-row"><span class="ck-lbl">${c.label}</span><span class="ck-val">${c.val}</span></div>`;
+    });
+    ch += '</div>';
+    h += sec('Validation checks', ch);
+    h += sec('Verdict', `<div class="ds-box">${d.verdict}</div>`);
+  }
+
+  // Final answer
+  if (d.answer) {
+    h += sec('What is happening', `<div class="ds-box">${d.what}</div>`);
+    h += sec('Answer delivered to patient', `<div class="res-box res-${d.type}">${d.answer}</div>`);
+  }
+
+  h += '</div>';
+  rp.innerHTML = h;
+}
+
+function sec(label, content) {
+  return `<div class="ds"><div class="ds-lbl">${label}</div>${content}</div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATUS
+// ─────────────────────────────────────────────────────────────────────────────
+function setStatus(state) {
+  const dot = document.getElementById('sdot');
+  const txt = document.getElementById('stext');
+  dot.className = 'sdot';
+  if      (state === 'running') { dot.classList.add('running'); txt.textContent = 'running'; }
+  else if (state === 'done')    { dot.classList.add('done');    txt.textContent = 'complete'; }
+  else                          {                               txt.textContent = 'idle'; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
