@@ -1,15 +1,233 @@
-<h1 align="center">Hi 👋, I'm Juan Ignacio</h1>
-<h3 align="center">A passionate solutions designer using data</h3>
+<div align="center">
 
-<p align="left"> <img src="https://komarev.com/ghpvc/?username=jigonzale04&label=Profile%20views&color=0e75b6&style=flat" alt="jigonzale04" /> </p>
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:16213e,100:0f3460&height=200&section=header&text=Juan%20Ignacio%20Gonz%C3%A1lez-Espinosa&fontSize=36&fontColor=e94560&fontAlignY=38&desc=Ph.D.%20%7C%20Clinical%20Assistant%20Professor%20%7C%20AI%20%26%20Business%20Analytics&descAlignY=58&descSize=16&descColor=a8dadc" width="100%"/>
 
-<h3 align="left">Connect with me:</h3>
-<p align="left">
-</p>
+</div>
 
-<h3 align="left">Languages and Tools:</h3>
-<p align="left"> <a href="https://aws.amazon.com" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/amazonwebservices/amazonwebservices-original-wordmark.svg" alt="aws" width="40" height="40"/> </a> <a href="https://www.docker.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/docker/docker-original-wordmark.svg" alt="docker" width="40" height="40"/> </a> <a href="https://www.figma.com/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/figma/figma-icon.svg" alt="figma" width="40" height="40"/> </a> <a href="https://www.adobe.com/in/products/illustrator.html" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/adobe_illustrator/adobe_illustrator-icon.svg" alt="illustrator" width="40" height="40"/> </a> <a href="https://www.mathworks.com/" target="_blank" rel="noreferrer"> <img src="https://upload.wikimedia.org/wikipedia/commons/2/21/Matlab_Logo.png" alt="matlab" width="40" height="40"/> </a> <a href="https://www.mongodb.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mongodb/mongodb-original-wordmark.svg" alt="mongodb" width="40" height="40"/> </a> <a href="https://www.mysql.com/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/mysql/mysql-original-wordmark.svg" alt="mysql" width="40" height="40"/> </a> <a href="https://opencv.org/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/opencv/opencv-icon.svg" alt="opencv" width="40" height="40"/> </a> <a href="https://pandas.pydata.org/" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/2ae2a900d2f041da66e950e4d48052658d850630/icons/pandas/pandas-original.svg" alt="pandas" width="40" height="40"/> </a> <a href="https://www.photoshop.com/en" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/photoshop/photoshop-line.svg" alt="photoshop" width="40" height="40"/> </a> <a href="https://pytorch.org/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/pytorch/pytorch-icon.svg" alt="pytorch" width="40" height="40"/> </a> <a href="https://scikit-learn.org/" target="_blank" rel="noreferrer"> <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Scikit_learn_logo_small.svg" alt="scikit_learn" width="40" height="40"/> </a> <a href="https://seaborn.pydata.org/" target="_blank" rel="noreferrer"> <img src="https://seaborn.pydata.org/_images/logo-mark-lightbg.svg" alt="seaborn" width="40" height="40"/> </a> <a href="https://www.tensorflow.org" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/tensorflow/tensorflow-icon.svg" alt="tensorflow" width="40" height="40"/> </a> </p>
+---
 
-<p><img align="left" src="https://github-readme-stats.vercel.app/api/top-langs?username=jigonzale04&show_icons=true&locale=en&layout=compact" alt="jigonzale04" /></p>
+<div align="center">
 
-<p>&nbsp;<img align="center" src="https://github-readme-stats.vercel.app/api?username=jigonzale04&show_icons=true&locale=en" alt="jigonzale04" /></p>
+### 🏛️ Academic Home
+
+<a href="https://business.purdue.edu/directory/bio.php?username=gonz1400" target="_blank">
+  <img src="https://img.shields.io/badge/Purdue_University-CFB991?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MCA1MCI+PHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjQ0ZCOTkxIi8+PHRleHQgeD0iNSIgeT0iMzUiIGZvbnQtc2l6ZT0iMzUiIGZpbGw9IiMxQTFBMUEiPuKQoTwvdGV4dD48L3N2Zz4=&logoColor=1a1a1a&label=Mitch+Daniels+School+of+Business" alt="Purdue University"/>
+</a>
+&nbsp;
+<a href="https://www.linkedin.com/in/juanignacio-gonzalez/?locale=en" target="_blank">
+  <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/>
+</a>
+&nbsp;
+<a href="https://huggingface.co/jigonzale040" target="_blank">
+  <img src="https://img.shields.io/badge/🤗_HuggingFace-FFD21E?style=for-the-badge&logoColor=black" alt="HuggingFace"/>
+</a>
+
+</div>
+
+---
+
+## 👤 About Me
+
+I am a **Clinical Assistant Professor** at the **Mitch Daniels School of Business, Purdue University** (Quantitative Methods Department), where I teach Data Mining, AI for Business Analytics, and Six Sigma & Quality Analytics at both the undergraduate and graduate levels.
+
+I hold a **Ph.D. in Management Science** (EGADE Business School, Tecnológico de Monterrey) and have accumulated 20+ years spanning industry marketing management, executive roles as **Chief Data Scientist** and **Director of Intelligence & Data Science** at Universidad de Monterrey, and faculty positions across Mexico, the US, Peru, and Poland.
+
+My work sits at the crossroads of **business strategy and applied AI**: I build ML/DL models, deploy them as interactive applications, and teach practitioners and students how to use them for real decisions — without needing to be coders themselves.
+
+> *"I am not a coder — I am a developer of business solutions and an academic."*
+
+---
+
+## 🎓 Education & Credentials
+
+| Degree / Program | Institution | Year |
+|---|---|---|
+| 🎓 Ph.D. Management Science | EGADE Business School · Tec de Monterrey | 2016 |
+| 🎓 M.B.A. | EGADE Business School · Tec de Monterrey | 2007 |
+| 🎓 B.A. Marketing *(Honors — Mention of Excellence)* | ITESM Monterrey | 1998 |
+| 📜 PG Program: AI Agents for Business Applications | UT Austin McCombs · Great Learning | 2025–2026 |
+| 📜 SQL & Databases | Great Learning | 2025 |
+| 📜 Generative AI for NLP | Great Learning | 2024 |
+| 📜 Data Science & ML (MIT IDSS) | MIT · Great Learning | 2023 |
+| 📜 AI & ML Post-Graduate Program | UT Austin McCombs · Great Learning | 2023 |
+| 📜 Data Science & Business Analytics | UT Austin McCombs · Great Learning | 2021 |
+| 📜 Computer Vision Master's Program | Analytics Vidhya | 2021 |
+| 📜 Data Governance | Global Data Academy | 2022 |
+| 📜 Agile Coach Professional | Enevasys | 2023 |
+
+**Notable Awards & Grants:** Fulbright-COMEXUS Scholar · CONACYT Doctoral Fellowship · Marco-Polo/China Government Scholar (Peking University) · Rice University Baker Institute Visiting Scholar · Erasmus+ Exchange (Silesian University of Technology, Poland) · Carlos Slim/Telmex Foundation Scholar
+
+---
+
+## 🏫 Current Position — Purdue University
+
+<img src="https://img.shields.io/badge/Purdue_University-CFB991?style=flat-square&logoColor=1a1a1a" height="22"/>  
+**Mitch Daniels School of Business · Quantitative Methods Department**  
+*Clinical Assistant Professor · July 2025 – Present*
+
+### 📚 Courses Offered
+
+| Level | Code | Title |
+|---|---|---|
+| 🎓 Undergraduate | MGMT 38900 | Using AI For Business Analytics |
+| 🎓 Undergraduate | MGMT 47300 | Data Mining |
+| 🎓 Undergraduate | MGMT 40500 | Six Sigma and Quality Analytics |
+| 🏅 Graduate | MGMT 57100 | Data Mining |
+| 🏅 Graduate | MGMT 59000 | Using AI For Business Analytics |
+
+### ⭐ Student Feedback (Fall 2025 — avg. 4.55–4.67 / 5.0)
+
+> *"He genuinely cares about his students. His classes are so engaging — interactive lectures, collaborative group projects, and real-world cases."*
+
+> *"Setting the precedence that the ultimate objective is to deliver a solution to real-life stakeholders, rather than merely attaining a high model output — a great approach that benefits every student beyond the classroom."*
+
+> *"It was an absolute joy to have Professor Gonzalez. I would recommend him to every friend of mine."*
+
+---
+
+## 🤖 Machine Learning & Deep Learning Projects
+
+> Interactive demos deployed on HuggingFace Spaces — no installation required.
+
+---
+
+### 1 · 🧠 ANN Simulation
+[![HuggingFace](https://img.shields.io/badge/🤗_Live_Demo-FFD21E?style=for-the-badge)](https://huggingface.co/spaces/jigonzale040/ANN)
+
+An interactive simulator for **Artificial Neural Networks (MLP)**. Configure layers, neurons, and activation functions, then train on a sample dataset and visualize how the network learns — step by step.
+
+**Concepts demonstrated:** forward pass · backpropagation · activation functions · loss curves
+
+---
+
+### 2 · 💬 Sentiment Analyzer
+[![HuggingFace](https://img.shields.io/badge/🤗_Live_Demo-FFD21E?style=for-the-badge)](https://huggingface.co/spaces/jigonzale040/SA_App)
+
+Real-time **NLP sentiment analysis** application. Enter any text and receive polarity and sentiment scores computed using TextBlob and VADER — with visual breakdowns of the results.
+
+**Concepts demonstrated:** NLP pipeline · lexicon-based sentiment scoring · text preprocessing
+
+---
+
+### 3 · 🛒 K-Means Retail Clustering — Recheio Case
+[![HuggingFace](https://img.shields.io/badge/🤗_Live_Demo-FFD21E?style=for-the-badge)](https://huggingface.co/spaces/jigonzale040/Recheio_clust)
+
+Customer segmentation application applied to a **real Portuguese retailer dataset (Recheio)**. Adjust the number of clusters (K), explore the elbow method, and interpret segment profiles for business action.
+
+**Concepts demonstrated:** K-Means clustering · elbow method · RFM segmentation · business interpretation
+
+#### 📖 Interactive Explainer — How K-Means Works
+
+A standalone, step-by-step **visual explainer** built for classroom and executive education use. Walks through centroid initialization, distance calculation, reassignment, and convergence — with animated canvas visualizations.
+
+---
+
+### 4 · 📝 Text Vectorization — TF-IDF & Word2Vec
+[![HuggingFace](https://img.shields.io/badge/🤗_Live_Demo-FFD21E?style=for-the-badge)](https://huggingface.co/spaces/jigonzale040/tfidf-word2vec-demo)
+
+Side-by-side comparison of two foundational NLP text vectorization techniques. Input your own corpus and instantly see how TF-IDF and Word2Vec represent words and documents differently.
+
+**Concepts demonstrated:** bag-of-words · TF-IDF weighting · Word2Vec CBOW · semantic similarity
+
+---
+
+## 🤖 Agentic AI Projects
+
+> AI agents powered by LLMs — combining tool use, memory, and conversational intelligence for real business applications.
+
+---
+
+### 1 · 📱 Customer Service Agent — Union Mobile
+[![HuggingFace](https://img.shields.io/badge/🤗_Live_Demo-FFD21E?style=for-the-badge)](https://huggingface.co/spaces/jigonzale040/Agent_1)
+
+A fully functional **LLM-powered customer service chatbot** for a fictional mobile carrier (Union Mobile). The agent handles billing inquiries, plan changes, technical support requests, and escalation — simulating a real-world contact center deployment.
+
+**Architecture:** LangChain · tool use · conversation memory · prompt engineering
+
+---
+
+### 2 · 🏥 EHR Patient Assistant — Healthcare AI Agent
+[![HuggingFace](https://img.shields.io/badge/🤗_Live_Demo-FFD21E?style=for-the-badge)](https://huggingface.co/spaces/jigonzale040/EHD_Agent)
+
+An **Electronic Health Record (EHR) conversational agent** that allows clinicians and administrative staff to query patient data, retrieve summaries, and navigate records through natural language — without writing SQL or navigating complex UIs.
+
+**Architecture:** LLM agent · RAG-style retrieval · structured data querying · healthcare domain prompting
+
+#### 📖 Interactive Simulator Preview
+
+A browser-based **HTML prototype** demonstrating the EHR Agent interface — showing how the conversational AI interacts with a simulated patient record system in a realistic clinical UI.
+
+---
+
+### 3 · 📄 Fast Candidate Analyzer — CV vs. Job Description Matcher
+[![HuggingFace](https://img.shields.io/badge/🤗_Live_Demo-FFD21E?style=for-the-badge)](https://huggingface.co/spaces/jigonzale040/CRMA_V2)
+
+Upload a **CV and a job description** — the agent analyzes fit, identifies gaps, highlights strengths, and produces a structured match report in seconds. Designed for HR teams, recruiters, and hiring managers who need to screen candidates at scale.
+
+**Architecture:** LLM agent · document parsing · structured output · comparative analysis
+
+---
+
+## 🔬 Research Interests
+
+```
+├── Generative AI & LLMs for Business Decision-Making
+├── Machine & Deep Learning Applications (predictive · prescriptive)
+├── NLP: Sentiment Analysis · Text Mining · Vectorization · LLM Fine-tuning
+├── Market Intelligence & Competitive Intelligence Systems
+├── Complexity Theory & Systems Dynamics (Vensim)
+├── Entrepreneurship (immigrant & non-traditional entrepreneurs)
+└── Multivariate Methods: SEM · PLS · Cluster · Conjoint · Factor Analysis
+```
+
+---
+
+## 🛠️ Technical Stack
+
+**ML / Analytics**  
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![R](https://img.shields.io/badge/R-276DC3?style=flat-square&logo=r&logoColor=white)
+![SQL](https://img.shields.io/badge/SQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
+![Keras](https://img.shields.io/badge/Keras-D00000?style=flat-square&logo=keras&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white)
+
+**LLMs & Agents**  
+![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=flat-square)
+![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=flat-square)
+![Gradio](https://img.shields.io/badge/Gradio-FF7C00?style=flat-square)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
+
+**Visualization & BI**  
+![PowerBI](https://img.shields.io/badge/Power_BI-F2C811?style=flat-square&logo=powerbi&logoColor=black)
+![Tableau](https://img.shields.io/badge/Tableau-E97627?style=flat-square&logo=tableau&logoColor=white)
+![Qlik](https://img.shields.io/badge/Qlik_Sense-009845?style=flat-square)
+
+**Other Tools**  
+![SPSS](https://img.shields.io/badge/SPSS-052FAD?style=flat-square&logo=ibm&logoColor=white)
+![RapidMiner](https://img.shields.io/badge/RapidMiner-F9A400?style=flat-square)
+![NVivo](https://img.shields.io/badge/NVivo-7B2D8B?style=flat-square)
+
+---
+
+## 📬 Contact
+
+| | |
+|---|---|
+| 📧 Email | gonz1400@purdue.edu |
+| 🏛️ Office | Krannert Hall 533 · 155 S Grant St · West Lafayette, IN 47907 |
+| 💼 LinkedIn | [linkedin.com/in/juanignacio-gonzalez](https://www.linkedin.com/in/juanignacio-gonzalez/?locale=en) |
+| 🎓 Purdue Profile | [business.purdue.edu/directory](https://business.purdue.edu/directory/bio.php?username=gonz1400) |
+| 🤗 HuggingFace | [huggingface.co/jigonzale040](https://huggingface.co/jigonzale040) |
+| 📞 Phone | +(314) 412-5998 |
+
+---
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0f3460,50:16213e,100:1a1a2e&height=100&section=footer" width="100%"/>
+
+*Clinical Assistant Professor · Mitch Daniels School of Business · Purdue University*  
+*Ph.D. Management Science · AI & Business Analytics Practitioner*
+
+</div>
