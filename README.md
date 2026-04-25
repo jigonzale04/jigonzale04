@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Georgia&size=32&duration=0&pause=0&color=FFFFFF&background=0D0F1E&center=true&vCenter=true&multiline=true&repeat=false&width=900&height=160&lines=Juan+Ignacio+Gonz%C3%A1lez-Espinosa;Ph.D.+%7C+Clinical+Assistant+Professor+%7C+Purdue+University;AI+%26+Business+Analytics+%C2%B7+Machine+Learning+%C2%B7+Data-Driven+Solutions" alt="Header Banner" width="100%"/>
+<img src="https://raw.githubusercontent.com/jigonzale040/jigonzale040/main/banner.svg" alt="Juan Ignacio González-Espinosa — Clinical Assistant Professor, Purdue University" width="100%"/>
 
 </div>
 
@@ -8,7 +8,7 @@
 
 <div align="center">
 
-### 🔗 Hello!
+### 🔗 Find Me Online
 
 <a href="https://business.purdue.edu/directory/bio.php?username=gonz1400" target="_blank">
   <img src="https://img.shields.io/badge/Purdue_University-CFB991?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MCA1MCI+PHJlY3Qgd2lkdGg9IjUwIiBoZWlnaHQ9IjUwIiBmaWxsPSIjQ0ZCOTkxIi8+PHRleHQgeD0iNSIgeT0iMzUiIGZvbnQtc2l6ZT0iMzUiIGZpbGw9IiMxQTFBMUEiPuKQoTwvdGV4dD48L3N2Zz4=&logoColor=1a1a1a&label=Mitch+Daniels+School+of+Business" alt="Purdue University"/>
@@ -42,7 +42,7 @@ My work sits at the crossroads of **business strategy and applied AI**: I build 
 
 | Degree / Program | Institution | Year |
 |---|---|---|
-| 🎓 Ph.D. Management Science | EGADE Business School · Tec de Monterrey - Fisher College of Business, Ohio State University* | 2016 |
+| 🎓 Ph.D. Management Science | EGADE Business School · Tec de Monterrey · *Research Stay: Fisher College of Business, Ohio State University* | 2016 |
 | 🎓 M.B.A. | EGADE Business School · Tec de Monterrey | 2007 |
 | 📜 PG Program: AI Agents for Business Applications | UT Austin McCombs · Great Learning | 2025–2026 |
 | 📜 SQL & Databases | Great Learning | 2025 |
@@ -117,7 +117,7 @@ Customer segmentation application applied to a **real Portuguese retailer datase
 
 #### 📖 Interactive Explainer — How K-Means Works
 
-[![View Explainer](https://img.shields.io/badge/📖_Open_Interactive_Explainer-1a1a2e?style=for-the-badge)](https://jigonzale040.github.io/jigonzale040/kmeans_explainer_V4.html)
+[![View Explainer](https://img.shields.io/badge/📖_Open_Interactive_Explainer-1a1a2e?style=for-the-badge)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale040/jigonzale040/main/kmeans_explainer_V4.html)
 
 A standalone, step-by-step **visual explainer** built for classroom and executive education use. Walks through centroid initialization, distance calculation, reassignment, and convergence — with animated canvas visualizations.
 
@@ -156,7 +156,7 @@ An **Electronic Health Record (EHR) conversational agent** that allows clinician
 
 #### 📖 Interactive Simulator Preview
 
-[![View Simulator](https://img.shields.io/badge/📖_Open_EHR_Simulator_Preview-1a0533?style=for-the-badge)](https://jigonzale040.github.io/jigonzale040/healthcare_EHD_Agent_Prev.html)
+[![View Simulator](https://img.shields.io/badge/📖_Open_EHR_Simulator_Preview-1a0533?style=for-the-badge)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale040/jigonzale040/main/healthcare_EHD_Agent_Prev.html)
 
 A browser-based **HTML prototype** demonstrating the EHR Agent interface — showing how the conversational AI interacts with a simulated patient record system in a realistic clinical UI.
 
@@ -227,7 +227,7 @@ Upload a **CV and a job description** — the agent analyzes fit, identifies gap
 
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Courier+New&size=13&duration=0&pause=0&color=445566&background=0D0F1E&center=true&vCenter=true&repeat=false&width=900&height=50&lines=Clinical+Assistant+Professor+%C2%B7+Mitch+Daniels+School+of+Business+%C2%B7+Purdue+University" alt="Footer" width="100%"/>
+<img src="https://raw.githubusercontent.com/jigonzale040/jigonzale040/main/banner.svg" alt="footer" width="100%" style="opacity:0.4; transform:scaleY(-1)"/>
 
 *Clinical Assistant Professor · Mitch Daniels School of Business · Purdue University*  
 *Ph.D. Management Science · AI & Business Analytics Practitioner*
