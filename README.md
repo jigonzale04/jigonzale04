@@ -117,7 +117,7 @@ Customer segmentation application applied to a **real Portuguese retailer datase
 
 #### 📖 Interactive Explainer — How K-Means Works
 
-[![View Explainer](https://img.shields.io/badge/📖_Open_Interactive_Explainer-1a1a2e?style=for-the-badge)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/kmeans_explainer_V4.html)
+[![View Explainer](https://img.shields.io/badge/📖_Open_Interactive_Explainer-1a1a2e?style=for-the-badge)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/main/jigonzale04/kmeans_explainer_V4.html)
 
 A standalone, step-by-step **visual explainer** built for classroom and executive education use. Walks through centroid initialization, distance calculation, reassignment, and convergence — with animated canvas visualizations.
 
@@ -156,7 +156,7 @@ An **Electronic Health Record (EHR) conversational agent** that allows clinician
 
 #### 📖 Interactive Simulator Preview
 
-[![View Simulator](https://img.shields.io/badge/📖_Open_EHR_Simulator_Preview-1a0533?style=for-the-badge)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/healthcare_EHD_Agent_Prev.html)
+[![View Simulator](https://img.shields.io/badge/📖_Open_EHR_Simulator_Preview-1a0533?style=for-the-badge)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/healthcare_EHD_Agent_Prev.html)
 
 A browser-based **HTML prototype** demonstrating the EHR Agent interface — showing how the conversational AI interacts with a simulated patient record system in a realistic clinical UI.
 
