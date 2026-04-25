@@ -216,7 +216,6 @@ Upload a **CV and a job description** — the agent analyzes fit, identifies gap
 
 ## 📬 Contact
 
-| | |
 | 📧 Email | gonz1400@purdue.edu |
 | 🏛️ Office | Krannert Hall 533 · 155 S Grant St · West Lafayette, IN 47907 |
 | 💼 LinkedIn | [linkedin.com/in/juanignacio-gonzalez](https://www.linkedin.com/in/juanignacio-gonzalez/?locale=en) |
@@ -225,11 +224,3 @@ Upload a **CV and a job description** — the agent analyzes fit, identifies gap
 
 ---
 
-<div align="center">
-
-<img src="https://raw.githubusercontent.com/jigonzale040/jigonzale040/main/banner.svg" alt="footer" width="100%" style="opacity:0.4; transform:scaleY(-1)"/>
-
-*Clinical Assistant Professor · Mitch Daniels School of Business · Purdue University*  
-*Ph.D. Management Science · AI & Business Analytics Practitioner*
-
-</div>
