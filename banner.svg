@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 150" width="900" height="150">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d0f1e"/>
+      <stop offset="55%" stop-color="#0f2044"/>
+      <stop offset="100%" stop-color="#1a0533"/>
+    </linearGradient>
+    <linearGradient id="accentLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e94560"/>
+      <stop offset="100%" stop-color="#a8dadc"/>
+    </linearGradient>
+    <linearGradient id="pill" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e94560" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#a8dadc" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="150" fill="url(#bg)"/>
+
+  <!-- Subtle grid -->
+  <line x1="0" y1="37" x2="900" y2="37" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+  <line x1="0" y1="75" x2="900" y2="75" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+  <line x1="0" y1="113" x2="900" y2="113" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+  <line x1="225" y1="0" x2="225" y2="150" stroke="#ffffff" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="450" y1="0" x2="450" y2="150" stroke="#ffffff" stroke-opacity="0.03" stroke-width="1"/>
+  <line x1="675" y1="0" x2="675" y2="150" stroke="#ffffff" stroke-opacity="0.03" stroke-width="1"/>
+
+  <!-- Decorative circles right -->
+  <circle cx="840" cy="75" r="60" fill="none" stroke="#e94560" stroke-opacity="0.1" stroke-width="1.5"/>
+  <circle cx="840" cy="75" r="42" fill="none" stroke="#e94560" stroke-opacity="0.07" stroke-width="1"/>
+  <circle cx="840" cy="75" r="22" fill="none" stroke="#e94560" stroke-opacity="0.05" stroke-width="1"/>
+
+  <!-- Decorative circles left -->
+  <circle cx="60" cy="75" r="48" fill="none" stroke="#a8dadc" stroke-opacity="0.08" stroke-width="1.5"/>
+  <circle cx="60" cy="75" r="28" fill="none" stroke="#a8dadc" stroke-opacity="0.05" stroke-width="1"/>
+
+  <!-- Top accent bar -->
+  <rect x="0" y="0" width="900" height="3.5" fill="url(#accentLine)"/>
+
+  <!-- Name -->
+  <text x="50" y="62"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="28"
+    font-weight="bold"
+    fill="#ffffff"
+    letter-spacing="0.8">Juan Ignacio González-Espinosa</text>
+
+  <!-- Gradient underline -->
+  <rect x="50" y="68" width="450" height="2" fill="url(#accentLine)" rx="1"/>
+
+  <!-- Subtitle 1 -->
+  <text x="50" y="95"
+    font-family="'Courier New', Courier, monospace"
+    font-size="13"
+    fill="#a8dadc"
+    letter-spacing="2">Ph.D. · Clinical Assistant Professor · Purdue University</text>
+
+  <!-- Subtitle 2 -->
+  <text x="50" y="116"
+    font-family="'Courier New', Courier, monospace"
+    font-size="11"
+    fill="#8899aa"
+    letter-spacing="1.5">AI &amp; Business Analytics  ·  Machine Learning  ·  Data-Driven Business Solutions</text>
+
+  <!-- Location pill -->
+  <rect x="50" y="127" width="178" height="15" rx="7.5" fill="url(#pill)"/>
+  <text x="139" y="138.5"
+    font-family="'Courier New', Courier, monospace"
+    font-size="8.5"
+    fill="#e94560"
+    text-anchor="middle"
+    letter-spacing="1.8">WEST LAFAYETTE · IN · USA</text>
+
+  <!-- Bottom accent bar -->
+  <rect x="0" y="147" width="900" height="3" fill="url(#accentLine)" opacity="0.4"/>
+</svg>
