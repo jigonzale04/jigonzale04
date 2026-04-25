@@ -42,7 +42,7 @@ My work sits at the crossroads of **business strategy and applied AI**: I build 
 
 | Degree / Program | Institution | Year |
 |---|---|---|
-| 🎓 Ph.D. Management Science | EGADE Business School · Tec de Monterrey - Fisher College of Business, Ohio State University* | 2016 |
+| 🎓 Ph.D. Management Science | EGADE Business School · Tec de Monterrey - Fisher College of Business, Ohio State University | 2016 |
 | 🎓 M.B.A. | EGADE Business School · Tec de Monterrey | 2007 |
 | 📜 PG Program: AI Agents for Business Applications | UT Austin McCombs · Great Learning | 2025–2026 |
 | 📜 SQL & Databases | Great Learning | 2025 |
