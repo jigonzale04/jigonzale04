@@ -117,7 +117,8 @@ Customer segmentation application applied to a **real Portuguese retailer datase
 
 #### 📖 Interactive Explainer — How K-Means Works
 
-[![View Explainer](https://img.shields.io/badge/📖_Open_Interactive_Explainer-1a1a2e?style=for-the-badge)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/main/jigonzale04/kmeans_explainer_V4.html)
+[![View Explainer](https://img.shields.io/badge/📖_Open_Interactive_Explainer-1a1a2e?style=for-the-badge)](https://jigonzale04.github.io/jigonzale04/kmeans_explainer_V4.html)
+
 
 A standalone, step-by-step **visual explainer** built for classroom and executive education use. Walks through centroid initialization, distance calculation, reassignment, and convergence — with animated canvas visualizations.
 
