@@ -47,7 +47,7 @@ My work sits at the crossroads of **business strategy and applied AI**: I build 
 | 📜 PG Program: AI Agents for Business Applications | UT Austin McCombs · Great Learning | 2025–2026 |
 | 📜 SQL & Databases | Great Learning | 2025 |
 | 📜 Generative AI for NLP | Great Learning | 2024 |
-| 📜 Data Science & ML (MIT IDSS) | MIT · Great Learning | 2023 |
+| 📜 Data Science & ML (MIT IDSS) | MIT - Institute for Data, Systems, and Society (IDSS) · Great Learning | 2023 |
 | 📜 AI & ML Post-Graduate Program | UT Austin McCombs · Great Learning | 2023 |
 | 📜 Data Science & Business Analytics | UT Austin McCombs · Great Learning | 2021 |
 | 📜 Computer Vision Master's Program | Analytics Vidhya | 2021 |
