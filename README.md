@@ -60,8 +60,7 @@ My work sits at the crossroads of **business strategy and applied AI**: I build 
 
 ## 🏫 Current Position — Purdue University
 
-<img src="https://img.shields.io/badge/Purdue_University-CFB991?style=flat-square&logoColor=1a1a1a" height="22"/>  
-**Mitch Daniels School of Business · Quantitative Methods Department**  
+### Mitch Daniels School of Business · Quantitative Methods Department ###  
 *Clinical Assistant Professor · July 2025 – Present*
 
 ### 📚 Courses Offered
