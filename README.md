@@ -57,8 +57,7 @@ My work sits at the crossroads of **business strategy and applied AI**: I turn a
 | 📜 Agile Coach Professional | Enevasys | 2023 |
 
 **Notable Awards & Grants:** Fulbright-COMEXUS Scholar · CONACYT Doctoral Fellowship · Marco-Polo/China Government Scholar (Peking University) · Rice University Baker Institute Visiting Scholar · Erasmus+ Exchange (Silesian University of Technology, Poland)
-
-<p><strong>CV:</strong> <a href="https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Gonzalez-Espinosa_CV_May26.pdf">Download</a></p>
+<p><strong>CV:</strong> <a href="https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Gonzalez-Espinosa%20CV_May26.pdf">View</a></p>
 ---
 
 ## 🏫 Current Position — Purdue University
