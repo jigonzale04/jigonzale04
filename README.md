@@ -203,6 +203,12 @@ Upload a **CV and a job description** — the agent analyzes fit, identifies gap
 ![Gradio](https://img.shields.io/badge/Gradio-FF7C00?style=flat-square)
 ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
 
+**Agentic AI**  
+![AI Agents](https://img.shields.io/badge/AI%20Agents-111827?style=flat)
+![RAG Systems](https://img.shields.io/badge/RAG%20Systems-FF6F00?style=flat)
+![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?style=flat)
+![CrewAI](https://img.shields.io/badge/CrewAI-6A5ACD?style=flat)
+
 **Visualization & BI**  
 ![PowerBI](https://img.shields.io/badge/Power_BI-F2C811?style=flat-square&logo=powerbi&logoColor=black)
 ![Tableau](https://img.shields.io/badge/Tableau-E97627?style=flat-square&logo=tableau&logoColor=white)
