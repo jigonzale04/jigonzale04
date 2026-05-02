@@ -60,7 +60,7 @@ My work sits at the crossroads of **business strategy and applied AI**: I turn a
 <p><strong>CV:</strong> <a href="https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Gonzalez-Espinosa%20CV_May26.pdf">View</a></p>
 ---
 
-## 🏫 Current Position — Purdue University
+## 🏫 Current Position: Purdue University
 
 ### Mitch Daniels School of Business · Quantitative Methods Department ###  
 *Clinical Assistant Professor · July 2025 – Present*
