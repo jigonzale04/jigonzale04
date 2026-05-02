@@ -58,7 +58,7 @@ My work sits at the crossroads of **business strategy and applied AI**: I turn a
 
 **Notable Awards & Grants:** Fulbright-COMEXUS Scholar · CONACYT Doctoral Fellowship · Marco-Polo/China Government Scholar (Peking University) · Rice University Baker Institute Visiting Scholar · Erasmus+ Exchange (Silesian University of Technology, Poland)
 
-You can download my CV [here](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/docs/Gonzalez-Espinosa_CV_May26.pdf).
+<p><strong>CV:</strong> <a href="https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Gonzalez-Espinosa_CV_May26.pdf">Download</a></p>
 ---
 
 ## 🏫 Current Position — Purdue University
