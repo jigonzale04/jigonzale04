@@ -28,13 +28,15 @@
 
 ## 👤 About Me
 
-I am a **Clinical Assistant Professor** at the **Mitch Daniels School of Business, Purdue University** (Quantitative Methods Department), where I teach Data Mining, AI for Business Analytics, and Six Sigma & Quality Analytics at both the undergraduate and graduate levels.
+I am a **Clinical Assistant Professor** at the **Mitch Daniels School of Business, Purdue University** (Quantitative Methods Department), working at the intersection of business strategy, decision science, and applied AI. With over 20 years of experience spanning industry and academia, I have led initiatives in marketing, strategic planning, product development, and **data science and AI-driven decision-making**. 
 
-I hold a **Ph.D. in Management Science** and have accumulated 20+ years spanning industry marketing and management, executive roles as **Marketing Director**, **Strategic and Special Projects Manager** and lately as a **Chief Data Scientist** and **Director of Intelligence & Data Science** at Universidad de Monterrey. I have held multiple faculty and visiting scholar positions across Mexico, the US, Peru, and Poland.
+My work focuses on **translating advanced analytics, machine learning, deep learning, and generative AI** into **practical, high-impact solutions that support real organizational decisions**. I remain actively engaged with the **latest developments in AI and data science, continuously integrating emerging methods into both research and real-world applications.**
 
-My work sits at the crossroads of **business strategy and applied AI**: I build ML/DL models, deploy them as interactive applications, and teach practitioners and students how to use them for real decisions — without needing to be coders themselves.
+I have held multiple faculty and visiting scholar positions across Mexico, the US, Peru, and Poland.
 
-> *"I am not a coder — I am a developer of business solutions and an academic."*
+My work sits at the crossroads of **business strategy and applied AI**: I turn advanced analytics and AI models into **decision systems that shape strategy and enable action.**
+
+> *"I bring data, algorithms, and AI into actionable, high-impact business solutions."*
 
 ---
 
