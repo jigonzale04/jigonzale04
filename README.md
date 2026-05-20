@@ -42,7 +42,7 @@
 
 ---
 
-## 🚀 What I Do — and Why It Matters
+## 🚀 What I Do, and Why It Matters
 
 I work at the intersection of **business strategy, decision science, and applied AI:** translating advanced machine learning, deep learning, and generative AI into **practical systems that shape real organizational decisions**.
 
