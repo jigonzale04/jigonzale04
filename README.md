@@ -46,7 +46,7 @@
 
 I work at the intersection of **business strategy, decision science, and applied AI:** translating advanced machine learning, deep learning, and generative AI into **practical systems that shape real organizational decisions**.
 
-With **20+ years** spanning industry and academia across the US, Mexico, Peru, and Poland, I have led initiatives in marketing analytics, strategic planning, product development, and AI-driven decision-making. My work does not stop at model outputs — it ends at **decisions that drive action**.
+With **20+ years** spanning industry and academia across the US, Mexico, Peru, and Poland, I have led initiatives in marketing analytics, strategic planning, product development, and AI-driven decision-making. My work does not stop at model outputs: it ends at **decisions that drive action**.
 
 At Purdue, I teach students to do the same: build systems that solve real problems for real stakeholders.
 
