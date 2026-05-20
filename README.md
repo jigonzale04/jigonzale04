@@ -12,7 +12,7 @@
 ### Clinical Assistant Professor · Quantitative Methods
 ### Mitch Daniels School of Business · Purdue University
 
-*I help organizations turn AI and analytics into real decision-making tools. I teach the next generation to do the same*
+*I help organizations turn AI and analytics into real decision-making tools. I teach the next generation to do the same.*
 
 </div>
 
