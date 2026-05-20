@@ -12,7 +12,7 @@
 ### Clinical Assistant Professor · Quantitative Methods
 ### Mitch Daniels School of Business · Purdue University
 
-*"I build AI systems that make real business decisions. I teach the next generation to do the same."*
+*I help organizations turn AI and analytics into real decision-making tools. I teach the next generation to do the same*
 
 </div>
 
@@ -44,7 +44,7 @@
 
 ## 🚀 What I Do — and Why It Matters
 
-I work at the intersection of **business strategy, decision science, and applied AI** — translating advanced machine learning, deep learning, and generative AI into **practical systems that shape real organizational decisions**.
+I work at the intersection of **business strategy, decision science, and applied AI:** translating advanced machine learning, deep learning, and generative AI into **practical systems that shape real organizational decisions**.
 
 With **20+ years** spanning industry and academia across the US, Mexico, Peru, and Poland, I have led initiatives in marketing analytics, strategic planning, product development, and AI-driven decision-making. My work does not stop at model outputs — it ends at **decisions that drive action**.
 
@@ -60,7 +60,7 @@ At Purdue, I teach students to do the same: build systems that solve real proble
 
 ## 🤖 Live AI & ML Projects
 
-> All demos are deployed on HuggingFace Spaces — no installation required. Click and explore.
+> All demos are deployed on HuggingFace Spaces, no installation required. Click and explore.
 
 ---
 
@@ -78,10 +78,10 @@ At Purdue, I teach students to do the same: build systems that solve real proble
 
 | Project | Description | Stack | Demo |
 |---|---|---|---|
-| 🧠 **ANN Simulator** | Configure, train, and visualize a Multilayer Perceptron step by step — forward pass, backprop, loss curves | MLP · Activation functions · Backpropagation | [![Demo](https://img.shields.io/badge/🤗_Live-FFD21E?style=flat-square)](https://huggingface.co/spaces/jigonzale040/ANN) |
-| 💬 **Sentiment Analyzer** | Real-time NLP sentiment scoring — polarity, subjectivity, and visual breakdowns using TextBlob and VADER | NLP · VADER · TextBlob | [![Demo](https://img.shields.io/badge/🤗_Live-FFD21E?style=flat-square)](https://huggingface.co/spaces/jigonzale040/SA_App) |
-| 🛒 **K-Means Retail Clustering** | Customer segmentation on real Portuguese retailer data (Recheio) — adjust K, explore the elbow method, interpret business segments | K-Means · RFM · Elbow method | [![Demo](https://img.shields.io/badge/🤗_Live-FFD21E?style=flat-square)](https://huggingface.co/spaces/jigonzale040/Recheio_clust) [![Explainer](https://img.shields.io/badge/📖_Visual_Explainer-1a1a2e?style=flat-square)](https://jigonzale04.github.io/jigonzale04/kmeans_explainer_V4.html) |
-| 📝 **TF-IDF vs. Word2Vec** | Side-by-side comparison of two foundational NLP vectorization techniques — input your own corpus and see representations instantly | TF-IDF · Word2Vec · Semantic similarity | [![Demo](https://img.shields.io/badge/🤗_Live-FFD21E?style=flat-square)](https://huggingface.co/spaces/jigonzale040/tfidf-word2vec-demo) |
+| 🧠 **ANN Simulator** | Configure, train, and visualize a Multilayer Perceptron step by step: forward pass, backprop, loss curves | MLP · Activation functions · Backpropagation | [![Demo](https://img.shields.io/badge/🤗_Live-FFD21E?style=flat-square)](https://huggingface.co/spaces/jigonzale040/ANN) |
+| 💬 **Sentiment Analyzer** | Real-time NLP sentiment scoring: polarity, subjectivity, and visual breakdowns using TextBlob and VADER | NLP · VADER · TextBlob | [![Demo](https://img.shields.io/badge/🤗_Live-FFD21E?style=flat-square)](https://huggingface.co/spaces/jigonzale040/SA_App) |
+| 🛒 **K-Means Retail Clustering** | Customer segmentation on real Portuguese retailer data (Recheio): adjust K, explore the elbow method, interpret business segments | K-Means · RFM · Elbow method | [![Demo](https://img.shields.io/badge/🤗_Live-FFD21E?style=flat-square)](https://huggingface.co/spaces/jigonzale040/Recheio_clust) [![Explainer](https://img.shields.io/badge/📖_Visual_Explainer-1a1a2e?style=flat-square)](https://jigonzale04.github.io/jigonzale04/kmeans_explainer_V4.html) |
+| 📝 **TF-IDF vs. Word2Vec** | Side-by-side comparison of two foundational NLP vectorization techniques: input your own corpus and see representations instantly | TF-IDF · Word2Vec · Semantic similarity | [![Demo](https://img.shields.io/badge/🤗_Live-FFD21E?style=flat-square)](https://huggingface.co/spaces/jigonzale040/tfidf-word2vec-demo) |
 
 ---
 
@@ -103,9 +103,9 @@ At Purdue, I teach students to do the same: build systems that solve real proble
 
 #### ⭐ Student Feedback — Fall 2025 · Avg. 4.55–4.67 / 5.0
 
-> *"He genuinely cares about his students. His classes are so engaging — interactive lectures, collaborative group projects, and real-world cases."*
+> *"He genuinely cares about his students. His classes are so engaging: interactive lectures, collaborative group projects, and real-world cases."*
 
-> *"Setting the precedence that the ultimate objective is to deliver a solution to real-life stakeholders, rather than merely attaining a high model output — a great approach that benefits every student beyond the classroom."*
+> *"Setting the precedence that the ultimate objective is to deliver a solution to real-life stakeholders, rather than merely attaining a high model output: a great approach that benefits every student beyond the classroom."*
 
 > *"It was an absolute joy to have Professor Gonzalez. I would recommend him to every friend of mine."*
 
