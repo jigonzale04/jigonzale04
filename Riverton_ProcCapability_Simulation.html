@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Riverton Motors | Rotor Diameter Capability Lab</title>
+<style>
+  :root{
+    --bg:#0b2338;
+    --bg2:#0e2c46;
+    --panel:#0f2f4d;
+    --panel2:#123a5e;
+    --grid:rgba(255,255,255,.045);
+    --line:#274d6e;
+    --ink:#eef4fa;
+    --muted:#8fb0c9;
+    --gold:#e8b84b;
+    --gold-dim:#c99a35;
+    --blue:#59b7ff;
+    --red:#ff6f6f;
+    --green:#6fd9a3;
+    --amber:#ffcf6b;
+    --mono:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;
+    --sans:"IBM Plex Sans","Segoe UI",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; min-height:100vh; color:var(--ink); font-family:var(--sans); line-height:1.55;
+    background:
+      linear-gradient(var(--grid) 1px, transparent 1px) 0 0/38px 38px,
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/38px 38px,
+      radial-gradient(circle at 85% 0%, #163f61 0%, transparent 45%),
+      var(--bg);
+  }
+  .wrap{width:min(1180px, calc(100% - 32px)); margin:0 auto; padding:34px 0 70px}
+  header.top{
+    display:flex; align-items:baseline; justify-content:space-between; gap:20px; flex-wrap:wrap;
+    border-bottom:2px solid var(--gold-dim); padding-bottom:16px; margin-bottom:28px;
+  }
+  header.top .mark{font-family:var(--mono); color:var(--gold); font-size:.78rem; letter-spacing:.14em}
+  header.top h1{font-size:clamp(1.5rem,3vw,2.1rem); margin:4px 0 0; font-weight:700}
+  header.top .doc-id{font-family:var(--mono); color:var(--muted); font-size:.82rem; text-align:right}
+
+  .panel{
+    background:linear-gradient(180deg, var(--panel), var(--panel2));
+    border:1px solid var(--line); border-radius:3px; padding:26px; margin-bottom:26px;
+    box-shadow:0 1px 0 rgba(255,255,255,.03) inset;
+  }
+  .panel h2{margin:0 0 14px; font-size:1.35rem}
+  .panel h2 .tag{font-family:var(--mono); color:var(--gold); font-size:.72rem; letter-spacing:.12em; display:block; margin-bottom:6px}
+  .lede{color:var(--muted); max-width:72ch}
+  .two-col{display:grid; grid-template-columns:1.15fr 1fr; gap:28px; align-items:start}
+  @media (max-width:880px){ .two-col{grid-template-columns:1fr} }
+
+  .spec-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:18px}
+  .spec-box{background:#092033; border:1px solid var(--line); border-radius:3px; padding:12px 14px}
+  .spec-box .k{display:block; font-family:var(--mono); font-size:.7rem; color:var(--muted); letter-spacing:.08em; margin-bottom:4px}
+  .spec-box .v{font-size:1.25rem; font-weight:700; font-family:var(--mono)}
+  .spec-box.lsl .v{color:var(--blue)}
+  .spec-box.usl .v{color:var(--red)}
+  .spec-box.mu .v{color:var(--gold)}
+
+  .persona{display:flex; gap:16px; align-items:flex-start; margin-top:6px}
+  .persona .avatar{
+    width:52px; height:52px; border-radius:50%; flex:none;
+    background:conic-gradient(from 220deg, var(--gold), #7ec9ff, var(--gold));
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-family:var(--mono); color:#08202f;
+  }
+  .persona p{margin:0}
+
+  label{display:block; font-weight:600; font-size:.9rem; margin-bottom:6px; color:var(--ink)}
+  input[type=text], input[type=number]{
+    width:100%; background:#08202f; border:1px solid var(--line); color:var(--ink);
+    border-radius:3px; padding:9px 10px; font-family:var(--mono); font-size:.95rem;
+  }
+  input:focus{outline:2px solid var(--gold); outline-offset:1px}
+
+  .name-row{max-width:420px; margin-bottom:6px}
+
+  .tabbar{display:flex; gap:8px; margin:22px 0 4px; flex-wrap:wrap}
+  .tabbar button{
+    font-family:var(--mono); font-size:.85rem; letter-spacing:.03em; padding:9px 16px;
+    border:1px solid var(--line); background:#0d2c46; color:var(--muted); border-radius:3px 3px 0 0; cursor:pointer;
+  }
+  .tabbar button.active{background:var(--panel2); color:var(--gold); border-color:var(--gold-dim); border-bottom-color:var(--panel2)}
+  .tabbar button .dot{display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:7px; background:#3c5c78}
+  .tabbar button.done .dot{background:var(--green)}
+
+  .trial{display:none}
+  .trial.active{display:block}
+
+  .grid10{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:16px 0}
+  @media (max-width:700px){ .grid10{grid-template-columns:repeat(2,1fr)} }
+  .grid10 .cell span{display:block; font-family:var(--mono); font-size:.68rem; color:var(--muted); margin-bottom:4px}
+
+  .btn{
+    font-family:var(--sans); font-weight:700; font-size:.92rem; padding:11px 18px; border-radius:3px;
+    border:1px solid var(--gold-dim); background:var(--gold); color:#08202f; cursor:pointer;
+  }
+  .btn.secondary{background:transparent; color:var(--ink); border-color:var(--line)}
+  .btn.ghost{background:transparent; color:var(--muted); border:1px dashed var(--line)}
+  .btn:disabled{opacity:.4; cursor:not-allowed}
+  .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+
+  .results{margin-top:22px; border-top:1px dashed var(--line); padding-top:20px}
+  .results.hidden{display:none}
+  .results-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:24px}
+  @media (max-width:880px){ .results-grid{grid-template-columns:1fr} }
+
+  .metric-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:12px}
+  .metric{background:#08202f; border:1px solid var(--line); border-radius:3px; padding:12px 14px}
+  .metric .k{font-family:var(--mono); font-size:.68rem; color:var(--muted); letter-spacing:.07em; display:block; margin-bottom:5px}
+  .metric .v{font-size:1.5rem; font-weight:800; font-family:var(--mono)}
+  .verdict{margin-top:14px; padding:12px 14px; border-radius:3px; font-weight:700; border:1px solid}
+  .verdict.good{background:rgba(111,217,163,.1); color:var(--green); border-color:rgba(111,217,163,.4)}
+  .verdict.warn{background:rgba(255,207,107,.1); color:var(--amber); border-color:rgba(255,207,107,.4)}
+  .verdict.bad{background:rgba(255,111,111,.1); color:var(--red); border-color:rgba(255,111,111,.4)}
+
+  .shot-card{background:#08202f; border:1px solid var(--line); border-radius:4px; padding:18px}
+  .shot-card .who{font-family:var(--mono); font-size:.78rem; color:var(--gold); margin-bottom:2px}
+  .shot-card h3{margin:0 0 2px}
+
+  table.summary{width:100%; border-collapse:collapse; margin-top:10px}
+  table.summary th, table.summary td{padding:9px 10px; border-bottom:1px solid var(--line); font-size:.88rem; text-align:left}
+  table.summary th{font-family:var(--mono); color:var(--muted); font-size:.72rem; letter-spacing:.06em}
+  table.summary td.num{font-family:var(--mono)}
+  .pill{display:inline-block; padding:2px 8px; border-radius:99px; font-size:.72rem; font-weight:700}
+  .pill.good{background:rgba(111,217,163,.15); color:var(--green)}
+  .pill.warn{background:rgba(255,207,107,.15); color:var(--amber)}
+  .pill.bad{background:rgba(255,111,111,.15); color:var(--red)}
+
+  .footnote{font-size:.82rem; color:var(--muted); margin-top:14px}
+  textarea#copyArea{position:absolute; left:-9999px; top:-9999px}
+  .empty-note{color:var(--muted); font-size:.9rem; font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <span class="mark">RIVERTON MOTORS · SUPPLIER QUALITY LAB</span>
+      <h1>Front Brake Rotor — Diameter Capability Study</h1>
+    </div>
+    <div class="doc-id">DWG REF: RM‑BRK‑3021&nbsp;·&nbsp;Rev C<br>Characteristic: Machined bore diameter</div>
+  </header>
+
+  <!-- CASE BRIEFING -->
+  <section class="panel">
+    <h2><span class="tag">CASE BRIEFING</span>Your assignment</h2>
+    <div class="two-col">
+      <div>
+        <div class="persona">
+          <div class="avatar">QE</div>
+          <p class="lede">You are a <strong>Quality Engineering intern</strong> at Riverton Motors. Riverton is qualifying a new machine shop to supply the bore diameter on its front brake rotor. Before any parts ship to the assembly line, you have to prove — with real measurement data — that the vendor's process can hold the print's tolerance.</p>
+        </div>
+        <p class="lede">Each inspection batch you pull from the shop floor gives you <strong>10 rotor measurements</strong>. For every batch, you'll compute the mean, the standard deviation, and then the two numbers Riverton's Supplier Quality team actually cares about: <strong>Cp</strong> (could this process ever be capable, if centered?) and <strong>Cpk</strong> (is it capable <em>right now</em>, wherever the mean happens to sit?).</p>
+        <p class="lede">You'll repeat this for three separate batches — <strong>Try 1, Try 2, Try 3</strong> — so you can see how the verdict shifts if the vendor's process drifts or tightens between shipments.</p>
+      </div>
+      <div>
+        <div class="spec-strip">
+          <div class="spec-box lsl"><span class="k">LSL</span><span class="v">29.900 mm</span></div>
+          <div class="spec-box mu"><span class="k">TARGET μ</span><span class="v">30.000 mm</span></div>
+          <div class="spec-box usl"><span class="k">USL</span><span class="v">30.100 mm</span></div>
+        </div>
+        <div style="margin-top:14px">
+          <svg id="specChart" viewBox="0 0 480 230" width="100%" style="background:#08202f;border:1px solid var(--line);border-radius:4px"></svg>
+        </div>
+        <p class="footnote">This is the <strong>Engineering Tolerance</strong> — the print's allowed spread (USL − LSL). Once you enter data, we'll overlay your vendor's actual <strong>Natural Tolerance</strong> (μ ± 3σ) on the same axis so you can see how the two compare.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STUDENT NAME -->
+  <section class="panel">
+    <h2><span class="tag">STEP 1</span>Identify yourself</h2>
+    <div class="name-row">
+      <label for="studentName">Your name (used on every trial and screenshot)</label>
+      <input type="text" id="studentName" placeholder="e.g., Jordan Avery" />
+    </div>
+  </section>
+
+  <!-- TRIALS -->
+  <section class="panel">
+    <h2><span class="tag">STEP 2</span>Run your three batches</h2>
+    <p class="lede">Enter 10 diameter measurements (in mm) for each trial, then calculate. You can revisit a trial and recalculate as many times as you like before taking your screenshot.</p>
+
+    <div class="tabbar" id="tabbar">
+      <button data-trial="0" class="active"><span class="dot"></span>Try 1</button>
+      <button data-trial="1"><span class="dot"></span>Try 2</button>
+      <button data-trial="2"><span class="dot"></span>Try 3</button>
+    </div>
+
+    <div id="trialsHost"></div>
+  </section>
+
+  <!-- SUMMARY / SUBMISSION -->
+  <section class="panel">
+    <div id="submissionCapture">
+      <h2><span class="tag">STEP 3</span>Submit your three results</h2>
+      <p class="lede">Once all three trials are calculated, this table fills in automatically. Copy the summary text or capture the screenshot below and send both to your instructor along with your name.</p>
+      <div class="shot-card" id="submitWhoCard" style="margin:14px 0 0">
+        <div class="who">Submitted by</div>
+        <h3 id="submitWhoName">— no name entered —</h3>
+      </div>
+      <table class="summary">
+        <thead>
+          <tr><th>Trial</th><th>Mean (mm)</th><th>Std Dev (mm)</th><th>Natural Tol. (6σ)</th><th>Cp</th><th>Cpk</th><th>Verdict</th></tr>
+        </thead>
+        <tbody id="summaryBody">
+          <tr><td colspan="7" class="empty-note">No trials calculated yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="btnrow">
+      <button class="btn secondary" id="copySummaryBtn">Copy summary text</button>
+      <button class="btn" id="shotSummaryBtn">📸 Screenshot full submission</button>
+    </div>
+    <p class="footnote" id="submitHint">Complete all three trials to enable the full submission screenshot.</p>
+  </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const LSL = 29.900, USL = 30.100, TARGET = 30.000;
+const trialsData = [null, null, null]; // holds {values, mean, std, cp, cpk, natTol} per trial
+let activeTrial = 0;
+
+/* ---------- normal pdf helper for chart ---------- */
+function pdf(x, mu, sigma){
+  return (1/(sigma*Math.sqrt(2*Math.PI))) * Math.exp(-0.5*Math.pow((x-mu)/sigma,2));
+}
+
+/* ---------- build the 3 trial panels ---------- */
+const trialsHost = document.getElementById('trialsHost');
+for(let t=0; t<3; t++){
+  const div = document.createElement('div');
+  div.className = 'trial' + (t===0 ? ' active' : '');
+  div.id = 'trial-' + t;
+
+  let cellsHtml = '';
+  for(let i=1;i<=10;i++){
+    cellsHtml += `<div class="cell"><span>Measurement ${i}</span>
+      <input type="number" step="0.001" class="mval" data-trial="${t}" data-idx="${i}" placeholder="30.00${i%10}"/>
+    </div>`;
+  }
+
+  div.innerHTML = `
+    <div class="grid10">${cellsHtml}</div>
+    <div class="btnrow">
+      <button class="btn calcBtn" data-trial="${t}">Calculate Cp &amp; Cpk — Try ${t+1}</button>
+      <button class="btn ghost fillBtn" data-trial="${t}">Fill sample data (demo)</button>
+    </div>
+    <div class="results hidden" id="results-${t}">
+      <div class="results-grid">
+        <div>
+          <h3 style="margin:0 0 4px">Try ${t+1} — results</h3>
+          <div class="metric-grid">
+            <div class="metric"><span class="k">MEAN (x̄)</span><span class="v" id="mean-${t}">—</span></div>
+            <div class="metric"><span class="k">STD DEV (s)</span><span class="v" id="std-${t}">—</span></div>
+            <div class="metric"><span class="k">NATURAL TOLERANCE (6σ)</span><span class="v" id="nattol-${t}">—</span></div>
+            <div class="metric"><span class="k">ENGINEERING TOLERANCE</span><span class="v">0.200 mm</span></div>
+            <div class="metric"><span class="k">Cp</span><span class="v" id="cp-${t}">—</span></div>
+            <div class="metric"><span class="k">Cpk</span><span class="v" id="cpk-${t}">—</span></div>
+          </div>
+          <div class="verdict" id="verdict-${t}" style="display:none"></div>
+        </div>
+        <div>
+          <svg id="chart-${t}" viewBox="0 0 480 230" width="100%" style="background:#08202f;border:1px solid var(--line);border-radius:4px"></svg>
+        </div>
+      </div>
+      <div class="shot-card" id="shotcard-${t}" style="margin-top:18px">
+        <div class="who" id="shotwho-${t}">Student —</div>
+        <h3 id="shottitle-${t}">Try ${t+1}</h3>
+        <p style="margin:2px 0 0" id="shotline-${t}"></p>
+      </div>
+      <div class="btnrow">
+        <button class="btn secondary shotBtn" data-trial="${t}">📸 Screenshot this trial</button>
+      </div>
+    </div>
+  `;
+  trialsHost.appendChild(div);
+}
+
+/* ---------- tab switching ---------- */
+document.querySelectorAll('#tabbar button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    activeTrial = parseInt(btn.dataset.trial,10);
+    document.querySelectorAll('#tabbar button').forEach(b=>b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.trial').forEach(d=>d.classList.toggle('active', d.id==='trial-'+activeTrial));
+  });
+});
+
+/* ---------- demo fill (for trying the tool) ---------- */
+const demoSets = [
+  [29.98,30.02,29.99,30.01,30.00,29.97,30.03,30.00,29.99,30.02],
+  [30.04,30.06,30.03,30.07,30.05,30.02,30.06,30.05,30.04,30.03],
+  [29.92,30.08,29.95,30.10,29.99,30.01,29.96,30.06,30.00,29.94]
+];
+document.querySelectorAll('.fillBtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const t = parseInt(btn.dataset.trial,10);
+    const vals = demoSets[t];
+    document.querySelectorAll(`.mval[data-trial="${t}"]`).forEach((inp,i)=>{ inp.value = vals[i]; });
+  });
+});
+
+/* ---------- calculation ---------- */
+function verdictFor(cpk){
+  if(cpk < 1.00) return {cls:'bad', text:'NOT CAPABLE — Cpk is below 1.00. Too many parts will fall outside spec; the vendor needs to reduce variation or re‑center the process before qualification.'};
+  if(cpk < 1.33) return {cls:'warn', text:'MARGINALLY CAPABLE — Cpk is between 1.00 and 1.33. Acceptable for some processes, but Riverton typically asks for improvement before full qualification on a safety part.'};
+  return {cls:'good', text:'CAPABLE — Cpk is at or above 1.33. This batch meets Riverton\u2019s qualification threshold for this characteristic.'};
+}
+
+function computeTicks(lo, hi){
+  // Anchor the tick grid on LSL using a step that divides the spec width evenly,
+  // so LSL and USL always land exactly on a tick (never an arbitrary in-between value).
+  const step = (USL - LSL) / 4; // 0.05 mm for this case
+  const ticks = [];
+  let x = LSL;
+  while (x - step >= lo - 1e-9) x -= step;
+  for (; x <= hi + 1e-9; x += step) ticks.push(Math.round(x * 1e6) / 1e6);
+  return ticks;
+}
+
+function drawChart(svgId, mu, sigma, highlightSpec, title){
+  const svg = document.getElementById(svgId);
+  const W=480, H=230, left=42, right=20, top=54, bottom=34;
+  const plotW = W-left-right, plotH = H-top-bottom;
+  const lo = Math.min(LSL, mu - 4*sigma) - 0.01;
+  const hi = Math.max(USL, mu + 4*sigma) + 0.01;
+  const xToPx = x => left + ((x-lo)/(hi-lo))*plotW;
+  let maxY = 0;
+  for(let x=lo; x<=hi; x+= (hi-lo)/200) maxY = Math.max(maxY, pdf(x, mu, sigma));
+  const yToPx = y => top + plotH - (y/maxY)*(plotH*0.9);
+
+  let curve = '', fill = `M ${xToPx(lo)} ${yToPx(0)} `;
+  for(let x=lo; x<=hi; x+=(hi-lo)/200){
+    const px = xToPx(x), py = yToPx(pdf(x,mu,sigma));
+    curve += (x===lo?'M ':' L ') + px + ' ' + py;
+    fill += `L ${px} ${py} `;
+  }
+  fill += `L ${xToPx(hi)} ${yToPx(0)} Z`;
+
+  let ticks = '';
+  computeTicks(lo, hi).forEach(x=>{
+    const onSpecLimit = Math.abs(x-LSL) < 1e-6 || Math.abs(x-USL) < 1e-6;
+    ticks += `<line x1="${xToPx(x)}" y1="${top+plotH}" x2="${xToPx(x)}" y2="${top+plotH+5}" stroke="${onSpecLimit?'#c8dcec':'#4a6d8c'}"/>`;
+    ticks += `<text x="${xToPx(x)}" y="${top+plotH+18}" fill="${onSpecLimit?'#eef4fa':'#8fb0c9'}" font-size="9" font-weight="${onSpecLimit?'700':'400'}" text-anchor="middle" font-family="IBM Plex Mono,monospace">${x.toFixed(3)}</text>`;
+  });
+
+  svg.innerHTML = `
+    <rect x="0" y="0" width="${W}" height="${H}" fill="#08202f" rx="6"/>
+    <text x="${W/2}" y="20" fill="#eef4fa" font-size="12" font-weight="700" text-anchor="middle" font-family="IBM Plex Sans,sans-serif">${title}</text>
+    <line x1="${left}" y1="${top+plotH}" x2="${W-right}" y2="${top+plotH}" stroke="#4a6d8c" stroke-width="1.4"/>
+    ${ticks}
+    ${highlightSpec ? `<path d="${fill}" fill="rgba(232,184,75,.10)"/>` : ''}
+    ${highlightSpec ? `<path d="${curve}" fill="none" stroke="var(--gold)" stroke-width="2.4"/>` : ''}
+    <line x1="${xToPx(LSL)}" y1="${top-6}" x2="${xToPx(LSL)}" y2="${top+plotH}" stroke="#59b7ff" stroke-width="2.4" stroke-dasharray="6,3"/>
+    <line x1="${xToPx(USL)}" y1="${top-6}" x2="${xToPx(USL)}" y2="${top+plotH}" stroke="#ff6f6f" stroke-width="2.4" stroke-dasharray="6,3"/>
+    <text x="${xToPx(LSL)}" y="${top-12}" fill="#59b7ff" font-size="11" text-anchor="middle" font-family="IBM Plex Mono,monospace">LSL</text>
+    <text x="${xToPx(USL)}" y="${top-12}" fill="#ff6f6f" font-size="11" text-anchor="middle" font-family="IBM Plex Mono,monospace">USL</text>
+    ${highlightSpec ? `<line x1="${xToPx(mu)}" y1="${top}" x2="${xToPx(mu)}" y2="${top+plotH}" stroke="#e8b84b" stroke-width="1.6" stroke-dasharray="2,2"/>
+    <text x="${xToPx(mu)}" y="${top+plotH+30}" fill="#e8b84b" font-size="10" text-anchor="middle" font-family="IBM Plex Mono,monospace">x̄=${mu.toFixed(3)}</text>` : ''}
+  `;
+}
+
+/* static reference chart in the briefing (spec limits only, no data yet) */
+drawChart('specChart', TARGET, 0.033, false, 'Engineering Tolerance');
+
+function calcTrial(t){
+  const inputs = Array.from(document.querySelectorAll(`.mval[data-trial="${t}"]`));
+  const values = inputs.map(i => parseFloat(i.value));
+  if(values.some(v => isNaN(v))){
+    alert('Please enter all 10 measurements for Try ' + (t+1) + ' before calculating.');
+    return;
+  }
+  const n = values.length;
+  const mean = values.reduce((a,b)=>a+b,0)/n;
+  const variance = values.reduce((a,b)=>a+Math.pow(b-mean,2),0)/(n-1);
+  const std = Math.sqrt(variance);
+  const natTol = 6*std;
+  const cp = (USL-LSL)/(6*std);
+  const cpu = (USL-mean)/(3*std);
+  const cpl = (mean-LSL)/(3*std);
+  const cpk = Math.min(cpu, cpl);
+
+  document.getElementById(`mean-${t}`).textContent = mean.toFixed(4);
+  document.getElementById(`std-${t}`).textContent = std.toFixed(4);
+  document.getElementById(`nattol-${t}`).textContent = natTol.toFixed(4);
+  document.getElementById(`cp-${t}`).textContent = cp.toFixed(2);
+  document.getElementById(`cpk-${t}`).textContent = cpk.toFixed(2);
+
+  const v = verdictFor(cpk);
+  const vEl = document.getElementById(`verdict-${t}`);
+  vEl.className = 'verdict ' + v.cls;
+  vEl.style.display = 'block';
+  vEl.textContent = v.text;
+
+  document.getElementById(`results-${t}`).classList.remove('hidden');
+  drawChart(`chart-${t}`, mean, std, true, 'Engineering Tolerance vs. Natural Tolerance');
+
+  const name = document.getElementById('studentName').value.trim() || 'Unnamed student';
+  document.getElementById(`shotwho-${t}`).textContent = 'Student — ' + name;
+  document.getElementById(`shottitle-${t}`).textContent = `Try ${t+1} — Rotor Diameter Capability`;
+  document.getElementById(`shotline-${t}`).textContent =
+    `x̄ = ${mean.toFixed(4)} mm · s = ${std.toFixed(4)} mm · Cp = ${cp.toFixed(2)} · Cpk = ${cpk.toFixed(2)} — ${v.text.split(' — ')[0]}`;
+
+  trialsData[t] = {name, mean, std, natTol, cp, cpk, verdict:v};
+  updateSummary();
+}
+
+document.querySelectorAll('.calcBtn').forEach(btn=>{
+  btn.addEventListener('click', ()=> calcTrial(parseInt(btn.dataset.trial,10)));
+});
+
+/* ---------- summary table ---------- */
+function pillHtml(v){
+  return `<span class="pill ${v.cls}">${v.cls==='good'?'Capable':v.cls==='warn'?'Marginal':'Not capable'}</span>`;
+}
+function updateSubmitWho(){
+  const name = document.getElementById('studentName').value.trim();
+  document.getElementById('submitWhoName').textContent = name || '— no name entered —';
+}
+document.getElementById('studentName').addEventListener('input', updateSubmitWho);
+
+function updateSummary(){
+  updateSubmitWho();
+  const body = document.getElementById('summaryBody');
+  const filled = trialsData.filter(Boolean);
+  if(filled.length===0){
+    body.innerHTML = `<tr><td colspan="7" class="empty-note">No trials calculated yet.</td></tr>`;
+  } else {
+    body.innerHTML = trialsData.map((d,i)=>{
+      if(!d) return `<tr><td>Try ${i+1}</td><td colspan="6" class="empty-note">Not calculated yet</td></tr>`;
+      return `<tr>
+        <td>Try ${i+1}</td>
+        <td class="num">${d.mean.toFixed(4)}</td>
+        <td class="num">${d.std.toFixed(4)}</td>
+        <td class="num">${d.natTol.toFixed(4)}</td>
+        <td class="num">${d.cp.toFixed(2)}</td>
+        <td class="num">${d.cpk.toFixed(2)}</td>
+        <td>${pillHtml(d.verdict)}</td>
+      </tr>`;
+    }).join('');
+  }
+  const allDone = trialsData.every(Boolean);
+  document.getElementById('shotSummaryBtn').disabled = !allDone;
+  document.getElementById('submitHint').textContent = allDone
+    ? 'All three trials are complete — you\'re ready to capture and send your full submission.'
+    : 'Complete all three trials to enable the full submission screenshot.';
+}
+
+/* ---------- screenshot buttons (per-trial) ---------- */
+document.querySelectorAll('.shotBtn').forEach(btn=>{
+  btn.addEventListener('click', async ()=>{
+    const t = parseInt(btn.dataset.trial,10);
+    const card = document.getElementById(`shotcard-${t}`);
+    const name = (document.getElementById('studentName').value.trim() || 'student').replace(/[^a-z0-9]+/gi,'_');
+    const canvas = await html2canvas(card, {backgroundColor:'#08202f', scale:2});
+    const link = document.createElement('a');
+    link.download = `${name}_Try${t+1}_CpCpk.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+});
+
+/* ---------- copy summary text ---------- */
+document.getElementById('copySummaryBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('studentName').value.trim() || 'Unnamed student';
+  let text = `Riverton Motors — Rotor Diameter Capability Study\nStudent: ${name}\nSpec: LSL=${LSL} mm, Target=${TARGET} mm, USL=${USL} mm\n\n`;
+  trialsData.forEach((d,i)=>{
+    text += `Try ${i+1}: `;
+    text += d ? `mean=${d.mean.toFixed(4)} mm, std=${d.std.toFixed(4)} mm, Cp=${d.cp.toFixed(2)}, Cpk=${d.cpk.toFixed(2)} (${d.verdict.cls})\n` : `not calculated\n`;
+  });
+  navigator.clipboard.writeText(text).then(()=>{
+    alert('Summary copied — paste it into your submission email or LMS text box.');
+  }).catch(()=>{
+    alert('Could not copy automatically. Please select the summary table text manually.');
+  });
+});
+
+/* ---------- screenshot full submission ---------- */
+document.getElementById('shotSummaryBtn').addEventListener('click', async ()=>{
+  updateSubmitWho();
+  const captureRegion = document.getElementById('submissionCapture');
+  const name = (document.getElementById('studentName').value.trim() || 'student').replace(/[^a-z0-9]+/gi,'_');
+  const canvas = await html2canvas(captureRegion, {backgroundColor:'#0f2f4d', scale:2});
+  const link = document.createElement('a');
+  link.download = `${name}_CpCpk_Submission.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+});
+
+updateSummary();
+</script>
+</body>
+</html>

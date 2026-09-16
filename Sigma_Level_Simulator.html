@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SpecFit Supply | Sigma Level Simulator</title>
+  <style>
+    :root{
+      --bg:#07111f;
+      --bg2:#0d1b2f;
+      --panel:#10243a;
+      --panel2:#16314d;
+      --line:#29506c;
+      --ink:#eef7ff;
+      --muted:#a8bfd1;
+      --cyan:#42e8e0;
+      --cyan2:#9df6f2;
+      --amber:#ffc857;
+      --red:#ff6b7d;
+      --green:#78e08f;
+      --purple:#bea8ff;
+      --shadow:#02060d;
+      --radius:6px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:"Trebuchet MS", Arial, sans-serif;
+      color:var(--ink);
+      background:
+        linear-gradient(rgba(66,232,224,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(66,232,224,.03) 1px, transparent 1px),
+        radial-gradient(circle at 80% 8%, #173d57 0, transparent 24rem),
+        var(--bg);
+      background-size:24px 24px, 24px 24px, auto, auto;
+      line-height:1.5;
+    }
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+      padding:12px 18px;
+      background:rgba(6,14,25,.95);
+      border-bottom:2px solid #126f78;
+      backdrop-filter:blur(8px);
+    }
+    .brand strong{display:block; letter-spacing:.08em; font-size:.95rem}
+    .brand small{display:block; color:var(--muted); font: .72rem ui-monospace, monospace}
+    .brand-mark{display:inline-grid; place-items:center; width:34px; height:34px; margin-right:10px; background:var(--cyan); color:#041318; font-weight:900; box-shadow:4px 4px 0 var(--shadow)}
+    .brand{display:flex; align-items:center}
+    .nav{display:flex; gap:8px; flex-wrap:wrap}
+    .nav button,.btn{
+      border:2px solid #6e97b4; background:var(--panel2); color:var(--ink);
+      padding:10px 14px; border-radius:var(--radius); cursor:pointer; font-weight:800;
+      box-shadow:4px 4px 0 var(--shadow);
+    }
+    .nav button.active,.btn.primary{background:var(--cyan); color:#041318; border-color:#b9fffb}
+    .btn.amber{background:var(--amber); color:#241600; border-color:#ffe6a8}
+    .btn.ghost{background:transparent; color:var(--muted); box-shadow:none; border-color:var(--line)}
+    .btn:disabled{opacity:.45; cursor:not-allowed; box-shadow:none}
+    .shell{width:min(1420px, calc(100% - 28px)); margin:0 auto}
+    .screen{display:none; padding:26px 0 48px}
+    .screen.active{display:block}
+    .hero{display:grid; grid-template-columns:1.12fr .88fr; gap:20px; align-items:stretch; min-height:70vh}
+    .panel{
+      background:rgba(16,36,58,.94); border:2px solid var(--line); border-radius:var(--radius);
+      box-shadow:7px 7px 0 var(--shadow);
+    }
+    .pad{padding:22px}
+    .eyebrow{color:var(--cyan); font:800 .76rem ui-monospace, monospace; text-transform:uppercase; letter-spacing:.18em}
+    h1,h2,h3,h4,p{margin-top:0}
+    h1{font-size:clamp(2.3rem,6vw,5rem); line-height:.96; letter-spacing:-.045em; margin-bottom:18px}
+    h2{font-size:clamp(1.7rem,3vw,2.7rem); line-height:1.02; margin-bottom:12px}
+    h3{font-size:1.15rem; margin-bottom:10px}
+    h4{margin-bottom:8px}
+    .muted{color:var(--muted)}
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+    .grid-3{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px}
+    .callout{background:#0d2135; border-left:5px solid var(--cyan); padding:14px 16px; border-radius:4px}
+    .mini{font-size:.92rem}
+    .spec-card{display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:12px}
+    .stat{background:#0b1a2a; border:1px solid #27435c; border-radius:5px; padding:12px}
+    .stat .k{display:block; color:var(--muted); font-size:.85rem; margin-bottom:4px}
+    .stat .v{font-size:1.4rem; font-weight:800}
+    .legend{display:flex; gap:14px; flex-wrap:wrap; font-size:.9rem}
+    .legend span{display:flex; align-items:center; gap:8px}
+    .swatch{display:inline-block; width:16px; height:16px; border-radius:3px}
+    .controls{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    .control{background:#0b1a2a; border:1px solid #27435c; padding:14px; border-radius:5px}
+    label{display:block; font-weight:700; margin-bottom:8px}
+    input[type="range"], select{width:100%}
+    select,input[type="number"]{background:#091827; color:var(--ink); border:1px solid #4d6f88; border-radius:5px; padding:10px}
+    .provider-list{display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-top:12px}
+    .provider-card{background:#0b1a2a; border:2px solid #2a4a61; border-radius:5px; padding:14px; cursor:pointer}
+    .provider-card.selected{border-color:var(--cyan); box-shadow:0 0 0 2px rgba(66,232,224,.15) inset}
+    .provider-card h4{margin-bottom:6px}
+    .provider-card .badge{display:inline-block; background:#17344f; border:1px solid #4a6d84; padding:2px 8px; border-radius:12px; font-size:.78rem; margin-bottom:10px}
+    .answer{display:none; margin-top:14px}
+    .answer.show{display:block}
+    table{width:100%; border-collapse:collapse}
+    th,td{padding:10px 8px; border-bottom:1px solid #29455c; text-align:left; font-size:.95rem}
+    th{color:var(--cyan2)}
+    .good{color:var(--green); font-weight:800}
+    .warn{color:var(--amber); font-weight:800}
+    .bad{color:var(--red); font-weight:800}
+    .svg-wrap{background:#0b1a2a; border:1px solid #27435c; border-radius:6px; padding:12px}
+    .formula{font-family:Cambria, Georgia, serif; font-size:1.03rem; background:#0b1a2a; border:1px solid #27435c; border-radius:5px; padding:12px 14px}
+    .footnote{font-size:.85rem; color:var(--muted)}
+    .pill{display:inline-block; padding:3px 8px; border-radius:999px; font-size:.78rem; font-weight:800; margin-left:8px}
+    .pill.green{background:rgba(120,224,143,.16); color:var(--green); border:1px solid rgba(120,224,143,.35)}
+    .pill.amber{background:rgba(255,200,87,.16); color:var(--amber); border:1px solid rgba(255,200,87,.35)}
+    .pill.red{background:rgba(255,107,125,.16); color:var(--red); border:1px solid rgba(255,107,125,.35)}
+    .score-box{display:grid; grid-template-columns:1.2fr .8fr; gap:18px}
+    @media (max-width: 1100px){
+      .hero,.grid-2,.grid-3,.score-box,.controls{grid-template-columns:1fr}
+      .provider-list{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width: 760px){
+      .provider-list,.spec-card{grid-template-columns:1fr}
+      .topbar{justify-content:center}
+      .nav{justify-content:center}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">Σ</div>
+      <div>
+        <strong>SPECFIT SUPPLY</strong>
+        <small>Interactive Sigma Level Laboratory</small>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="active" data-screen="intro">1. Briefing</button>
+      <button data-screen="explorer">2. Provider Lab</button>
+      <button data-screen="challenge">3. Challenge</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <section id="intro" class="screen active">
+      <div class="hero">
+        <div class="panel pad">
+          <div class="eyebrow">Interactive simulation</div>
+          <h1>Sigma level means<br>how many process standard deviations fit from the process mean to the nearest specification limit.</h1>
+          <p class="muted">Olivia Carter is the quality manager at <strong>Liberty Springs Bottling</strong>. Her firm buys refill cartridges that must be filled to a target of <strong>100 grams</strong>. Customers will accept cartridges only if the fill weight stays between the <strong>Lower Specification Limit (LSL = 90)</strong> and the <strong>Upper Specification Limit (USL = 110)</strong>.</p>
+          <div class="callout">
+            <p><strong>Your job:</strong> compare providers and decide which one is safest for Liberty Springs. Each provider has a different process standard deviation, so each one achieves a different sigma level relative to the same customer specifications.</p>
+          </div>
+          <div class="spec-card">
+            <div class="stat"><span class="k">Target / Process Mean</span><span class="v">100 g</span></div>
+            <div class="stat"><span class="k">Lower Spec Limit</span><span class="v">90 g</span></div>
+            <div class="stat"><span class="k">Upper Spec Limit</span><span class="v">110 g</span></div>
+          </div>
+          <div style="margin-top:18px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn primary goto" data-target="explorer">Start Provider Lab</button>
+          </div>
+        </div>
+        <div class="panel pad">
+          <h2>Core idea</h2>
+          <div class="formula">Sigma level = <strong>distance from the process mean to the nearest specification limit</strong> ÷ <strong>process standard deviation</strong></div>
+          <p style="margin-top:14px"><strong>In this case:</strong> the process is centered at 100, and the nearest specification limit is 10 units away.</p>
+          <div class="formula">Nearest spec distance = min(USL − μ, μ − LSL) = min(110 − 100, 100 − 90) = 10</div>
+          <p style="margin-top:14px">Therefore:</p>
+          <div class="formula">Sigma level = 10 ÷ σ</div>
+          <table style="margin-top:14px">
+            <thead>
+              <tr><th>Provider type</th><th>σ</th><th>Sigma level</th><th>Interpretation</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>2-sigma</td><td>5.00</td><td>10/5.00 = 2</td><td>Variation is wide</td></tr>
+              <tr><td>3-sigma</td><td>3.33</td><td>10/3.33 ≈ 3</td><td>Better, but still using much of the tolerance</td></tr>
+              <tr><td>4-sigma</td><td>2.50</td><td>10/2.50 = 4</td><td>Low variation</td></tr>
+              <tr><td>5-sigma</td><td>2.00</td><td>10/2.00 = 5</td><td>Excellent consistency</td></tr>
+              <tr><td>6-sigma</td><td>1.67</td><td>10/1.67 ≈ 6</td><td>Very tight process</td></tr>
+            </tbody>
+          </table>
+          <p class="footnote" style="margin-top:12px">Assume the process is stable, centered, and approximately normal. In this simulator we use the classical short-term interpretation without the 1.5σ shift.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="explorer" class="screen">
+      <div class="grid-2">
+        <div class="panel pad">
+          <div class="eyebrow">Interactive provider lab</div>
+          <h2>Choose a provider or create your own process</h2>
+          <p class="muted">All providers face the <strong>same customer specifications</strong>: LSL = 90, Target = 100, USL = 110. Only their process behavior changes.</p>
+
+          <div class="provider-list" id="providerList"></div>
+
+          <div class="controls" style="margin-top:18px">
+            <div class="control">
+              <label for="meanSlider">Process mean (μ): <span id="meanOut">100.00</span></label>
+              <input type="range" id="meanSlider" min="94" max="106" step="0.01" value="100">
+              <p class="mini muted" style="margin:8px 0 0">Move the mean to see what happens if the provider is off target.</p>
+            </div>
+            <div class="control">
+              <label for="sigmaSlider">Process standard deviation (σ): <span id="sigmaOut">1.67</span></label>
+              <input type="range" id="sigmaSlider" min="1" max="5" step="0.01" value="1.67">
+              <p class="mini muted" style="margin:8px 0 0">Smaller σ means a tighter, more consistent process.</p>
+            </div>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn ghost" id="centerBtn">Re-center mean at 100</button>
+            <button class="btn ghost" id="presetBest">Load 6-sigma preset</button>
+            <button class="btn ghost" id="presetWorst">Load 2-sigma preset</button>
+          </div>
+        </div>
+
+        <div class="panel pad">
+          <h2>What the numbers mean</h2>
+          <div class="svg-wrap">
+            <svg id="curveSvg" width="100%" viewBox="0 0 760 360" preserveAspectRatio="xMidYMid meet" aria-label="distribution chart"></svg>
+          </div>
+          <div class="legend" style="margin-top:12px">
+            <span><i class="swatch" style="background:#42e8e0"></i>Specification limits</span>
+            <span><i class="swatch" style="background:#ffc857"></i>Process mean</span>
+            <span><i class="swatch" style="background:#bea8ff"></i>Normal curve</span>
+          </div>
+          <div class="grid-3" style="margin-top:14px">
+            <div class="stat"><span class="k">Sigma level to nearest spec</span><span class="v" id="sigmaLevelOut">6.00</span><span class="k" id="sigmaCalcOut" style="margin-top:6px; font-family:ui-monospace,monospace; color:#c8d9e6;">10.00 ÷ 1.67 = 5.99</span></div>
+            <div class="stat"><span class="k">Estimated % within specs</span><span class="v" id="yieldOut">100.00%</span></div>
+            <div class="stat"><span class="k">Estimated defects per million</span><span class="v" id="ppmOut">0</span></div>
+            <div class="stat"><span class="k">Decision signal</span><span class="v" id="statusOut">World-class</span></div>
+          </div>
+          <div id="explainBox" class="callout" style="margin-top:16px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="challenge" class="screen">
+      <div class="panel pad">
+        <div class="eyebrow">Decision challenge</div>
+        <h2>Which provider would you choose?</h2>
+        <p class="muted">The client only told you the specs: <strong>90 to 110 grams, target 100 grams</strong>. Below are five centered providers. Your challenge is to decide which one you would award the contract to and explain why.</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Provider</th>
+              <th>Process σ</th>
+              <th>Sigma level</th>
+              <th>Approx. % within specs</th>
+              <th>Approx. defects per million</th>
+            </tr>
+          </thead>
+          <tbody id="challengeTable"></tbody>
+        </table>
+
+        <div class="grid-2" style="margin-top:20px">
+          <div class="panel pad" style="box-shadow:none">
+            <h3>Student response</h3>
+            <label for="studentPick">Choose the best provider</label>
+            <select id="studentPick">
+              <option value="">-- select --</option>
+              <option>Eagle Parts</option>
+              <option>Midwest Measure</option>
+              <option>BlueRiver Plastics</option>
+              <option>Summit Fill Systems</option>
+              <option>Keystone Precision</option>
+            </select>
+            <label for="studentReason" style="margin-top:12px">Why?</label>
+            <select id="studentReason">
+              <option value="">-- select --</option>
+              <option value="1">Because it has the smallest standard deviation and the highest sigma level</option>
+              <option value="2">Because it is closest to 3 sigma, which is the classical benchmark</option>
+              <option value="3">Because the widest distribution means more pieces around the target</option>
+              <option value="4">Because a wider process gives the supplier more flexibility</option>
+            </select>
+            <div style="margin-top:14px"><button class="btn primary" id="checkChallenge">Check my answer</button></div>
+          </div>
+          <div class="panel pad" style="box-shadow:none">
+            <h3>Feedback</h3>
+            <div id="challengeFeedback" class="callout">Choose a provider and a reason, then click <strong>Check my answer</strong>.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const LSL = 90, TARGET = 100, USL = 110;
+    const providerPresets = [
+      {name:'Eagle Parts', sigma:5.00, mean:100, label:'2-sigma provider'},
+      {name:'Midwest Measure', sigma:3.33, mean:100, label:'3-sigma provider'},
+      {name:'BlueRiver Plastics', sigma:2.50, mean:100, label:'4-sigma provider'},
+      {name:'Summit Fill Systems', sigma:2.00, mean:100, label:'5-sigma provider'},
+      {name:'Keystone Precision', sigma:1.67, mean:100, label:'6-sigma provider'}
+    ];
+
+    let selectedProvider = 4;
+
+    const screens = document.querySelectorAll('.screen');
+    const navButtons = document.querySelectorAll('.nav button');
+    const gotoButtons = document.querySelectorAll('.goto');
+    function showScreen(id){
+      screens.forEach(s => s.classList.toggle('active', s.id === id));
+      navButtons.forEach(b => b.classList.toggle('active', b.dataset.screen === id));
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+    navButtons.forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.screen)));
+    gotoButtons.forEach(btn => btn.addEventListener('click', () => showScreen(btn.dataset.target)));
+
+    const providerList = document.getElementById('providerList');
+    const meanSlider = document.getElementById('meanSlider');
+    const sigmaSlider = document.getElementById('sigmaSlider');
+    const meanOut = document.getElementById('meanOut');
+    const sigmaOut = document.getElementById('sigmaOut');
+
+    function erf(x){
+      const sign = x >= 0 ? 1 : -1;
+      x = Math.abs(x);
+      const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741,
+            a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+      const t = 1 / (1 + p * x);
+      const y = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return sign * y;
+    }
+    function normalCdf(x, mu, sigma){
+      return 0.5 * (1 + erf((x - mu) / (sigma * Math.sqrt(2))));
+    }
+    function formatNum(x, d=2){ return Number(x).toFixed(d); }
+    function formatPpm(x){
+      if (x >= 1000) return Math.round(x).toLocaleString();
+      if (x >= 1) return x.toFixed(2);
+      return x.toFixed(4);
+    }
+
+    function renderProviders(){
+      providerList.innerHTML = '';
+      providerPresets.forEach((p, i) => {
+        const card = document.createElement('div');
+        card.className = 'provider-card' + (i === selectedProvider ? ' selected' : '');
+        card.innerHTML = `<div class="badge">${p.label}</div><h4>${p.name}</h4>
+          <p class="mini muted">Centered mean = 100<br>σ = ${p.sigma.toFixed(2)}</p>`;
+        card.addEventListener('click', () => {
+          selectedProvider = i;
+          meanSlider.value = p.mean;
+          sigmaSlider.value = p.sigma;
+          renderProviders();
+          updateExplorer();
+        });
+        providerList.appendChild(card);
+      });
+    }
+
+    function decisionLabel(sigmaLevel){
+      if (sigmaLevel < 3) return {text:'High variation', cls:'bad'};
+      if (sigmaLevel < 4) return {text:'Moderate', cls:'warn'};
+      if (sigmaLevel < 5) return {text:'Strong', cls:'good'};
+      if (sigmaLevel < 6) return {text:'Excellent', cls:'good'};
+      return {text:'6-sigma level', cls:'good'};
+    }
+
+    function updateExplorer(){
+      const mu = parseFloat(meanSlider.value);
+      const sigma = parseFloat(sigmaSlider.value);
+      meanOut.textContent = formatNum(mu, 2);
+      sigmaOut.textContent = formatNum(sigma, 2);
+
+      const zNearest = Math.min(USL - mu, mu - LSL) / sigma;
+      const pLow = normalCdf(LSL, mu, sigma);
+      const pHigh = 1 - normalCdf(USL, mu, sigma);
+      const defectRate = pLow + pHigh;
+      const yieldPct = (1 - defectRate) * 100;
+      const ppm = defectRate * 1e6;
+      const status = decisionLabel(zNearest);
+
+      document.getElementById('sigmaLevelOut').textContent = formatNum(zNearest, 2);
+      document.getElementById('sigmaCalcOut').textContent = `${formatNum(Math.min(USL-mu, mu-LSL),2)} ÷ ${formatNum(sigma,2)} = ${formatNum(zNearest,2)}`;
+      document.getElementById('yieldOut').textContent = yieldPct.toFixed(4) + '%';
+      document.getElementById('ppmOut').textContent = formatPpm(ppm);
+      const statusEl = document.getElementById('statusOut');
+      statusEl.textContent = status.text;
+      statusEl.className = 'v ' + status.cls;
+
+      const explain = document.getElementById('explainBox');
+      const roundedSigmaLevel = Math.round(zNearest);
+      const sigmaText = roundedSigmaLevel >= 6
+        ? 'This is approximately a <strong>6-sigma</strong> process.'
+        : roundedSigmaLevel === 5
+          ? 'This is approximately a <strong>5-sigma</strong> process.'
+          : roundedSigmaLevel === 4
+            ? 'This is approximately a <strong>4-sigma</strong> process.'
+            : roundedSigmaLevel === 3
+              ? 'This is approximately a <strong>3-sigma</strong> process.'
+              : roundedSigmaLevel === 2
+                ? 'This is approximately a <strong>2-sigma</strong> process.'
+                : 'This process is below 2 sigma, so it uses a very large share of the customer tolerance.';
+
+      explain.innerHTML = `<p><strong>Interpretation:</strong> With μ = ${formatNum(mu,2)} and σ = ${formatNum(sigma,2)}, the nearest specification limit is <strong>${formatNum(Math.min(USL-mu, mu-LSL),2)}</strong> units away. Therefore, about <strong>${formatNum(zNearest,2)} standard deviations</strong> fit from the process mean to the nearest specification limit.</p>
+      <p>${sigmaText}</p>`;
+
+      drawCurve(mu, sigma, pLow, pHigh);
+    }
+
+    function drawCurve(mu, sigma, pLow, pHigh){
+      const svg = document.getElementById('curveSvg');
+      const W = 760, H = 360, left = 60, right = 30, top = 58, bottom = 46;
+      const plotW = W - left - right, plotH = H - top - bottom;
+      const xmin = 80, xmax = 120;
+      const xToPx = x => left + ((x - xmin) / (xmax - xmin)) * plotW;
+      const pdf = x => (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+      let maxPdf = 0;
+      for(let x=xmin; x<=xmax; x+=0.1) maxPdf = Math.max(maxPdf, pdf(x));
+      const yToPx = y => top + plotH - (y / maxPdf) * (plotH * 0.92);
+
+      let path = '';
+      let fillPath = `M ${xToPx(xmin)} ${yToPx(0)} `;
+      for(let x=xmin; x<=xmax; x+=0.2){
+        const px = xToPx(x), py = yToPx(pdf(x));
+        path += (x === xmin ? 'M ' : ' L ') + px + ' ' + py;
+        fillPath += `L ${px} ${py} `;
+      }
+      fillPath += `L ${xToPx(xmax)} ${yToPx(0)} Z`;
+
+      let axisTicks = '';
+      for(let x=80; x<=120; x+=5){
+        axisTicks += `<line x1="${xToPx(x)}" y1="${top+plotH}" x2="${xToPx(x)}" y2="${top+plotH+7}" stroke="#7ea0b9" />`;
+        axisTicks += `<text x="${xToPx(x)}" y="${top+plotH+24}" fill="#c8d9e6" font-size="13" text-anchor="middle">${x}</text>`;
+      }
+
+      const sigmaMarks = [];
+      for(let k=-3; k<=3; k++){
+        const val = mu + k * sigma;
+        if(val >= xmin && val <= xmax){
+          sigmaMarks.push(`<line x1="${xToPx(val)}" y1="${top+plotH}" x2="${xToPx(val)}" y2="${top+plotH-10}" stroke="#bea8ff" stroke-width="2"/>`);
+          sigmaMarks.push(`<text x="${xToPx(val)}" y="${top+plotH-14}" fill="#bea8ff" font-size="12" text-anchor="middle">${k === 0 ? 'μ' : (k>0?'+':'')+k+'σ'}</text>`);
+        }
+      }
+
+
+      svg.innerHTML = `
+        <rect x="0" y="0" width="${W}" height="${H}" fill="#0b1a2a" rx="8"></rect>
+        <text x="${W/2}" y="22" fill="#eef7ff" font-size="15" font-weight="700" text-anchor="middle">Process distribution versus customer specifications</text>
+        <line x1="${left}" y1="${top+plotH}" x2="${W-right}" y2="${top+plotH}" stroke="#93adc2" stroke-width="2"/>
+        ${axisTicks}
+        <path d="${fillPath}" fill="rgba(190,168,255,.12)"></path>
+        <path d="${path}" fill="none" stroke="#bea8ff" stroke-width="3"></path>
+        <line x1="${xToPx(LSL)}" y1="${top}" x2="${xToPx(LSL)}" y2="${top+plotH}" stroke="#42e8e0" stroke-width="3"></line>
+        <line x1="${xToPx(USL)}" y1="${top}" x2="${xToPx(USL)}" y2="${top+plotH}" stroke="#42e8e0" stroke-width="3"></line>
+        <line x1="${xToPx(mu)}" y1="${top}" x2="${xToPx(mu)}" y2="${top+plotH}" stroke="#ffc857" stroke-width="3"></line>
+        <text x="${xToPx(LSL)}" y="${top-10}" fill="#42e8e0" font-size="13" text-anchor="middle">LSL = ${LSL}</text>
+        <text x="${xToPx(USL)}" y="${top-10}" fill="#42e8e0" font-size="13" text-anchor="middle">USL = ${USL}</text>
+        <text x="${xToPx(mu)}" y="${top+16}" fill="#ffc857" font-size="13" text-anchor="middle">μ = ${formatNum(mu,2)}</text>
+        ${sigmaMarks.join('')}
+        <text x="${left}" y="${H-6}" fill="#c8d9e6" font-size="13">Fill weight (grams)</text>
+      `;
+    }
+
+    document.getElementById('centerBtn').addEventListener('click', () => { meanSlider.value = 100; updateExplorer(); });
+    document.getElementById('presetBest').addEventListener('click', () => {
+      selectedProvider = 4; meanSlider.value = 100; sigmaSlider.value = 1.67; renderProviders(); updateExplorer();
+    });
+    document.getElementById('presetWorst').addEventListener('click', () => {
+      selectedProvider = 0; meanSlider.value = 100; sigmaSlider.value = 5.00; renderProviders(); updateExplorer();
+    });
+    meanSlider.addEventListener('input', updateExplorer);
+    sigmaSlider.addEventListener('input', updateExplorer);
+
+    function populateChallenge(){
+      const body = document.getElementById('challengeTable');
+      body.innerHTML = '';
+      providerPresets.forEach(p => {
+        const defectRate = normalCdf(LSL, p.mean, p.sigma) + (1 - normalCdf(USL, p.mean, p.sigma));
+        const yieldPct = (1 - defectRate) * 100;
+        const ppm = defectRate * 1e6;
+        const sigmaLevel = Math.min(USL - p.mean, p.mean - LSL) / p.sigma;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${p.name}</td><td>${p.sigma.toFixed(2)}</td><td>${sigmaLevel.toFixed(2)}</td><td>${yieldPct.toFixed(4)}%</td><td>${formatPpm(ppm)}</td>`;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById('checkChallenge').addEventListener('click', () => {
+      const pick = document.getElementById('studentPick').value;
+      const reason = document.getElementById('studentReason').value;
+      const fb = document.getElementById('challengeFeedback');
+      if(!pick || !reason){
+        fb.innerHTML = '<p>Please choose both a provider and a reason.</p>';
+        return;
+      }
+      const correctProvider = 'Keystone Precision';
+      const correctReason = '1';
+      if(pick === correctProvider && reason === correctReason){
+        fb.innerHTML = `<p class="good">Correct.</p><p><strong>Keystone Precision</strong> is the best choice because it has the <strong>smallest σ</strong>, the <strong>highest sigma level</strong>, and therefore the lowest probability of producing fill weights outside the customer specifications.</p>`;
+      } else {
+        fb.innerHTML = `<p class="warn">Not the best choice.</p><p>The strongest answer is <strong>Keystone Precision</strong>, because it has the smallest process standard deviation and the highest sigma level. A tighter process means more standard deviations fit between the mean and the spec limits.</p>`;
+      }
+    });
+
+    renderProviders();
+    populateChallenge();
+    updateExplorer();
+  </script>
+</body>
+</html>

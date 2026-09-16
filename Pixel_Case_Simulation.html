@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA CASE FILE // PIXEL PAGE FACTORY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark:#0b0e14;
+    --panel:#1c2540;
+    --panel-edge:#3a4a80;
+    --panel-light:#2a3560;
+    --accent-blue:#4da6ff;
+    --accent-yellow:#ffd23f;
+    --accent-red:#ff5a5f;
+    --accent-green:#5fd068;
+    --text-main:#f2f4ff;
+    --text-dim:#8f9ac0;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;height:100%;
+    background:
+      radial-gradient(ellipse at 30% 20%, rgba(77,166,255,.12) 0%, transparent 55%),
+      radial-gradient(ellipse at 75% 80%, rgba(255,90,95,.10) 0%, transparent 55%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px),
+      #05070c;
+    color:var(--text-main);
+    font-family:'VT323',monospace;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  .pixel-font{font-family:'Press Start 2P',cursive;}
+  #consoleWrap{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  #marquee{
+    font-family:'Press Start 2P',cursive; font-size:14px; letter-spacing:2px;
+    color:var(--accent-yellow);
+    text-shadow: 0 0 6px rgba(255,210,63,.9), 0 0 16px rgba(255,210,63,.5);
+    background:linear-gradient(#1c2540,#0b0e14);
+    padding:10px 22px; box-shadow: 0 0 0 3px var(--panel-edge), 0 6px 18px rgba(0,0,0,.6);
+  }
+  #marquee span{ color:var(--accent-blue); text-shadow:0 0 6px rgba(77,166,255,.9), 0 0 16px rgba(77,166,255,.5); }
+  #stage{
+    position:relative;
+    width:980px;height:620px;
+    background:var(--bg-dark);
+    overflow:hidden;
+    transform-origin:center center;
+    box-shadow:
+      0 0 0 4px #05070c,
+      0 0 0 8px var(--panel-edge),
+      0 0 0 12px #05070c,
+      0 20px 60px rgba(0,0,0,.7);
+  }
+  #scanlines{
+    position:absolute;inset:0;pointer-events:none;z-index:90;
+    background:
+      repeating-linear-gradient(rgba(0,0,0,.16) 0px, rgba(0,0,0,.16) 1px, transparent 1px, transparent 3px),
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.4) 100%);
+    mix-blend-mode:multiply;
+  }
+  #screen{ position:absolute; inset:0; display:flex; flex-direction:column; }
+
+  /* ---------- generic menu-style screens ---------- */
+  .menuscreen{ padding:20px 26px; height:100%; display:flex; flex-direction:column; animation: fadeIn .28s ease; }
+  @keyframes fadeIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+  .fade-in{ animation: fadeIn .28s ease; }
+  .titlebar{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    font-size:11px;letter-spacing:1px;color:var(--accent-yellow);
+    border-bottom:3px solid var(--accent-yellow);
+    box-shadow: 0 3px 10px -2px rgba(255,210,63,.4);
+    padding-bottom:10px;margin-bottom:14px;
+  }
+  .btn{
+    font-family:'Press Start 2P',cursive; font-size:11px;
+    background:linear-gradient(160deg,#334072,#242f57); color:var(--text-main); border:none;
+    border-left:4px solid var(--accent-yellow);
+    padding:14px 16px; cursor:pointer; text-align:left;
+    box-shadow: 4px 4px 0 #05070c, inset 0 0 0 2px var(--panel-edge);
+    line-height:1.5; transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .btn:hover{background:linear-gradient(160deg,#5fb4ff,#3d8fe0);color:#05070c;border-left-color:#05070c;transform:translate(-1px,-1px);box-shadow: 5px 5px 0 #05070c, inset 0 0 0 2px var(--panel-edge);}
+  .btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 #05070c;}
+  .btn:disabled{opacity:.35;cursor:not-allowed;background:var(--panel-light);color:var(--text-dim);}
+  .btn-row{display:flex;flex-direction:column;gap:10px;}
+  .btn-small{font-size:9px;padding:9px 10px;}
+  .panel{
+    background:linear-gradient(160deg,#212b4d,#1a2340);
+    box-shadow: inset 0 0 0 2px var(--panel-edge), inset 0 3px 0 var(--accent-yellow);
+    padding:18px 20px;
+  }
+  .tag{display:inline-block;font-family:'Press Start 2P',cursive;font-size:9px;padding:4px 8px;background:var(--accent-red);color:#05070c;margin-right:6px;}
+  .tag.green{background:var(--accent-green);} .tag.yellow{background:var(--accent-yellow);} .tag.blue{background:var(--accent-blue);}
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;gap:14px;}
+  .name-plate{font-family:'Press Start 2P',cursive;font-size:10px;margin-bottom:8px;}
+  .bodytext{font-size:20px;line-height:1.4;}
+  .flex-fill{flex:1;overflow-y:auto;}
+  .footer-row{margin-top:14px;display:flex;justify-content:flex-end;gap:10px;}
+  .progress{display:flex;gap:6px;}
+  .step{font-family:'Press Start 2P',cursive;font-size:8px;padding:6px 8px;background:var(--panel-light);color:var(--text-dim);}
+  .step.active{background:var(--accent-yellow);color:#05070c;}
+  .step.done{background:var(--accent-green);color:#05070c;}
+  h1.pixel-font{font-size:22px;line-height:1.6;margin:0;color:var(--accent-yellow);text-shadow:3px 3px 0 #05070c;}
+  h2.pixel-font{font-size:14px;color:var(--accent-blue);margin:0 0 10px 0;}
+  .subtitle{font-size:16px;color:var(--text-dim);letter-spacing:1px;}
+  @keyframes blinkFade{0%,100%{opacity:1;}50%{opacity:.15;}}
+  .blink{animation:blinkFade 1.3s steps(1) infinite;}
+  .clue-list{list-style:none;margin:0;padding:0;font-size:18px;}
+  .clue-list li{padding:6px 0;border-bottom:1px dashed var(--panel-edge);}
+  .clue-list li:before{content:"» ";color:var(--accent-green);}
+  .modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:60;}
+  .modal{
+    background:var(--panel);box-shadow:0 0 0 3px var(--panel-edge), 8px 8px 0 #05070c;padding:26px;width:76%;max-width:600px;max-height:82%;overflow-y:auto;
+    position:relative; animation: fadeIn .22s ease;
+    background-image:
+      linear-gradient(to right, var(--accent-yellow) 3px, transparent 3px),
+      linear-gradient(to bottom, var(--accent-yellow) 3px, transparent 3px),
+      linear-gradient(to left, var(--accent-yellow) 3px, transparent 3px),
+      linear-gradient(to bottom, var(--accent-yellow) 3px, transparent 3px),
+      linear-gradient(to left, var(--accent-yellow) 3px, transparent 3px),
+      linear-gradient(to top, var(--accent-yellow) 3px, transparent 3px),
+      linear-gradient(to right, var(--accent-yellow) 3px, transparent 3px),
+      linear-gradient(to top, var(--accent-yellow) 3px, transparent 3px);
+    background-repeat:no-repeat;
+    background-size:18px 18px;
+    background-position: top left, top left, top right, top right, bottom right, bottom right, bottom left, bottom left;
+    background-color:var(--panel);
+    background-origin:border-box;
+  }
+  .score-badge{
+    font-family:'Press Start 2P',cursive;font-size:22px;padding:16px 22px;display:inline-block;
+    box-shadow:4px 4px 0 #05070c; transform:rotate(-3deg);
+    animation: stampIn .35s ease;
+  }
+  @keyframes stampIn{0%{transform:rotate(-3deg) scale(1.6); opacity:0;}100%{transform:rotate(-3deg) scale(1); opacity:1;}}
+  .gold{background:var(--accent-yellow);color:#05070c;} .silver{background:#cfd6e6;color:#05070c;} .bronze{background:#c07a3f;color:#05070c;}
+  table.spec{width:100%;border-collapse:collapse;font-size:18px;margin-top:8px;}
+  table.spec td, table.spec th{border:2px solid var(--panel-edge);padding:6px 10px;text-align:left;}
+  table.spec th{color:var(--accent-yellow);font-family:'Press Start 2P',cursive;font-size:9px;}
+  .miniback-btn{font-family:'Press Start 2P',cursive;font-size:9px;background:var(--panel-light);color:var(--text-main);border:none;padding:7px 10px;cursor:pointer;box-shadow:2px 2px 0 #05070c;}
+
+  /* ---------- hero image ---------- */
+  .hero-svg{width:100%;max-width:560px;height:auto;display:block;margin:0 auto;shape-rendering:crispEdges;}
+  @keyframes smokeRise{0%{transform:translateY(0);opacity:.85;}100%{transform:translateY(-26px);opacity:0;}}
+  .smoke{animation:smokeRise 3s ease-out infinite;}
+  @keyframes windowFlicker{0%,100%{opacity:1;}50%{opacity:.55;}}
+  .winlight{animation:windowFlicker 2.6s ease-in-out infinite;}
+
+  /* ---------- chart ---------- */
+  .chartwrap{position:relative;background:var(--panel);box-shadow:inset 0 0 0 2px var(--panel-edge);height:200px;margin:12px 0;}
+  .cline{position:absolute;left:0;right:0;height:0;border-top:2px dashed;}
+  .clabel{position:absolute;right:6px;font-size:12px;font-family:'Press Start 2P',cursive;transform:translateY(-50%);}
+  .dot{position:absolute;width:12px;height:12px;transform:translate(-50%,50%);}
+  .dot.normal{background:var(--accent-green);}
+  .dot.pending{background:var(--accent-red);}
+  .dot.classified-common{background:var(--accent-yellow);}
+  .dot.classified-special{background:var(--accent-red);}
+  .dotnum{position:absolute;font-size:10px;font-family:'Press Start 2P',cursive;color:var(--text-dim);transform:translate(-50%,120%);}
+  .reading-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--panel-edge);flex-wrap:wrap;}
+  .reading-row .rlabel{width:150px;font-size:17px;}
+  .reading-row .rbtns{display:flex;gap:8px;flex:1;}
+  .reading-row .rresult{font-size:16px;flex:1;}
+
+  /* ---------- ROOM / WORLD VIEW ---------- */
+  #roomHud{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:9px 20px; font-size:11px; color:var(--accent-yellow);
+    border-bottom:3px solid var(--accent-yellow); background:linear-gradient(#151a2c,#05070c);
+    box-shadow: 0 3px 10px -2px rgba(255,210,63,.4);
+  }
+  #peopleTracker{display:flex;gap:10px;font-family:'Press Start 2P',cursive;font-size:8px;}
+  #peopleTracker span{padding:5px 7px;background:var(--panel-light);color:var(--text-dim);}
+  #peopleTracker span.done{background:var(--accent-green);color:#05070c;}
+  .hud-btn{font-family:'Press Start 2P',cursive;font-size:9px;background:linear-gradient(160deg,#334072,#242f57);color:var(--text-main);border:none;border-left:3px solid var(--accent-yellow);padding:6px 10px;cursor:pointer;box-shadow: 2px 2px 0 #05070c;margin-left:6px;}
+  .hud-btn:hover{background:linear-gradient(160deg,#5fb4ff,#3d8fe0);color:#05070c;}
+  #playArea{position:relative;flex:1;overflow:hidden;}
+  .floor{position:absolute;left:0;right:0;bottom:0;height:74px;}
+  .backwall{position:absolute;left:0;right:0;top:0;bottom:74px;}
+  .prop{position:absolute;}
+  .roomTitleSign{
+    position:absolute; top:14px; left:50%; transform:translateX(-50%);
+    font-family:'Press Start 2P',cursive; font-size:13px; color:#05070c;
+    background:var(--accent-yellow); padding:6px 14px; box-shadow:3px 3px 0 #05070c; letter-spacing:1px;
+  }
+  .edgehint{position:absolute;bottom:90px;font-size:26px;color:var(--text-dim);opacity:.55;animation:pulse 1.6s infinite;}
+  .edgehint.left{left:8px;} .edgehint.right{right:8px;}
+  @keyframes pulse{0%,100%{opacity:.25;}50%{opacity:.75;}}
+  @keyframes sway{0%,100%{transform:rotate(-3deg);}50%{transform:rotate(3deg);}}
+  @keyframes gearspin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+  @keyframes beltScroll{from{background-position-x:0;}to{background-position-x:-60px;}}
+  @keyframes forkbob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+  @keyframes cursorblink{0%,100%{opacity:1;}50%{opacity:0;}}
+  @keyframes idleBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-3px);}}
+
+  .entity{position:absolute; bottom:44px; display:flex; flex-direction:column; align-items:center; }
+  .entity .tokenwrap{ width:100px;height:120px; display:flex; align-items:flex-end;justify-content:center; }
+  .entity .tokenwrap svg{ width:88px;height:auto; animation: idleBob 2.4s ease-in-out infinite; }
+  .entity .elabel{margin-top:2px;font-size:14px;color:var(--text-dim);white-space:nowrap;font-weight:bold;}
+  .entity.npc.talked .tokenwrap{ filter:drop-shadow(0 0 6px rgba(95,208,104,.9)); }
+  .entity.in-range .tokenwrap, .entity.in-range .token{
+    filter: drop-shadow(0 0 12px rgba(255,210,63,.95)) !important;
+  }
+  .entity.object{ bottom:44px; }
+  .entity.object .token{
+    width:60px;height:60px; display:flex;align-items:center;justify-content:center;font-size:30px;
+    background:#3b2f22; box-shadow: inset 0 0 0 3px #05070c, 0 0 0 3px var(--panel-edge);
+  }
+  .entity.object.viewed .token{ box-shadow: inset 0 0 0 3px #05070c, 0 0 0 3px var(--accent-green); }
+  .entity.object#ent_terminal .token::after{ content:''; }
+
+  #larrySprite{ position:absolute; bottom:44px; width:100px; display:flex;flex-direction:column;align-items:center; }
+  #larrySprite .tokenwrap{ width:100px;height:120px;display:flex;align-items:flex-end;justify-content:center; }
+  #larrySprite .tokenwrap svg{ width:92px;height:auto; }
+  #larrySprite .elabel{margin-top:2px;font-size:14px;color:var(--accent-yellow);font-weight:bold;}
+  #larrySprite.walking .tokenwrap svg{ animation: bob .28s steps(2) infinite; }
+  @keyframes bob{ 0%{transform:translateY(0);} 50%{transform:translateY(-6px);} 100%{transform:translateY(0);} }
+
+  #talkBubble{
+    position:absolute; bottom:150px; transform:translateX(-50%);
+    font-family:'Press Start 2P',cursive; font-size:9px; background:var(--accent-green); color:#05070c;
+    padding:5px 8px; box-shadow:2px 2px 0 #05070c; display:none; white-space:nowrap; z-index:20;
+  }
+
+  #dialogueLayer{
+    display:none; position:absolute; left:14px; right:14px; bottom:14px; z-index:55;
+    background:rgba(10,13,22,.94); box-shadow:0 0 0 3px var(--panel-edge), 6px 6px 0 #05070c;
+    padding:16px 18px; gap:14px; align-items:flex-start;
+  }
+  #dialogueLayer .dlg-portrait{ width:60px;height:60px;flex:none; display:flex;align-items:center;justify-content:center; }
+  #dialogueLayer .dlg-portrait svg{ width:56px;height:auto; }
+  #dialogueLayer .dlg-body{ flex:1; }
+  #dialogueLayer .dlg-name{ font-family:'Press Start 2P',cursive; font-size:10px; color:var(--accent-yellow); margin-bottom:6px; }
+  #dialogueLayer .dlg-text{ font-size:21px; line-height:1.35; }
+  #dialogueLayer .dlg-next{
+    font-family:'Press Start 2P',cursive; font-size:10px; background:var(--accent-green); color:#05070c; border:none;
+    padding:10px 12px; cursor:pointer; box-shadow:2px 2px 0 #05070c; flex:none; align-self:flex-end;
+  }
+
+  #controlsBar{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:12px 20px; background:linear-gradient(#05070c,#151a2c); border-top:3px solid var(--accent-yellow);
+    box-shadow: 0 -3px 10px -2px rgba(255,210,63,.35);
+  }
+  .dpad{display:flex;gap:10px;}
+  .dpad button{
+    font-family:'Press Start 2P',cursive; font-size:16px; width:56px;height:46px;
+    background:linear-gradient(160deg,#334072,#242f57); color:var(--text-main); border:none;
+    box-shadow: 3px 3px 0 #05070c, inset 0 0 0 2px var(--panel-edge); cursor:pointer;
+  }
+  .dpad button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #05070c;}
+  #actionBtn{
+    font-family:'Press Start 2P',cursive;font-size:12px;
+    background:var(--panel-light); color:var(--text-dim); border:none;
+    padding:14px 18px; box-shadow: 3px 3px 0 #05070c, inset 0 0 0 2px var(--panel-edge); cursor:not-allowed;
+  }
+  #actionBtn.ready{background:var(--accent-green);color:#05070c;cursor:pointer;box-shadow: 3px 3px 0 #05070c, inset 0 0 0 2px #05070c;}
+  #controlsHint{font-size:14px;color:var(--text-dim);}
+  #toast{
+    position:absolute; left:50%; top:70px; transform:translateX(-50%);
+    background:var(--accent-red); color:#05070c; font-family:'Press Start 2P',cursive; font-size:10px;
+    padding:8px 14px; box-shadow:3px 3px 0 #05070c; opacity:0; transition:opacity .25s ease; z-index:70; pointer-events:none;
+    max-width:80%; text-align:center;
+  }
+  #toast.show{opacity:1;}
+
+  /* checkboxes for final decision */
+  .decision-check{ display:flex; align-items:flex-start; gap:12px; padding:12px; background:var(--panel-light); margin-bottom:10px; box-shadow: inset 0 0 0 2px var(--panel-edge); }
+  .decision-check input{ width:22px;height:22px; accent-color:var(--accent-green); margin-top:2px; flex:none; }
+  .decision-check .dc-text{font-size:19px;line-height:1.35;}
+  .attempts-track{display:flex;gap:6px;}
+  .attempts-track span{width:16px;height:16px;background:var(--panel-light);box-shadow:inset 0 0 0 2px var(--panel-edge);}
+  .attempts-track span.used{background:var(--accent-red);}
+
+  /* ---------- intro thinking scene ---------- */
+  #introScene{position:relative;flex:1;overflow:hidden;}
+  .thoughtbubble{
+    position:absolute; left:440px; bottom:230px; transform:translateX(-30%);
+    background:#f2f4ff; color:#05070c; box-shadow:0 0 0 3px #05070c, 6px 6px 0 rgba(0,0,0,.4);
+    padding:14px 18px; font-family:'Press Start 2P',cursive; font-size:11px; line-height:2.1;
+    animation: floatBubble 3s ease-in-out infinite;
+  }
+  .thoughtbubble .tb-dot{position:absolute;background:#f2f4ff;box-shadow:0 0 0 3px #05070c;border-radius:50%;}
+  @keyframes floatBubble{0%,100%{transform:translateX(-30%) translateY(0);}50%{transform:translateX(-30%) translateY(-6px);}}
+</style>
+</head>
+<body>
+<div id="consoleWrap">
+  <div id="marquee">◆ PIXEL PAGE FACTORY <span>QA CASE SIMULATOR</span> ◆</div>
+  <div id="stage">
+    <div id="screen"></div>
+    <div id="scanlines"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   QA CASE FILE // PIXEL PAGE FACTORY
+   Walk-around retro investigation game about root-cause analysis
+   ============================================================ */
+
+const screen = document.getElementById('screen');
+function render(html){ screen.innerHTML = html; }
+
+/* ---------------- responsive scaling ---------------- */
+const stageEl = document.getElementById('stage');
+function fitStage(){
+  const s = Math.min(1, (window.innerWidth-16)/980, (window.innerHeight-76)/620);
+  stageEl.style.transform = `scale(${s})`;
+}
+window.addEventListener('resize', fitStage);
+fitStage();
+
+/* ---------------- pixel character generator ---------------- */
+function personSvg(opts){
+  const hat = opts.hat, skin = opts.skin || '#e7b98c', outfit = opts.outfit,
+        pants = opts.pants || '#2b2f3d', accessory = opts.accessory || '';
+  return `
+  <svg viewBox="0 0 40 56" xmlns="http://www.w3.org/2000/svg">
+    <rect x="14" y="40" width="5" height="14" fill="${pants}"/>
+    <rect x="21" y="40" width="5" height="14" fill="${pants}"/>
+    <rect x="10" y="20" width="20" height="22" fill="${outfit}"/>
+    <rect x="5" y="21" width="5" height="16" fill="${outfit}"/>
+    <rect x="30" y="21" width="5" height="16" fill="${outfit}"/>
+    <rect x="4" y="35" width="6" height="5" fill="${skin}"/>
+    <rect x="30" y="35" width="6" height="5" fill="${skin}"/>
+    <rect x="12" y="6" width="16" height="16" fill="${skin}"/>
+    <rect x="12" y="2" width="16" height="6" fill="${hat}"/>
+    <rect x="10" y="7" width="2" height="6" fill="${hat}"/>
+    <rect x="28" y="7" width="2" height="6" fill="${hat}"/>
+    <rect x="15" y="14" width="3" height="3" fill="#1a1c2c"/>
+    <rect x="22" y="14" width="3" height="3" fill="#1a1c2c"/>
+    ${accessory}
+  </svg>`;
+}
+const CHAR_ART = {
+  larry: personSvg({hat:'#4da6ff', outfit:'#2a3560', accessory:'<rect x="15" y="26" width="10" height="3" fill="#ffd23f"/>'}),
+  nadia: personSvg({hat:'#3b2b52', outfit:'#c0763f', accessory:'<rect x="26" y="16" width="6" height="3" fill="#1a1c2c"/><rect x="29" y="14" width="3" height="6" fill="#1a1c2c"/>'}),
+  hank:  personSvg({hat:'#ff9f2f', outfit:'#4a4f63', accessory:'<rect x="10" y="21" width="20" height="4" fill="#ffd23f"/>'}),
+  priya: personSvg({hat:'#5fd068', outfit:'#8a6b45', accessory:'<rect x="30" y="30" width="8" height="10" fill="#f2f2f2"/><rect x="31" y="32" width="6" height="1" fill="#333"/><rect x="31" y="34" width="6" height="1" fill="#333"/>'})
+};
+
+/* ---------------- factory hero image ---------------- */
+function factoryHeroSvg(){
+  return `
+  <svg class="hero-svg" viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2a2f66"/>
+        <stop offset="55%" stop-color="#5a4a86"/>
+        <stop offset="100%" stop-color="#d97757"/>
+      </linearGradient>
+    </defs>
+    <rect x="0" y="0" width="480" height="160" fill="url(#sky)"/>
+    <circle cx="60" cy="40" r="18" fill="#ffe9a8" opacity="0.9"/>
+    <rect x="0" y="160" width="480" height="60" fill="#12141c"/>
+    <rect x="40" y="70" width="260" height="100" fill="#33445c"/>
+    <rect x="40" y="60" width="260" height="12" fill="#1c2540"/>
+    <rect x="70" y="90" width="26" height="26" class="winlight" fill="#ffd23f"/>
+    <rect x="120" y="90" width="26" height="26" class="winlight" fill="#ffd23f" style="animation-delay:.6s"/>
+    <rect x="170" y="90" width="26" height="26" class="winlight" fill="#4da6ff" style="animation-delay:1.1s"/>
+    <rect x="220" y="90" width="26" height="26" class="winlight" fill="#ffd23f" style="animation-delay:.3s"/>
+    <rect x="70" y="130" width="220" height="40" fill="#26314a"/>
+    <rect x="150" y="132" width="60" height="38" fill="#0b0e14"/>
+    <rect x="60" y="20" width="18" height="55" fill="#26314a"/>
+    <rect x="110" y="10" width="18" height="65" fill="#26314a"/>
+    <circle class="smoke" cx="69" cy="14" r="7" fill="#8a94b8"/>
+    <circle class="smoke" cx="69" cy="14" r="5" fill="#aab2d0" style="animation-delay:1s"/>
+    <circle class="smoke" cx="119" cy="4" r="7" fill="#8a94b8" style="animation-delay:.5s"/>
+    <circle class="smoke" cx="119" cy="4" r="5" fill="#aab2d0" style="animation-delay:1.5s"/>
+    <rect x="150" y="45" width="120" height="26" fill="#ffd23f"/>
+    <text x="210" y="63" text-anchor="middle" font-family="'Press Start 2P',cursive" font-size="9" fill="#05070c">PIXEL PAGE</text>
+    <rect x="330" y="150" width="90" height="34" fill="#ff5a5f"/>
+    <rect x="330" y="140" width="90" height="12" fill="#c0763f"/>
+    <circle cx="345" cy="186" r="8" fill="#1a1c2c"/>
+    <circle cx="400" cy="186" r="8" fill="#1a1c2c"/>
+    <rect x="300" y="168" width="30" height="16" fill="#c0763f"/>
+  </svg>`;
+}
+
+/* ---------------- responsive helper end ---------------- */
+
+/* ---------------- world data ---------------- */
+const ROOM_MIN_X = 40, ROOM_MAX_X = 860;
+const TALK_RANGE = 100;
+const MOVE_SPEED = 6;
+
+const rooms = [
+  {
+    id:'sales', label:'SALES HALL', bg:'sales', next:'production',
+    npc:{ id:'nadia', name:'NADIA CRUZ', role:'SALES MANAGER', art:'nadia', x:430,
+      lines:[
+        "Larry — thank goodness. TechMart's regional buyer just called me again about the return.",
+        "1,500 notebooks, mixed defects — warped covers, pages jamming in the spiral, a few cracked spines.",
+        "They want a full credit note. $85,000, the whole invoice value of the batch.",
+        "I like this client. I don't want to lose the account over how we handle this — but I also can't just sign off $85,000 blind."
+      ],
+      idle:"Any update for TechMart yet, Larry?",
+      clue:"Sales: TechMart returned 1,500 units, mixed defects, demanding an $85,000 credit note."
+    }
+  },
+  {
+    id:'production', label:'PRODUCTION ROOM', bg:'production', next:'warehouse',
+    npc:{ id:'hank', name:'HANK DELGADO', role:'PRODUCTION MANAGER', art:'hank', x:430,
+      lines:[
+        "Larry! Good, you're here. I heard about the TechMart mess — $85,000 is no small number, and if word gets around that our line shipped a bad batch, that's a hit to the whole plant, not just my team.",
+        "I want to schedule another full recalibration of the binding and cutting lines. This is serious enough that I'd rather spend the money again than risk it happening a second time.",
+        "I know, I know — we just spent $300,000 recalibrating everything last year, and the post-calibration audit came back clean. I'm not saying it's us. I just don't want to be the reason this drags on.",
+        "I don't want my line getting blamed for something we couldn't control — but I get that somebody has to answer for 1,500 notebooks. I just don't think that somebody is Production."
+      ],
+      idle:"Still waiting on your call about that recalibration, Larry. This one's bigger than a normal complaint.",
+      clue:"Production: wants ANOTHER recalibration (last one cost $300,000, done last year)."
+    }
+  },
+  {
+    id:'warehouse', label:'WAREHOUSE', bg:'warehouse', next:'office',
+    npc:{ id:'priya', name:'PRIYA ANAND', role:'SOURCING & WAREHOUSE MANAGER', art:'priya', x:430,
+      lines:[
+        "Raw materials are fine, Larry — but don't mistake that for me not taking this seriously. Losing TechMart over a batch of notebooks would sting the whole company, not just Sales.",
+        "Every incoming batch gets checked against spec before it's released to the floor, so on paper, this isn't coming from intake.",
+        "...Although — now that you mention the returns — last month's paper shipment did run a little thick. It still passes the standard, though. That spec hasn't changed since 2024, so I can't exactly flag it as 'out of spec' if it technically isn't.",
+        "I'm not saying it's not worth a second look — this is too big a deal to just shrug off. The intake log's still here if you want to check it yourself."
+      ],
+      idle:"The intake log's still here if you need another look, Larry. This one's too big to just let go.",
+      clue:"Sourcing: last month's paper is 'a little thick' but still inside the official spec (set in 2024)."
+    }
+  },
+  {
+    id:'office', label:"LARRY'S OFFICE", bg:'office', next:null,
+    objects:[
+      { id:'specsheet', name:'PAPER SPEC SHEET', icon:'📋', x:180 },
+      { id:'calibnotice', name:'RECALIBRATION NOTICE', icon:'🗂️', x:430 },
+      { id:'terminal', name:'QA TERMINAL', icon:'🖥️', x:680 }
+    ]
+  }
+];
+
+function getRoom(id){ return rooms.find(r=>r.id===id); }
+function getPrevRoomId(id){
+  const idx = rooms.findIndex(r=>r.next===id);
+  return idx>=0 ? rooms[idx].id : null;
+}
+function allVisited(){ return state.visited.nadia && state.visited.hank && state.visited.priya; }
+
+/* ---------------- state ---------------- */
+const state = {
+  currentRoom:'sales',
+  larryX:60,
+  facing:'right',
+  visited:{ nadia:false, hank:false, priya:false },
+  viewedObjects:{ specsheet:false, calibnotice:false },
+  clues:[],
+  chartScore:0, chartDone:0, dotResults:{},
+  decisionScores:[], decisionIndex:0,
+  finalAttempts:0,
+  finalChoice:{ retailer:false, recalibrate:false, paperSpec:false }
+};
+const keys = { left:false, right:false };
+function setKey(dir,val){ keys[dir]=val; }
+let dialogueActive = false;
+
+function resetState(){
+  state.currentRoom='sales'; state.larryX=60; state.facing='right';
+  state.visited={ nadia:false, hank:false, priya:false };
+  state.viewedObjects={ specsheet:false, calibnotice:false };
+  state.clues=[]; state.chartScore=0; state.chartDone=0; state.dotResults={};
+  state.decisionScores=[]; state.decisionIndex=0;
+  state.finalAttempts=0; state.finalChoice={ retailer:false, recalibrate:false, paperSpec:false };
+  keys.left=false; keys.right=false; dialogueActive=false;
+}
+
+/* ---------------- keyboard ---------------- */
+document.addEventListener('keydown', e=>{
+  if(dialogueActive){
+    if((e.key===' '||e.key==='Enter') && window.advanceScript) window.advanceScript();
+    return;
+  }
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') keys.left=true;
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') keys.right=true;
+  if(e.key===' '||e.key==='Enter'){
+    const btn = document.getElementById('actionBtn');
+    if(btn && btn.classList.contains('ready')) btn.click();
+  }
+});
+document.addEventListener('keyup', e=>{
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A') keys.left=false;
+  if(e.key==='ArrowRight'||e.key==='d'||e.key==='D') keys.right=false;
+});
+
+/* ---------------- toast ---------------- */
+let toastTimer=null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 1700);
+}
+
+/* ---------------- room backgrounds ---------------- */
+function roomBackground(bg){
+  if(bg==='sales'){
+    return `
+      <div class="backwall" style="background:linear-gradient(#274063,#1e3352);"></div>
+      <div class="prop" style="left:0;top:20px;width:100%;height:34px;background:linear-gradient(#7fa8e0,#274063);opacity:.35;"></div>
+      <div class="floor" style="background:repeating-linear-gradient(90deg,#3a5a86 0 40px,#33507a 40px 80px);"></div>
+      <div class="prop" style="left:40px;bottom:74px;width:120px;height:70px;background:#8a6b45;box-shadow:inset 0 0 0 4px #05070c;"></div>
+      <div class="prop" style="left:60px;bottom:104px;width:20px;height:26px;background:#4a8a4f;border-radius:40% 40% 0 0;transform-origin:bottom center;animation:sway 3.4s ease-in-out infinite;"></div>
+      <div class="prop" style="left:230px;bottom:74px;width:60px;height:50px;background:#c0763f;box-shadow:inset 0 0 0 3px #05070c;"></div>
+      <div class="prop" style="left:242px;bottom:108px;width:36px;height:8px;background:#f2f2f2;font-size:8px;text-align:center;color:#05070c;font-family:'Press Start 2P',cursive;line-height:8px;">RETURN</div>
+      <div class="prop" style="right:110px;bottom:150px;width:12px;height:40px;background:#12141c;"></div>
+      <div class="prop" style="right:80px;bottom:150px;width:12px;height:40px;background:#12141c;"></div>
+      <div class="prop" style="right:70px;bottom:130px;width:180px;height:8px;background:#12141c;"></div>
+      <div class="prop" style="right:130px;bottom:135px;width:14px;height:14px;background:#ffd23f;border-radius:50%;box-shadow:0 0 12px 4px rgba(255,210,63,.5);"></div>
+      <div class="prop" style="right:90px;bottom:135px;width:14px;height:14px;background:#ffd23f;border-radius:50%;box-shadow:0 0 12px 4px rgba(255,210,63,.5);"></div>
+    `;
+  }
+  if(bg==='production'){
+    return `
+      <div class="backwall" style="background:#20242f;"></div>
+      <div class="prop" style="left:0;right:0;top:16px;height:10px;background:#3a3f52;"></div>
+      <div class="prop" style="left:30px;top:24px;width:10px;height:50px;background:#3a3f52;"></div>
+      <div class="prop" style="right:60px;top:24px;width:10px;height:50px;background:#3a3f52;"></div>
+      <div class="floor" style="background:repeating-linear-gradient(90deg,#2c2f3a 0 30px,#ffd23f 30px 34px,#2c2f3a 34px 60px);"></div>
+      <div class="prop" style="left:60px;bottom:74px;width:150px;height:120px;background:#4a4f63;box-shadow:inset 0 0 0 4px #05070c;"></div>
+      <div class="prop" style="left:95px;bottom:154px;width:40px;height:40px;background:#ff5a5f;border-radius:50%;box-shadow:inset 0 0 0 4px #05070c;display:flex;align-items:center;justify-content:center;font-size:20px;animation:gearspin 4s linear infinite;">⚙️</div>
+      <div class="prop" style="right:90px;bottom:74px;width:200px;height:60px;background:#333a4d;box-shadow:inset 0 0 0 4px #05070c;overflow:hidden;">
+        <div style="width:100%;height:100%;background:repeating-linear-gradient(90deg,#666 0 10px,#222 10px 20px);animation:beltScroll .6s linear infinite;"></div>
+      </div>
+      <div class="prop" style="right:150px;bottom:60px;width:16px;height:14px;background:#ff5a5f;border-radius:50%;box-shadow:0 0 10px 4px rgba(255,90,95,.7);animation:windowFlicker 1.2s ease-in-out infinite;"></div>
+    `;
+  }
+  if(bg==='warehouse'){
+    return `
+      <div class="backwall" style="background:#3a2e20;"></div>
+      <div class="prop" style="left:0;right:0;top:10px;height:10px;background:#5a4630;"></div>
+      <div class="floor" style="background:repeating-linear-gradient(90deg,#5a4630 0 40px,#4d3b28 40px 80px);"></div>
+      <div class="prop" style="left:50px;bottom:74px;width:70px;height:130px;background:#c9a86a;border-radius:50%/12%;box-shadow:inset 0 0 0 4px #05070c;"></div>
+      <div class="prop" style="left:130px;bottom:74px;width:70px;height:100px;background:#c9a86a;border-radius:50%/12%;box-shadow:inset 0 0 0 4px #05070c;"></div>
+      <div class="prop" style="right:190px;bottom:74px;width:130px;height:150px;background:#5a4630;box-shadow:inset 0 0 0 4px #05070c;"></div>
+      <div class="prop" style="right:200px;bottom:84px;width:110px;height:26px;background:#8a6b45;box-shadow:inset 0 0 0 3px #05070c;"></div>
+      <div class="prop" style="right:200px;bottom:122px;width:110px;height:26px;background:#8a6b45;box-shadow:inset 0 0 0 3px #05070c;"></div>
+      <div class="prop" style="right:200px;bottom:160px;width:110px;height:26px;background:#8a6b45;box-shadow:inset 0 0 0 3px #05070c;"></div>
+      <div class="prop" style="right:60px;bottom:74px;width:60px;height:50px;background:#ff5a5f;box-shadow:inset 0 0 0 3px #05070c;display:flex;align-items:center;justify-content:center;font-size:24px;animation:forkbob 1.6s ease-in-out infinite;">🚚</div>
+      <div class="prop" style="left:340px;bottom:170px;width:16px;height:20px;background:#ffd23f;box-shadow:0 0 14px 5px rgba(255,210,63,.4);"></div>
+    `;
+  }
+  if(bg==='office'){
+    return `
+      <div class="backwall" style="background:#3b2f22;"></div>
+      <div class="prop" style="left:0;right:0;top:14px;height:44px;background:linear-gradient(#5a4a86,#274063);"></div>
+      <div class="prop" style="left:60px;top:20px;width:70px;height:38px;background:#12141c;"></div>
+      <div class="prop" style="left:30px;top:64px;width:220px;height:10px;background:#8a6b45;"></div>
+      <div class="prop" style="left:100px;top:70px;width:16px;height:10px;background:#c0763f;"></div>
+      <div class="prop" style="left:130px;top:70px;width:16px;height:10px;background:#4da6ff;"></div>
+      <div class="prop" style="left:160px;top:70px;width:16px;height:10px;background:#ffd23f;"></div>
+      <div class="floor" style="background:repeating-linear-gradient(90deg,#6b5335 0 40px,#5c4730 40px 80px);"></div>
+      <div class="prop" style="right:230px;bottom:74px;width:160px;height:70px;background:#6b4a2f;box-shadow:inset 0 0 0 4px #05070c;"></div>
+      <div class="prop" style="right:250px;bottom:134px;width:60px;height:16px;background:#f2f2f2;"></div>
+      <div class="prop" style="right:200px;bottom:120px;width:14px;height:26px;background:#ffd23f;box-shadow:0 0 10px 4px rgba(255,210,63,.4);"></div>
+      <div class="prop" style="left:660px;bottom:74px;width:20px;height:6px;background:#5fd068;animation:cursorblink 1s steps(1) infinite;"></div>
+    `;
+  }
+  return '';
+}
+
+/* ---------------- render room ---------------- */
+function progressSteps(current){
+  const stepsArr = [["🔍","INVESTIGATE"],["📊","ANALYZE"],["✅","DECIDE"],["📄","REPORT"]];
+  return `<div class="progress">` + stepsArr.map((s,i)=>{
+    let cls = "step";
+    if(i < current) cls += " done";
+    else if(i === current) cls += " active";
+    return `<div class="${cls}">${s[0]} ${s[1]}</div>`;
+  }).join("") + `</div>`;
+}
+function factoryReturnBtn(){
+  return `<button class="hud-btn" onclick="enterRoom(state.currentRoom,'left')">🏭 FACTORY</button>`;
+}
+
+function renderRoom(){
+  const room = getRoom(state.currentRoom);
+  let entitiesHtml = '';
+  if(room.npc){
+    const talked = state.visited[room.npc.id];
+    entitiesHtml += `
+      <div class="entity npc ${talked?'talked':''}" id="ent_${room.npc.id}" style="left:${room.npc.x}px;">
+        <div class="tokenwrap">${CHAR_ART[room.npc.art]}</div>
+        <div class="elabel">${room.npc.name}</div>
+      </div>`;
+  }
+  if(room.objects){
+    room.objects.forEach(o=>{
+      const viewed = o.id==='terminal' ? false : state.viewedObjects[o.id];
+      entitiesHtml += `
+        <div class="entity object ${viewed?'viewed':''}" id="ent_${o.id}" style="left:${o.x}px;">
+          <div class="token">${o.icon}</div>
+          <div class="elabel">${o.name}</div>
+        </div>`;
+    });
+  }
+
+  render(`
+    <div class="fade-in" style="display:contents;">
+    <div id="roomHud">
+      <span class="pixel-font" style="font-size:11px;">CASE #Q-2026-08</span>
+      <div id="peopleTracker">
+        <span class="${state.visited.nadia?'done':''}">SALES</span>
+        <span class="${state.visited.hank?'done':''}">PROD</span>
+        <span class="${state.visited.priya?'done':''}">W'HOUSE</span>
+      </div>
+      <div>
+        <button class="hud-btn" onclick="openMap()">🗺️ MAP</button>
+        <button class="hud-btn" onclick="openNotes()">📓 NOTES</button>
+      </div>
+    </div>
+    <div id="playArea">
+      ${roomBackground(room.bg)}
+      <div class="roomTitleSign">${room.label}</div>
+      ${getPrevRoomId(room.id) ? '<div class="edgehint left">◀</div>' : ''}
+      ${room.next ? '<div class="edgehint right">▶</div>' : ''}
+      ${entitiesHtml}
+      <div id="talkBubble"></div>
+      <div id="larrySprite">
+        <div class="tokenwrap">${CHAR_ART.larry}</div>
+        <div class="elabel">LARRY</div>
+      </div>
+      <div id="dialogueLayer"></div>
+      <div id="toast"></div>
+    </div>
+    <div id="controlsBar">
+      <div class="dpad">
+        <button onpointerdown="setKey('left',true)" onpointerup="setKey('left',false)" onpointerleave="setKey('left',false)" onpointercancel="setKey('left',false)">◀</button>
+        <button onpointerdown="setKey('right',true)" onpointerup="setKey('right',false)" onpointerleave="setKey('right',false)" onpointercancel="setKey('right',false)">▶</button>
+      </div>
+      <div id="controlsHint">Arrow keys / buttons to walk · Space to interact</div>
+      <button id="actionBtn" onclick="handleAction()">…</button>
+    </div>
+    </div>
+  `);
+
+  const larry = document.getElementById('larrySprite');
+  larry.style.left = state.larryX + 'px';
+  const face = larry.querySelector('.tokenwrap');
+  face.style.transform = state.facing==='left' ? 'scaleX(-1)' : 'scaleX(1)';
+}
+
+function enterRoom(id, entrySide){
+  state.currentRoom = id;
+  state.larryX = entrySide==='left' ? 60 : 800;
+  state.facing = entrySide==='left' ? 'right' : 'left';
+  renderRoom();
+}
+
+/* ---------------- map ---------------- */
+function openMap(){
+  const bg = screen.innerHTML;
+  render(`
+    <div class="modal-bg"><div class="modal">
+      <h2 class="pixel-font">FACTORY MAP</h2>
+      <p class="bodytext">Walk back to any part of the visit:</p>
+      <div class="btn-row">
+        <button class="btn" onclick="enterRoom('sales','left')">🏬 Sales Hall</button>
+        <button class="btn" onclick="enterRoom('production','left')">⚙️ Production Room</button>
+        <button class="btn" onclick="enterRoom('warehouse','left')">📦 Warehouse</button>
+        <button class="btn" onclick="enterRoom('office','left')">🗂️ Larry's Office</button>
+      </div>
+      <div class="footer-row"><button class="btn pixel-font" onclick="closeOverlay()">CLOSE ▶</button></div>
+    </div></div>
+  ` + bg);
+  window.closeOverlay = ()=>{ window.closeOverlay=null; renderRoom(); };
+}
+
+/* ---------------- current nearby target ---------------- */
+let nearTarget = null;
+
+function computeNearTarget(){
+  const room = getRoom(state.currentRoom);
+  let best = null, bestDist = Infinity;
+  if(room.npc){
+    const d = Math.abs(state.larryX - room.npc.x);
+    if(d < bestDist){ bestDist = d; best = { type:'npc', data:room.npc }; }
+  }
+  if(room.objects){
+    room.objects.forEach(o=>{
+      const d = Math.abs(state.larryX - o.x);
+      if(d < bestDist){ bestDist = d; best = { type:'object', data:o }; }
+    });
+  }
+  return (best && bestDist <= TALK_RANGE) ? best : null;
+}
+
+/* ---------------- game loop ---------------- */
+function gameTick(){
+  requestAnimationFrame(gameTick);
+  const larry = document.getElementById('larrySprite');
+  if(!larry || dialogueActive) return;
+
+  let dx = 0;
+  if(keys.left) dx -= MOVE_SPEED;
+  if(keys.right) dx += MOVE_SPEED;
+
+  if(dx !== 0){
+    state.larryX += dx;
+    state.facing = dx < 0 ? 'left' : 'right';
+    larry.classList.add('walking');
+  } else {
+    larry.classList.remove('walking');
+  }
+
+  const room = getRoom(state.currentRoom);
+
+  if(state.larryX > ROOM_MAX_X){
+    if(room.next){
+      if(room.npc && !state.visited[room.npc.id]){
+        state.larryX = ROOM_MAX_X;
+        showToast(`Talk to ${room.npc.name} before heading out.`);
+      } else {
+        enterRoom(room.next, 'left');
+        return;
+      }
+    } else {
+      state.larryX = ROOM_MAX_X;
+    }
+  }
+  if(state.larryX < ROOM_MIN_X){
+    const prevId = getPrevRoomId(room.id);
+    if(prevId){ enterRoom(prevId, 'right'); return; }
+    else state.larryX = ROOM_MIN_X;
+  }
+
+  larry.style.left = state.larryX + 'px';
+  larry.querySelector('.tokenwrap').style.transform = state.facing==='left' ? 'scaleX(-1)' : 'scaleX(1)';
+
+  nearTarget = computeNearTarget();
+  document.querySelectorAll('.entity').forEach(el=>el.classList.remove('in-range'));
+  if(nearTarget){
+    const el = document.getElementById('ent_' + nearTarget.data.id);
+    if(el) el.classList.add('in-range');
+  }
+  const actionBtn = document.getElementById('actionBtn');
+  const bubble = document.getElementById('talkBubble');
+  if(nearTarget){
+    const isNpc = nearTarget.type === 'npc';
+    const already = isNpc ? state.visited[nearTarget.data.id] :
+                     (nearTarget.data.id==='terminal' ? false : state.viewedObjects[nearTarget.data.id]);
+    actionBtn.classList.add('ready');
+    actionBtn.textContent = isNpc ? (already ? 'TALK AGAIN' : 'TALK') :
+                             (nearTarget.data.id==='terminal' ? 'USE' : (already ? 'VIEW AGAIN' : 'VIEW'));
+    if(bubble){
+      bubble.style.display = 'block';
+      bubble.style.left = nearTarget.data.x + 'px';
+      bubble.textContent = isNpc ? '💬 TALK' : '🔍 VIEW';
+    }
+  } else if(actionBtn) {
+    actionBtn.classList.remove('ready');
+    actionBtn.textContent = '…';
+    if(bubble) bubble.style.display = 'none';
+  }
+}
+requestAnimationFrame(gameTick);
+
+/* ---------------- interactions ---------------- */
+function handleAction(){
+  if(!nearTarget) return;
+  if(nearTarget.type === 'npc') startNpcDialogue(nearTarget.data);
+  else startObjectInteraction(nearTarget.data);
+}
+
+/* dialogue plays as an overlay ON TOP of the current room — background never disappears */
+function playScript(art, who, role, lines, onComplete, finalLabel){
+  let i = 0;
+  dialogueActive = true;
+  function step(){
+    const layer = document.getElementById('dialogueLayer');
+    if(!layer) return;
+    const isLast = i === lines.length - 1;
+    layer.style.display = 'flex';
+    layer.innerHTML = `
+      <div class="dlg-portrait">${CHAR_ART[art] || ''}</div>
+      <div class="dlg-body">
+        <div class="dlg-name">${who}${role ? ' — '+role : ''}</div>
+        <div class="dlg-text">${lines[i]}</div>
+      </div>
+      <button class="dlg-next" onclick="advanceScript()">${isLast ? (finalLabel || 'OK ▶') : 'NEXT ▶'}</button>
+    `;
+  }
+  window.advanceScript = function(){
+    i++;
+    if(i < lines.length) step();
+    else {
+      window.advanceScript = null;
+      dialogueActive = false;
+      const layer = document.getElementById('dialogueLayer');
+      if(layer){ layer.style.display='none'; layer.innerHTML=''; }
+      onComplete();
+    }
+  };
+  step();
+}
+
+function startNpcDialogue(npc){
+  const firstTime = !state.visited[npc.id];
+  const lines = firstTime ? npc.lines : [npc.idle];
+  playScript(npc.art, npc.name, npc.role, lines, ()=>{
+    if(firstTime){
+      state.visited[npc.id] = true;
+      if(!state.clues.includes(npc.clue)) state.clues.push(npc.clue);
+    }
+    renderRoom();
+  });
+}
+
+/* object info also overlays on top of the room, dimmed but visible behind */
+function startObjectInteraction(obj){
+  if(obj.id === 'terminal'){ showChartIntro(); return; }
+  state.viewedObjects[obj.id] = true;
+  const content = obj.id === 'specsheet' ? specSheetHtml() : calibNoticeHtml();
+  const bg = screen.innerHTML;
+  render(`
+    <div class="modal-bg"><div class="modal">
+      ${content}
+      <div class="footer-row"><button class="btn pixel-font" onclick="closeOverlay()">CLOSE ▶</button></div>
+    </div></div>
+  ` + bg);
+  window.closeOverlay = ()=>{ window.closeOverlay=null; renderRoom(); };
+}
+
+function specSheetHtml(){
+  return `
+    <h2 class="pixel-font">📋 PAPER SPEC SHEET — INTERIOR PAGES</h2>
+    <table class="spec">
+      <tr><th>Parameter</th><th>Value</th></tr>
+      <tr><td>Grammage (thickness)</td><td>70 – 90 gsm</td></tr>
+      <tr><td>Spec revision</td><td>Defined 2024, unchanged since</td></tr>
+      <tr><td>Last month's incoming avg.</td><td>~87 gsm (passes spec)</td></tr>
+      <tr><td>QA lab historical process range</td><td>75 – 85 gsm (typical / "in control")</td></tr>
+    </table>
+    <p class="bodytext" style="margin-top:12px;">Note in the margin, in Larry's handwriting: <i>"Still inside spec — but every reading
+    last month sits above our own historical control range. Worth checking against the defect pattern."</i></p>
+  `;
+}
+function calibNoticeHtml(){
+  return `
+    <h2 class="pixel-font">🗂️ RECALIBRATION RECORD</h2>
+    <table class="spec">
+      <tr><th>Item</th><th>Details</th></tr>
+      <tr><td>Last full recalibration</td><td>11 months ago — binding &amp; cutting lines</td></tr>
+      <tr><td>Cost of last recalibration</td><td>$300,000</td></tr>
+      <tr><td>Post-calibration audit</td><td>Passed, all tolerances within range</td></tr>
+      <tr><td>New request (pending)</td><td>Full re-recalibration, same scope</td></tr>
+      <tr><td>Estimated cost of new request</td><td>~$310,000 + 3 weeks reduced output</td></tr>
+    </table>
+    <p class="bodytext" style="margin-top:12px;">Sticky note: <i>"Machines were verified in-tolerance less than a year ago.
+    Before approving another $310,000 job, confirm whether the machines have actually drifted — or whether something upstream changed."</i></p>
+  `;
+}
+
+function openNotes(){
+  const bg = screen.innerHTML;
+  render(`
+    <div class="modal-bg"><div class="modal">
+      <h2 class="pixel-font">LARRY'S NOTEBOOK</h2>
+      ${state.clues.length ? `<ul class="clue-list">${state.clues.map(c=>`<li>${c}</li>`).join('')}</ul>`
+        : `<p class="bodytext dim">Nothing yet — go talk to people.</p>`}
+      <div class="footer-row"><button class="btn pixel-font" onclick="closeOverlay()">CLOSE ▶</button></div>
+    </div></div>
+  ` + bg);
+  window.closeOverlay = ()=>{ window.closeOverlay=null; renderRoom(); };
+}
+
+/* ================= TITLE / INTRO ================= */
+function showTitle(){
+  render(`
+    <div class="menuscreen">
+      <div class="center">
+        <div class="tag yellow">CASE #Q-2026-08</div>
+        <h1 class="pixel-font">PIXEL PAGE<br>NOTEBOOK FACTORY</h1>
+        ${factoryHeroSvg()}
+        <div class="bodytext" style="max-width:600px;">You are <b>Larry</b>, QA Manager. Walk through the <b>Sales Hall</b>,
+        the <b>Production Room</b>, and the <b>Warehouse</b> to hear all three sides of the story — then head to your
+        <b>Office</b> to check the records and run the numbers.</div>
+        <button class="btn pixel-font" onclick="startGame()">▶ START INVESTIGATION</button>
+        <div class="blink pixel-font" style="font-size:9px;color:var(--text-dim);margin-top:2px;">— A QUALITY ASSURANCE INVESTIGATION —</div>
+      </div>
+    </div>
+  `);
+}
+
+const introLines = [
+  { text:"Monday, 8:02 AM. Larry's desk is already a mess of sticky notes." },
+  { text:"Three fires before my coffee's even cold. Let's take them one at a time." },
+  { text:"A retailer complaint. A recalibration request. A shrug from Sourcing. Somewhere in here is the truth." }
+];
+function startGame(){
+  resetState();
+  render(`
+    <div id="introScene" class="fade-in">
+      ${roomBackground('office')}
+      <div class="roomTitleSign">LARRY'S DESK — MONDAY, 8:02 AM</div>
+      <div class="thoughtbubble">💰 $85,000 ?<br>⚙️ Recalibrate ?<br>📦 Paper spec ?</div>
+      <div class="tb-dot" style="left:400px;bottom:210px;width:16px;height:16px;"></div>
+      <div class="tb-dot" style="left:385px;bottom:196px;width:10px;height:10px;"></div>
+      <div id="larrySprite" style="left:430px;">
+        <div class="tokenwrap">${CHAR_ART.larry}</div>
+        <div class="elabel">LARRY</div>
+      </div>
+      <div id="dialogueLayer"></div>
+    </div>
+  `);
+  playScript('larry', 'LARRY', null, introLines.map(l=>l.text), ()=>{
+    enterRoom('sales','left');
+  }, 'WALK TO SALES HALL ▶');
+}
+
+/* ================= CHART MINIGAME ================= */
+const history = [79,81,78,80,82,79,83,80,81,79,80];
+const lastMonth = [86,88,87,89,86];
+const USL=90, LSL=70, UCL=85, LCL=75;
+const chartMin=68, chartMax=92;
+function yPos(val){ return ((val - chartMin) / (chartMax - chartMin)) * 100; }
+
+function showChartIntro(){
+  render(`
+    <div class="menuscreen">
+      <div class="titlebar"><span>QA TERMINAL</span>${progressSteps(1)}${factoryReturnBtn()}</div>
+      <div class="panel flex-fill">
+        <h2 class="pixel-font">INCOMING PAPER — MONTHLY THICKNESS (gsm)</h2>
+        <p class="bodytext">Official spec since 2024: <span class="tag red">70–90 gsm</span> pass / fail.<br>
+        The QA lab also tracks natural process variation with tighter <span class="tag yellow">control limits (75–85 gsm)</span> —
+        the range the supplier's process normally wobbles inside when nothing unusual is happening.</p>
+        <p class="bodytext">For each of <b>last month's five readings</b> below the chart, decide: normal noise, or a sign something changed?</p>
+      </div>
+      <div class="footer-row"><button class="btn pixel-font" onclick="showChart()">OPEN THE CHART ▶</button></div>
+    </div>
+  `);
+}
+
+function showChart(){
+  const totalMonths = history.length + lastMonth.length;
+  let dots = "";
+  history.forEach((v,i)=>{
+    const x = ((i+0.5)/totalMonths)*100;
+    dots += `<div class="dot normal" style="left:${x}%;bottom:${yPos(v)}%;" title="${v} gsm"></div>`;
+  });
+  lastMonth.forEach((v,i)=>{
+    const idx = history.length + i;
+    const x = ((idx+0.5)/totalMonths)*100;
+    const result = state.dotResults[i];
+    const cls = result ? (result.correct === 'special' ? 'classified-special' : 'classified-common') : 'pending';
+    dots += `<div class="dot ${cls}" style="left:${x}%;bottom:${yPos(v)}%;" title="${v} gsm"></div>`;
+    dots += `<div class="dotnum" style="left:${x}%;bottom:0;">${i+1}</div>`;
+  });
+
+  let rows = "";
+  lastMonth.forEach((v,i)=>{
+    const result = state.dotResults[i];
+    if(result){
+      const isRight = result.guess === result.correct;
+      rows += `
+        <div class="reading-row">
+          <div class="rlabel">Reading #${i+1}: <b>${v} gsm</b></div>
+          <div class="rresult" style="color:${isRight?'var(--accent-green)':'var(--accent-red)'};">
+            ${isRight ? '✅' : '❌'} ${classifyFeedback(v, result.correct, isRight)}
+          </div>
+        </div>`;
+    } else {
+      rows += `
+        <div class="reading-row">
+          <div class="rlabel">Reading #${i+1}: <b>${v} gsm</b></div>
+          <div class="rbtns">
+            <button class="btn btn-small" onclick="submitReading(${i},${v},'common')">😌 Common cause</button>
+            <button class="btn btn-small" onclick="submitReading(${i},${v},'special')">🚨 Special cause</button>
+          </div>
+        </div>`;
+    }
+  });
+
+  render(`
+    <div class="menuscreen">
+      <div class="titlebar"><span>PAPER THICKNESS CONTROL CHART</span>${progressSteps(1)}${factoryReturnBtn()}</div>
+      <div class="chartwrap">
+        <div class="cline" style="bottom:${yPos(USL)}%;border-color:var(--accent-red);"></div>
+        <div class="clabel" style="bottom:${yPos(USL)}%;color:var(--accent-red);">USL 90</div>
+        <div class="cline" style="bottom:${yPos(UCL)}%;border-color:var(--accent-yellow);"></div>
+        <div class="clabel" style="bottom:${yPos(UCL)}%;color:var(--accent-yellow);">UCL 85</div>
+        <div class="cline" style="bottom:${yPos(LCL)}%;border-color:var(--accent-yellow);"></div>
+        <div class="clabel" style="bottom:${yPos(LCL)}%;color:var(--accent-yellow);">LCL 75</div>
+        <div class="cline" style="bottom:${yPos(LSL)}%;border-color:var(--accent-red);"></div>
+        <div class="clabel" style="bottom:${yPos(LSL)}%;color:var(--accent-red);">LSL 70</div>
+        ${dots}
+      </div>
+      <div class="bodytext" style="margin:6px 0 10px;">
+        <span class="tag green">green</span> = older months &nbsp;
+        <span class="tag red">numbered</span> = last month — classify each below (${state.chartDone}/5)
+      </div>
+      <div class="flex-fill">${rows}</div>
+      <div class="footer-row">
+        <button class="btn pixel-font" ${state.chartDone < 5 ? 'disabled' : ''} onclick="chartWrapup()">CONTINUE ▶</button>
+      </div>
+    </div>
+  `);
+}
+
+function classifyFeedback(val, correct, isRight){
+  if(isRight){
+    return correct === 'special'
+      ? `${val} gsm is inside the 70–90 spec, but above the 85 gsm control limit — a real process shift.`
+      : `${val} gsm sits comfortably inside the normal process range — nothing unusual.`;
+  }
+  return correct === 'special'
+    ? `Actually a special cause: ${val} gsm is above the 85 gsm control limit, even though it's under the 90 spec limit.`
+    : `Actually common cause: ${val} gsm is within the normal 75–85 range.`;
+}
+
+function submitReading(i, val, guess){
+  if(state.dotResults[i]) return;
+  const correct = val > UCL || val < LCL ? 'special' : 'common';
+  if(guess === correct) state.chartScore += 2;
+  state.chartDone += 1;
+  state.dotResults[i] = { guess, correct };
+  showChart();
+}
+
+function chartWrapup(){
+  render(`
+    <div class="menuscreen">
+      <div class="titlebar"><span>ANALYSIS COMPLETE</span>${progressSteps(1)}${factoryReturnBtn()}</div>
+      <div class="panel flex-fill">
+        <h2 class="pixel-font">THE KEY INSIGHT</h2>
+        <p class="bodytext">All five of last month's readings sit <b>above the 85 gsm control limit</b> — yet all still pass the official
+        70–90 gsm spec written back in 2024.</p>
+        <p class="bodytext"><b>Passing spec is not the same as being in statistical control.</b> Spec limits are the customer's
+        pass/fail line. Control limits show the process's normal heartbeat. When points drift outside the control limits —
+        even while still inside spec — it's an early warning, not a false alarm.</p>
+        <p class="bodytext">Thicker paper than usual could easily explain jams and cracked spines on machines tuned around the
+        old, thinner average — with no need for the machines themselves to be miscalibrated.</p>
+      </div>
+      <div class="footer-row"><button class="btn pixel-font" onclick="showDecision(0)">MAKE YOUR CALLS ▶</button></div>
+    </div>
+  `);
+}
+
+/* ================= INDIVIDUAL DECISIONS (kept) ================= */
+const decisions = [
+  { icon:"🏬", who:"THE SALES DECISION",
+    prompt:"TechMart wants a full $85,000 credit note for the 1,500 returned notebooks. What do you decide?",
+    options:[
+      { label:"Approve the full $85,000 credit immediately, no questions asked.", score:10,
+        feedback:"This is the strongest move for the relationship: TechMart gets exactly what they asked for, with no ambiguity or delay. The eventual investigation is likely to confirm the defect traces back to your own supply chain anyway — so approving it now removes any risk of TechMart escalating publicly, or quietly qualifying a backup supplier while you deliberate." },
+      { label:"Reject the claim — our machines are properly calibrated.", score:1,
+        feedback:"Too defensive, and not even accurate yet — you haven't confirmed anything about the cause. This risks losing a major account over a claim you're likely to end up honoring anyway." },
+      { label:"Offer a partial credit now, tied to a joint root-cause investigation before final settlement.", score:5,
+        feedback:"There's real logic here — tying the number to evidence protects you from overpaying on an unclear claim. But from TechMart's side, a partial offer while you 'investigate' can read as stalling on a bill you're going to pay anyway. That friction is exactly what pushes a client to start quietly shopping for a backup supplier." }
+    ]
+  },
+  { icon:"⚙️", who:"THE PRODUCTION DECISION",
+    prompt:"Production wants to recalibrate the machines again — a year after the last $300,000 recalibration. What do you decide?",
+    options:[
+      { label:"Approve another full recalibration right away.", score:2,
+        feedback:"Expensive, and there's no evidence yet the machines have drifted. If the real driver is paper thickness, this $310,000 won't fix a thing." },
+      { label:"Deny the request outright — the machines are fine, period.", score:5,
+        feedback:"Directionally reasonable given the data, but you're still asserting rather than verifying. A quick capability check would make this bulletproof." },
+      { label:"Pause the request and run a quick capability check on the machines alongside the paper data before spending anything.", score:10,
+        feedback:"Exactly right — verify before you spend. This is how you avoid throwing another $310,000 at the wrong fix." }
+    ]
+  },
+  { icon:"🧾", who:"THE SOURCING DECISION",
+    prompt:"Sourcing insists the paper 'has no issue' since it's within the spec set in 2024 — even though it's trending high. What's your call?",
+    options:[
+      { label:"Agree with Sourcing — if it passes spec, it's not a quality issue.", score:2,
+        feedback:"This is the trap: spec compliance isn't the same as process control. You'd be ignoring a real, measurable drift." },
+      { label:"Reject the entire incoming batch and drop the supplier immediately.", score:4,
+        feedback:"An overreaction — the batch technically passes spec, and you have no proof yet the drift is even the root cause of the defects. Burns the relationship too fast." },
+      { label:"Flag the drift to Sourcing, request a corrective action from the supplier, and consider tightening the internal control limits even within the existing spec.", score:10,
+        feedback:"This is the SPC-minded response — you don't need to break the contract to ask the supplier to tighten their own process." }
+    ]
+  }
+];
+
+function showDecision(i){
+  state.decisionIndex = i;
+  const d = decisions[i];
+  render(`
+    <div class="menuscreen">
+      <div class="titlebar"><span>${d.who}</span>${progressSteps(2)}${factoryReturnBtn()}</div>
+      <div class="panel" style="display:flex;gap:16px;align-items:flex-start;">
+        <div style="font-size:34px;">${d.icon}</div>
+        <div class="bodytext">${d.prompt}</div>
+      </div>
+      <div class="btn-row flex-fill" style="margin-top:12px;">
+        ${d.options.map((o,idx)=>`<button class="btn" onclick="pickDecision(${i},${idx})">${o.label}</button>`).join('')}
+      </div>
+    </div>
+  `);
+}
+
+function pickDecision(i, idx){
+  const d = decisions[i];
+  const o = d.options[idx];
+  state.decisionScores[i] = o.score;
+  render(`
+    <div class="modal-bg"><div class="modal">
+      <h2 class="pixel-font" style="color:${o.score>=8?'var(--accent-green)':o.score>=5?'var(--accent-yellow)':'var(--accent-red)'};">
+        ${o.score>=8?'STRONG CALL':o.score>=5?'REASONABLE, BUT...':'RISKY CALL'}
+      </h2>
+      <p class="bodytext">${o.feedback}</p>
+      <div class="footer-row"><button class="btn pixel-font" onclick="afterDecision(${i})">OK ▶</button></div>
+    </div></div>
+  `);
+}
+function afterDecision(i){
+  if(i < decisions.length - 1) showDecision(i+1);
+  else showFinalDecision();
+}
+
+/* ================= FINAL COMBINED DECISION ================= */
+function composeFeedback(sel){
+  const parts = [];
+  parts.push(sel.retailer
+    ? "Approving TechMart's full credit note protects the relationship and your brand image after a real, documented defect — and removes any risk of them quietly shifting future orders to a competitor."
+    : "Not fully resolving TechMart's claim leaves a legitimate complaint unanswered — expect the relationship, and your reputation, to keep eroding, with a real risk they start sourcing from someone else.");
+  parts.push(sel.recalibrate
+    ? "Recalibrating machines that were verified in-tolerance less than a year ago spends real budget without addressing the actual driver of the defects."
+    : "Correctly, you're not recalibrating machines that show no evidence of drifting.");
+  parts.push(sel.paperSpec
+    ? "Reviewing and tightening the paper specification with the supplier attacks the true root cause, so the defect pattern shouldn't recur."
+    : "Without addressing the paper thickness drift, the same defect pattern is likely to come right back next month.");
+  return parts.join(' ');
+}
+
+function evaluateFinal(sel){
+  if(sel.retailer && !sel.recalibrate && sel.paperSpec){
+    return { correct:true, title:"THIS IS THE RIGHT CALL",
+      text:"Approving TechMart's full $85,000 credit note protects the client relationship and your brand image right now — with no ambiguity that could push them toward a backup supplier — while fixing the paper specification with the supplier removes the actual root cause. No need to spend another $310,000 recalibrating machines that were never the problem." };
+  }
+  if(sel.retailer && sel.recalibrate && sel.paperSpec){
+    return { correct:false, title:"NOT VIABLE — OVERSPEND",
+      text:"Approving all three actions is not viable: it blows past Larry's quality budget, and the machines don't need recalibration at all. You'd be paying $310,000 for a fix that solves nothing, on top of the two actions that were actually needed." };
+  }
+  if(sel.retailer && !sel.recalibrate && !sel.paperSpec){
+    return { correct:false, title:"PARTIAL — PROBLEM WILL PERSIST",
+      text:"Approving TechMart's full claim is right for the relationship, but without fixing the paper specification, the same defect pattern will keep recurring — you'll be back here again next month, and repeated defects will eventually strain the relationship anyway." };
+  }
+  if(!sel.retailer && sel.recalibrate && !sel.paperSpec){
+    return { correct:false, title:"THE WORST CALL",
+      text:"Recalibrating the machines alone is the worst decision here: it doesn't touch the real root cause (the paper drift), so defects will continue — and by not fully resolving TechMart's claim, you also risk the relationship and push them toward a backup supplier, for nothing." };
+  }
+  if(!sel.retailer && !sel.recalibrate && sel.paperSpec){
+    return { correct:false, title:"ROOT CAUSE FIXED — BUT CLIENT LEFT HANGING",
+      text:"Reviewing the paper specification does solve the underlying problem. But by not fully resolving TechMart's claim, you leave the relationship exposed after a defect that genuinely originated on your side — a real risk they start sourcing from a competitor while they wait." };
+  }
+  // any other combination
+  return { correct:false, title:"NOT QUITE", text:composeFeedback(sel) };
+}
+
+function showFinalDecision(){
+  const c = state.finalChoice;
+  const attemptsLeft = 3 - state.finalAttempts;
+  render(`
+    <div class="menuscreen">
+      <div class="titlebar"><span>FINAL CALL — HELP LARRY DECIDE</span>${progressSteps(2)}${factoryReturnBtn()}</div>
+      <div class="panel flex-fill">
+        <h2 class="pixel-font">WHAT SHOULD LARRY APPROVE?</h2>
+        <p class="bodytext">Pick any combination of actions — zero, one, two, or all three. You have <b>${attemptsLeft} attempt${attemptsLeft===1?'':'s'}</b> left.</p>
+        <div class="attempts-track">${[0,1,2].map(n=>`<span class="${n < state.finalAttempts ? 'used' : ''}"></span>`).join('')}</div>
+        <div style="margin-top:14px;">
+          <label class="decision-check"><input type="checkbox" id="chk_retailer" ${c.retailer?'checked':''}>
+            <span class="dc-text">Approve TechMart's full $85,000 credit note (accept the return, no partial offers).</span></label>
+          <label class="decision-check"><input type="checkbox" id="chk_recal" ${c.recalibrate?'checked':''}>
+            <span class="dc-text">Recalibrate the production machines (~$310,000).</span></label>
+          <label class="decision-check"><input type="checkbox" id="chk_spec" ${c.paperSpec?'checked':''}>
+            <span class="dc-text">Review and tighten the paper thickness specification with the supplier.</span></label>
+        </div>
+      </div>
+      <div class="footer-row"><button class="btn pixel-font" onclick="submitFinalDecision()">SUBMIT DECISION ▶</button></div>
+    </div>
+  `);
+}
+
+function submitFinalDecision(){
+  const sel = {
+    retailer: document.getElementById('chk_retailer').checked,
+    recalibrate: document.getElementById('chk_recal').checked,
+    paperSpec: document.getElementById('chk_spec').checked
+  };
+  state.finalChoice = sel;
+  state.finalAttempts += 1;
+  const result = evaluateFinal(sel);
+
+  if(result.correct){
+    render(`
+      <div class="modal-bg"><div class="modal">
+        <h2 class="pixel-font" style="color:var(--accent-green);">${result.title}</h2>
+        <p class="bodytext">${result.text}</p>
+        <div class="footer-row"><button class="btn pixel-font" onclick="showEnding(true)">SEE FINAL REPORT ▶</button></div>
+      </div></div>
+    `);
+    return;
+  }
+
+  if(state.finalAttempts >= 3){
+    const correctAnswer = evaluateFinal({retailer:true, recalibrate:false, paperSpec:true});
+    render(`
+      <div class="modal-bg"><div class="modal">
+        <h2 class="pixel-font" style="color:var(--accent-red);">${result.title}</h2>
+        <p class="bodytext">${result.text}</p>
+        <div class="panel" style="margin-top:12px;">
+          <h2 class="pixel-font" style="color:var(--accent-green);">THE OPTIMAL CALL</h2>
+          <p class="bodytext">${correctAnswer.text}</p>
+        </div>
+        <div class="footer-row"><button class="btn pixel-font" onclick="showEnding(false)">SEE FINAL REPORT ▶</button></div>
+      </div></div>
+    `);
+    return;
+  }
+
+  render(`
+    <div class="modal-bg"><div class="modal">
+      <h2 class="pixel-font" style="color:var(--accent-red);">${result.title}</h2>
+      <p class="bodytext">${result.text}</p>
+      <p class="bodytext" style="color:var(--text-dim);">Attempts left: ${3 - state.finalAttempts}</p>
+      <div class="footer-row"><button class="btn pixel-font" onclick="showFinalDecision()">TRY AGAIN ▶</button></div>
+    </div></div>
+  `);
+}
+
+/* ================= KEY LEARNINGS ================= */
+function keyLearningsHtml(){
+  return `
+    <h2 class="pixel-font">WHY THIS IS THE OPTIMAL SOLUTION</h2>
+    <p class="bodytext">The right call was to <b>approve TechMart's full credit note immediately</b> and <b>review the paper specification with the supplier</b> —
+    without recalibrating the machines. Here's the reasoning behind each part:</p>
+    <p class="bodytext"><b>Approve the full claim, immediately.</b> The defect pattern (jams, cracked spines, warped covers) is
+    consistent with paper that ran thicker than usual. Once a claim like this is on the table, hedging it — a partial number,
+    conditions, "let's investigate first" — reads to the client as stalling on a bill you're going to pay anyway. That hesitation
+    is exactly what pushes an account to start quietly qualifying a backup supplier. A clean, immediate, full approval protects
+    the relationship and the brand with no ambiguity, and it still costs less than 1/3 of what another unnecessary recalibration
+    would.</p>
+    <p class="bodytext"><b>Review the paper spec, don't recalibrate.</b> The machines were verified in-tolerance 11 months ago and passed
+    a clean post-calibration audit. Every one of last month's paper readings was still <i>inside</i> the official 70–90&nbsp;gsm spec —
+    but all five sat <i>above</i> the process's own historical control range (75–85&nbsp;gsm). That's the signature of a special-cause
+    shift in the incoming material, not a machine that has drifted. Spending ~$310,000 recalibrating equipment that isn't the problem
+    would not stop the defects from recurring — it would just delay the real fix while burning budget.</p>
+    <h2 class="pixel-font" style="margin-top:18px;">5 KEY LEARNINGS</h2>
+    <ol style="font-size:19px;line-height:1.6;padding-left:22px;margin:0;">
+      <li><b>Spec limits ≠ control limits.</b> Passing an official spec only means a part is acceptable to the customer — it says
+      nothing about whether the process that made it is stable. A reading can pass spec and still signal trouble.</li>
+      <li><b>Tell common cause from special cause before you act.</b> Normal day-to-day noise (common cause) needs no reaction.
+      A real shift (special cause) — like paper drifting above its usual range — needs investigation, even if it still "passes."</li>
+      <li><b>Fix the root cause, not the nearest symptom.</b> The machines were the visible, expensive lever to pull, but pulling it
+      would have left the actual driver (incoming paper thickness) untouched.</li>
+      <li><b>Don't spend against unverified assumptions.</b> "Better safe than sorry" isn't a substitute for evidence. A quick
+      capability check would have shown the machines didn't need touching, before anyone committed $310,000.</li>
+      <li><b>Quality decisions carry a relationship cost, not just a technical one.</b> A full, immediate, no-hedging approval
+      on a confirmed defect protects the account and the brand — a partial or conditional offer can look like stalling on a bill
+      you're going to pay anyway, and that friction is what pushes a client toward a backup supplier.</li>
+    </ol>
+  `;
+}
+function openKeyLearnings(){
+  const bg = screen.innerHTML;
+  render(`
+    <div class="modal-bg"><div class="modal">
+      ${keyLearningsHtml()}
+      <div class="footer-row"><button class="btn pixel-font" onclick="restoreScreen()">CLOSE ▶</button></div>
+    </div></div>
+  ` + bg);
+  window.restoreScreen = ()=>{ window.restoreScreen=null; render(bg); };
+}
+
+/* ================= ENDING ================= */
+function showEnding(solvedCorrectly){
+  let badgeClass, badgeTitle;
+  if(solvedCorrectly && state.finalAttempts===1){ badgeClass="gold"; badgeTitle="MASTER QUALITY DETECTIVE"; }
+  else if(solvedCorrectly && state.finalAttempts===2){ badgeClass="silver"; badgeTitle="SKILLED INVESTIGATOR"; }
+  else if(solvedCorrectly){ badgeClass="bronze"; badgeTitle="PERSISTENT INVESTIGATOR"; }
+  else { badgeClass="bronze"; badgeTitle="CASE CLOSED — REVIEWED WITH MENTOR"; }
+
+  render(`
+    <div class="menuscreen">
+      <div class="titlebar">
+        <span>CASE REPORT</span>
+        ${progressSteps(3)}
+        <button class="hud-btn" onclick="openKeyLearnings()">🔑 KEY LEARNINGS</button>
+      </div>
+      <div class="flex-fill">
+        <div class="center" style="gap:10px;">
+          <div class="score-badge ${badgeClass}">${badgeTitle}</div>
+          <p class="bodytext">Final call took ${state.finalAttempts} attempt${state.finalAttempts===1?'':'s'}<br>
+          <span style="color:var(--text-dim);">Chart accuracy: ${state.chartScore}/10 — correct classifications of last month's 5 paper readings (2 pts each)</span></p>
+        </div>
+        <div class="panel" style="margin-top:12px;">
+          <h2 class="pixel-font">WHAT ACTUALLY HAPPENED</h2>
+          <p class="bodytext">Last month's paper shipment ran hotter than usual — <b>above the supplier's normal 75–85 gsm range</b>,
+          even though it still passed the official 70–90 gsm spec from 2024. That's a <b>special-cause drift hiding inside a
+          technically-compliant batch.</b></p>
+          <p class="bodytext">The binding and cutting lines, calibrated last year around a thinner average, met paper that was
+          consistently thicker than they were tuned for — producing jams, cracked spines, and warped covers on 1,500 units.</p>
+          <p class="bodytext"><b>The right call:</b> approve TechMart's full credit note immediately to protect the relationship and brand image,
+          and fix the paper specification with the supplier to remove the root cause. The machines never needed recalibrating.
+          Tap <b>🔑 KEY LEARNINGS</b> above for the full reasoning and the five takeaways from this case.</p>
+        </div>
+      </div>
+      <div class="footer-row"><button class="btn pixel-font" onclick="showTitle()">◀ PLAY AGAIN</button></div>
+    </div>
+  `);
+}
+
+/* ---------------- BOOT ---------------- */
+showTitle();
+</script>
+</body>
+</html>
