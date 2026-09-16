@@ -139,15 +139,15 @@ Self-contained, browser-based explainers for core data mining and statistical le
 
 | Method | What It Teaches | Download |
 |---|---|---|
-| 📈 Linear Regression | OLS line fitting, residuals, R² | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/linear_regression_explainer.html) |
-| 🎯 Logistic Regression | Classification, log-odds, decision boundary | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/logistic_regression_explainer.html) |
-| 📍 K-Nearest Neighbors | Instance-based classification, the effect of *k* | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/kNN-explainer.html) |
-| 🎲 Naive Bayes | Probabilistic classification, conditional independence | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/NAIVE_BAYES_EXPLAINER.html) |
-| 🌳 CART Decision Tree | Recursive splitting, Gini / entropy | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/CART_DECISION_TREE_EXPLAINER.html) |
-| 🌲 Random Forest | Bagging, feature importance, variance reduction | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/RANDOM_FOREST_EXPLAINER.html) |
-| 🛒 K-Means Clustering | Centroid-based segmentation, the elbow method | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/kmeans_explainer.html) |
-| 🌿 Hierarchical Clustering | Dendrograms, linkage methods | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/HIER_CLUST_EXPLAINER.html) |
-| 🔗 Association Rule Analysis | Support, confidence, lift, market-basket analysis | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/ASSOC_RULES_EXPLAINER.html) |
+| 📈 Linear Regression | OLS line fitting, residuals, R² | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/linear_regression_explainer.html?raw=true) |
+| 🎯 Logistic Regression | Classification, log-odds, decision boundary | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/logistic_regression_explainer.html?raw=true) |
+| 📍 K-Nearest Neighbors | Instance-based classification, the effect of *k* | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/kNN-explainer.html?raw=true) |
+| 🎲 Naive Bayes | Probabilistic classification, conditional independence | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/NAIVE_BAYES_EXPLAINER.html?raw=true) |
+| 🌳 CART Decision Tree | Recursive splitting, Gini / entropy | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/CART_DECISION_TREE_EXPLAINER.html?raw=true) |
+| 🌲 Random Forest | Bagging, feature importance, variance reduction | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/RANDOM_FOREST_EXPLAINER.html?raw=true) |
+| 🛒 K-Means Clustering | Centroid-based segmentation, the elbow method | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/kmeans_explainer.html?raw=true) |
+| 🌿 Hierarchical Clustering | Dendrograms, linkage methods | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/HIER_CLUST_EXPLAINER.html?raw=true) |
+| 🔗 Association Rule Analysis | Support, confidence, lift, market-basket analysis | [![Download](https://img.shields.io/badge/⬇_Download-2E86AB?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/ASSOC_RULES_EXPLAINER.html?raw=true) |
 
 ---
 
@@ -157,10 +157,10 @@ Narrative, decision-driven simulations that put students inside a business or qu
 
 | Simulator | Scenario | Concepts Practiced | Download |
 |---|---|---|---|
-| 🏗️ Northstar HoQ Simulation | RouteRunner NS-4 facility-renewal decision | House of Quality (QFD), competitive assessment, budget-constrained portfolio optimization | [![Download](https://img.shields.io/badge/⬇_Download-B2472A?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Northstar_HoQ_Simulation.html) |
-| ⚙️ Riverton Process Capability Lab | Front brake rotor manufacturing | Process capability (Cp/Cpk), batch sampling, natural variation | [![Download](https://img.shields.io/badge/⬇_Download-B2472A?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Riverton_ProcCapability_Simulation.html) |
-| 🎯 Sigma Level Simulator | SpecFit Supply vendor comparison | Sigma level, process std. deviations vs. specification limits, vendor selection | [![Download](https://img.shields.io/badge/⬇_Download-B2472A?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Sigma_Level_Simulator.html) |
-| 👾 Pixel Case Simulation | Pixel Page Factory QA case (arcade-styled) | Quality assurance / defect investigation, gamified case-based learning | [![Download](https://img.shields.io/badge/⬇_Download-B2472A?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Pixel_Case_Simulation.html) |
+| 🏗️ Northstar HoQ Simulation | RouteRunner NS-4 facility-renewal decision | House of Quality (QFD), competitive assessment, budget-constrained portfolio optimization | [![Download](https://img.shields.io/badge/⬇_Download-B2472A?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/Northstar_HoQ_Simulation.html?raw=true) |
+| ⚙️ Riverton Process Capability Lab | Front brake rotor manufacturing | Process capability (Cp/Cpk), batch sampling, natural variation | [![Download](https://img.shields.io/badge/⬇_Download-B2472A?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/Riverton_ProcCapability_Simulation.html?raw=true) |
+| 🎯 Sigma Level Simulator | SpecFit Supply vendor comparison | Sigma level, process std. deviations vs. specification limits, vendor selection | [![Download](https://img.shields.io/badge/⬇_Download-B2472A?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/Sigma_Level_Simulator.html?raw=true) |
+| 👾 Pixel Case Simulation | Pixel Page Factory QA case (arcade-styled) | Quality assurance / defect investigation, gamified case-based learning | [![Download](https://img.shields.io/badge/⬇_Download-B2472A?style=flat-square)](https://github.com/jigonzale04/jigonzale04/blob/main/Pixel_Case_Simulation.html?raw=true) |
 
 ---
 
