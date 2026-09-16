@@ -111,6 +111,57 @@ At Purdue, I teach students to do the same: build systems that solve real proble
 
 ---
 
+## 📐 Teaching Design & Learning Tools
+
+> I design courses end-to-end — outcomes, assessment structure, weekly roadmaps, and applied projects — and I build the interactive tools that go with them, so students can explore concepts independently and practice them in realistic, high-stakes scenarios in class.
+>
+> *Links below assume these files live at the root of this repository under the same names used here; if you place them in a subfolder (e.g. `/courses/`, `/explainers/`, `/simulators/`), just prepend that path.*
+
+### 🎓 Courses I Have Designed
+
+Full syllabus design — learning outcomes, grading architecture, weekly calendars, and AI-use policy — for graduate programs at Saint Louis University and both undergraduate and graduate programs at Purdue.
+
+| Level | Institution | Code | Course | Focus | Syllabus |
+|---|---|---|---|---|---|
+| 🏅 Graduate | Saint Louis University | AA-5200 | Visualization, Feedback and Dissemination | Power BI, dashboard design, data storytelling | [![Syllabus](https://img.shields.io/badge/📄_Syllabus-1a1a2e?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/AA5200_Syllabus.pdf) |
+| 🏅 Graduate | Saint Louis University | AA-5300 | Advanced Analytics | Statistical learning: regression, trees, SVM, clustering, deep learning | [![Syllabus](https://img.shields.io/badge/📄_Syllabus-1a1a2e?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/AA5300_Syllabus.pdf) |
+| 🏅 Graduate | Saint Louis University | AA-5750 | Contemporary Issues in Analytics | Deep learning, CNNs, NLP, LLMs & RAG, prompt engineering | [![Syllabus](https://img.shields.io/badge/📄_Syllabus-1a1a2e?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/AA5750_Syllabus.pdf) |
+| 🎓 Undergraduate | Purdue University · Daniels School of Business | QM-38900 | Using AI for Business Analytics | Applied AI Analytics Learning Framework (A³LF): GenAI agents, predictive & clustering models, GitHub portfolios | [![Syllabus](https://img.shields.io/badge/📄_Syllabus-1a1a2e?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/FALL_2026_QM_893.pdf) |
+| 🏅 Graduate · Online | Purdue University · Daniels School of Business | MGMT 59000 | AI for Business Analytics | Asynchronous delivery: LLMs, agentic AI, predictive & unsupervised modeling, responsible AI | [![Syllabus](https://img.shields.io/badge/📄_Syllabus-1a1a2e?style=flat-square)](https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/SUMMER26_MGMT_590.pdf) |
+
+---
+
+### 🧠 Interactive Explainers — Supporting Independent Learning
+
+Self-contained, browser-based explainers for core data mining and statistical learning methods. No installs, no data upload — students adjust parameters and watch the mechanics of each algorithm unfold, outside of class and at their own pace.
+
+| Method | What It Teaches | Launch |
+|---|---|---|
+| 📈 Linear Regression | OLS line fitting, residuals, R² | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/linear_regression_explainer.html) |
+| 🎯 Logistic Regression | Classification, log-odds, decision boundary | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/logistic_regression_explainer.html) |
+| 📍 K-Nearest Neighbors | Instance-based classification, the effect of *k* | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/kNN-explainer.html) |
+| 🎲 Naive Bayes | Probabilistic classification, conditional independence | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/NAIVE_BAYES_EXPLAINER.html) |
+| 🌳 CART Decision Tree | Recursive splitting, Gini / entropy | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/CART_DECISION_TREE_EXPLAINER.html) |
+| 🌲 Random Forest | Bagging, feature importance, variance reduction | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/RANDOM_FOREST_EXPLAINER.html) |
+| 🛒 K-Means Clustering | Centroid-based segmentation, the elbow method | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/kmeans_explainer.html) |
+| 🌿 Hierarchical Clustering | Dendrograms, linkage methods | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/HIER_CLUST_EXPLAINER.html) |
+| 🔗 Association Rule Analysis | Support, confidence, lift, market-basket analysis | [![Launch](https://img.shields.io/badge/▶_Launch-2E86AB?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/ASSOC_RULES_EXPLAINER.html) |
+
+---
+
+### 🏭 Classroom Simulators — Bringing Practice Into the Room
+
+Narrative, decision-driven simulations that put students inside a business or quality-management scenario instead of a static dataset. Each one asks for a real decision and gives immediate, visible feedback on the trade-offs.
+
+| Simulator | Scenario | Concepts Practiced | Launch |
+|---|---|---|---|
+| 🏗️ Northstar HoQ Simulation | RouteRunner NS-4 facility-renewal decision | House of Quality (QFD), competitive assessment, budget-constrained portfolio optimization | [![Launch](https://img.shields.io/badge/▶_Launch-B2472A?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Northstar_HoQ_Simulation.html) |
+| ⚙️ Riverton Process Capability Lab | Front brake rotor manufacturing | Process capability (Cp/Cpk), batch sampling, natural variation | [![Launch](https://img.shields.io/badge/▶_Launch-B2472A?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Riverton_ProcCapability_Simulation.html) |
+| 🎯 Sigma Level Simulator | SpecFit Supply vendor comparison | Sigma level, process std. deviations vs. specification limits, vendor selection | [![Launch](https://img.shields.io/badge/▶_Launch-B2472A?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Sigma_Level_Simulator.html) |
+| 👾 Pixel Case Simulation | Pixel Page Factory QA case (arcade-styled) | Quality assurance / defect investigation, gamified case-based learning | [![Launch](https://img.shields.io/badge/▶_Launch-B2472A?style=flat-square)](https://htmlpreview.github.io/?https://raw.githubusercontent.com/jigonzale04/jigonzale04/main/Pixel_Case_Simulation.html) |
+
+---
+
 ## 🔬 Research Interests
 
 ```
