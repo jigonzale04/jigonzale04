@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Forest — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f4ef;--ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+  --acc:#2563a8;--approve:#2b9a66;--reject:#e05a2b;
+  --surface:#fff;--surface2:#f0ede8;--border:#ddd8d0;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+.hero{margin-bottom:2rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+.hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--acc);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+.hero h1{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1.1;margin-bottom:.5rem;}
+.hero h1 em{font-style:italic;color:var(--acc);}
+.hero p{font-size:0.9rem;color:var(--ink2);line-height:1.7;max-width:620px;}
+.tabs{display:flex;gap:0;margin-bottom:1.75rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+.tab{flex:1;padding:9px 4px;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.35;}
+.tab:last-child{border-right:none;}
+.tab:hover{background:var(--surface2);color:var(--ink);}
+.tab.active{background:var(--ink);color:#fff;}
+.tab-num{display:block;font-size:0.52rem;opacity:.6;margin-bottom:2px;}
+.panel{display:none;}.panel.active{display:block;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.1rem;}
+.card-title{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.9rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;}
+canvas{display:block;width:100%;border-radius:8px;}
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.7rem;}
+.ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:var(--ink2);min-width:150px;}
+.ctrl-row input[type=range]{flex:1;accent-color:var(--acc);}
+.ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:600;color:var(--ink);min-width:44px;text-align:right;}
+.insight{display:flex;gap:10px;padding:10px 14px;border-radius:8px;font-size:0.78rem;line-height:1.55;margin-top:.75rem;}
+.ins-blue{background:#eef3ff;border:1px solid #bdd0f7;color:#1a3a7a;}
+.ins-orange{background:#fff3ee;border:1px solid #fcd5c0;color:#7a2e0e;}
+.ins-green{background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;}
+.ins-purple{background:#f3f0ff;border:1px solid #c5baf7;color:#3d2d9a;}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.1rem;}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;padding:4px 12px;border-radius:999px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--ink2);}
+.pill:hover,.pill.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.concept-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;}
+.concept-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;}
+.concept-body{font-size:0.81rem;color:var(--ink2);line-height:1.75;}
+.cformula{font-family:'IBM Plex Mono',monospace;font-size:0.71rem;background:var(--surface2);border-radius:6px;padding:6px 10px;margin:.45rem 0;display:block;color:var(--ink);}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:.9rem;}
+.stat-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:.9rem;}
+.stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;}
+.stat-val{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.56rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.quiz-opt{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.81rem;transition:all .15s;background:var(--surface);}
+.quiz-opt:hover{border-color:var(--acc);background:#eef3ff;}
+.quiz-opt.correct{background:#eefff5;border-color:#2bc97a;color:#0e5c35;}
+.quiz-opt.wrong{background:#fff0ee;border-color:#ef4444;color:#7a1a1a;}
+.quiz-fb{font-size:0.77rem;padding:10px 14px;border-radius:8px;margin-top:.5rem;display:none;line-height:1.55;}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;padding:2px 8px;border-radius:999px;}
+.badge-a{background:#eefff5;color:#0e5c35;border:1px solid #b5f0d0;}
+.badge-r{background:#fff0ee;color:#7a1a1a;border:1px solid #fcd5c0;}
+.ens-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center;}
+.ens-title{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--ink);margin-bottom:.35rem;}
+.ens-sub{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink3);line-height:1.5;}
+.vote-row{display:flex;gap:8px;flex-wrap:wrap;margin:.75rem 0;}
+.vote-chip{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:5px 10px;border-radius:6px;border:1px solid;transition:all .3s;}
+.vote-approve{background:#eefff5;border-color:#2b9a66;color:#0e5c35;}
+.vote-reject{background:#fff0ee;border-color:#e05a2b;color:#7a1a1a;}
+.vote-pending{background:var(--surface2);border-color:var(--border);color:var(--ink3);}
+@media(max-width:600px){.two-col,.three-col{grid-template-columns:1fr;}.hero h1{font-size:1.8rem;}.tab{font-size:0.52rem;padding:7px 2px;}.stat-grid-4{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="hero-tag">// interactive explainer</div>
+  <h1>Random <em>Forest</em></h1>
+  <p>Random Forest is an <strong>ensemble of decision trees</strong> built on bagging + random feature selection. This explainer covers the two families of ensemble learning — bagging and boosting — then dives deep into how Random Forest works, using the same loan approval dataset as the CART explainer.</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="goTab(0,this)"><span class="tab-num">01</span>Ensemble Ideas</button>
+  <button class="tab" onclick="goTab(1,this)"><span class="tab-num">02</span>Bagging</button>
+  <button class="tab" onclick="goTab(2,this)"><span class="tab-num">03</span>Boosting</button>
+  <button class="tab" onclick="goTab(3,this)"><span class="tab-num">04</span>Random Forest</button>
+  <button class="tab" onclick="goTab(4,this)"><span class="tab-num">05</span>OOB & Tuning</button>
+  <button class="tab" onclick="goTab(5,this)"><span class="tab-num">06</span>Feature Import.</button>
+  <button class="tab" onclick="goTab(6,this)"><span class="tab-num">07</span>Bias & Variance</button>
+  <button class="tab" onclick="goTab(7,this)"><span class="tab-num">08</span>Concepts</button>
+  <button class="tab" onclick="goTab(8,this)"><span class="tab-num">09</span>Quiz</button>
+</div>
+
+<!-- ══ PANEL 0: Ensemble Ideas ═══════════════════════════════════════════ -->
+<div class="panel active" id="panel-0">
+  <div class="three-col">
+    <div class="ens-card">
+      <div class="ens-title">Single Model</div>
+      <div style="position:relative;width:100%;height:120px;"><canvas id="c0-single"></canvas></div>
+      <div class="ens-sub" style="margin-top:.5rem;">One decision tree.<br>High variance, low bias.</div>
+    </div>
+    <div class="ens-card" style="border-color:#2563a8;">
+      <div class="ens-title" style="color:#2563a8;">Bagging</div>
+      <div style="position:relative;width:100%;height:120px;"><canvas id="c0-bag"></canvas></div>
+      <div class="ens-sub" style="margin-top:.5rem;">Many models on bootstrap samples.<br>Reduces variance.</div>
+    </div>
+    <div class="ens-card" style="border-color:#e05a2b;">
+      <div class="ens-title" style="color:#e05a2b;">Boosting</div>
+      <div style="position:relative;width:100%;height:120px;"><canvas id="c0-boost"></canvas></div>
+      <div class="ens-sub" style="margin-top:.5rem;">Models trained sequentially.<br>Reduces bias.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Error decomposition — hover each bar</div>
+    <div style="position:relative;width:100%;height:220px;"><canvas id="c0-error"></canvas></div>
+  </div>
+  <div class="insight ins-blue">
+    <span>💡</span>
+    <span><strong>Bagging</strong> (Bootstrap AGGregatING) trains independent models on random data subsets and averages them — attacking <em>variance</em>. <strong>Boosting</strong> trains models sequentially, each correcting the previous one's errors — attacking <em>bias</em>. Random Forest is a specialised bagging method.</span>
+  </div>
+  <div class="insight ins-purple" style="margin-top:.5rem;">
+    <span>🎯</span>
+    <span>Total error = Bias² + Variance + Irreducible noise. A single deep tree has <strong>low bias but high variance</strong>. Bagging averages out the variance. Boosting shrinks the bias by iteratively fitting residuals.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 1: Bagging ═══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-1">
+  <div class="card">
+    <div class="card-title">Bootstrap sampling — each tree sees a different random subset</div>
+    <canvas id="c1-boot" height="200"></canvas>
+  </div>
+  <div class="ctrl-row">
+    <label>Bootstrap sample to view</label>
+    <input type="range" id="boot-idx" min="1" max="5" step="1" value="1" oninput="drawBagging()">
+    <span class="val" id="boot-v">1</span>
+  </div>
+  <div id="boot-detail" style="font-size:0.8rem;color:var(--ink2);line-height:1.6;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:.9rem;"></div>
+  <div class="two-col">
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Aggregation: majority vote</div>
+      <canvas id="c1-vote" height="180"></canvas>
+    </div>
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Accuracy vs number of trees</div>
+      <canvas id="c1-acc" height="180"></canvas>
+    </div>
+  </div>
+  <div class="insight ins-blue">
+    <span>💡</span>
+    <span>Each bootstrap sample draws N rows <strong>with replacement</strong> from the training set. On average ~63.2% of rows appear in each sample; the rest (~36.8%) become the <strong>out-of-bag (OOB)</strong> set — a free validation set.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 2: Boosting ══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-2">
+  <div class="pills" id="boost-pills">
+    <button class="pill active" onclick="setBoost('ada',this)">AdaBoost</button>
+    <button class="pill" onclick="setBoost('gb',this)">Gradient Boosting</button>
+  </div>
+  <div class="card">
+    <div class="card-title" id="boost-canvas-title">AdaBoost — misclassified samples get higher weight each round</div>
+    <canvas id="c2-boost" height="280"></canvas>
+    <div class="legend" style="display:flex;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink2);margin-top:8px;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#2b9a66;display:inline-block;"></span>Approved</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#e05a2b;display:inline-block;"></span>Rejected</span>
+    </div>
+  </div>
+  <div class="ctrl-row">
+    <label>Boosting round</label>
+    <input type="range" id="boost-round" min="1" max="4" step="1" value="1" oninput="drawBoosting()">
+    <span class="val" id="boost-round-v">1</span>
+  </div>
+  <div id="boost-explain" style="font-size:0.8rem;color:var(--ink2);line-height:1.65;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"></div>
+  <div class="insight ins-orange" style="margin-top:.75rem;">
+    <span>⚠️</span>
+    <span><strong>Boosting is sequential</strong> — trees cannot be trained in parallel. This makes it slower than bagging. It is also more sensitive to outliers (AdaBoost) and noisy labels (both variants) because they get upweighted over rounds.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: Random Forest ════════════════════════════════════════════ -->
+<div class="panel" id="panel-3">
+  <div class="card">
+    <div class="card-title">Drag the sliders to grow the forest and watch the vote update</div>
+    <div style="position:relative;width:100%;height:260px;"><canvas id="c3-forest" style="width:100%;height:100%;"></canvas></div>
+  </div>
+  <div class="ctrl-row">
+    <label>Number of trees</label>
+    <input type="range" id="n-trees" min="1" max="20" step="1" value="5" oninput="growForest()">
+    <span class="val" id="ntrees-v">5</span>
+  </div>
+  <div class="ctrl-row">
+    <label>Max features per split</label>
+    <input type="range" id="max-feat" min="1" max="4" step="1" value="2" oninput="growForest()">
+    <span class="val" id="maxfeat-v">2</span>
+  </div>
+  <div class="stat-grid-4">
+    <div class="stat"><div class="stat-val" id="rf-trees">—</div><div class="stat-lbl">Trees</div></div>
+    <div class="stat"><div class="stat-val" id="rf-acc">—</div><div class="stat-lbl">OOB accuracy</div></div>
+    <div class="stat"><div class="stat-val" id="rf-vote">—</div><div class="stat-lbl">Majority class</div></div>
+    <div class="stat"><div class="stat-val" id="rf-conf">—</div><div class="stat-lbl">Confidence</div></div>
+  </div>
+  <div class="vote-row" id="vote-chips"></div>
+  <div class="insight ins-blue" style="margin-top:.25rem;">
+    <span>💡</span>
+    <span>Random Forest adds <strong>feature randomness</strong> on top of bagging. At each split, only a random subset of √d features is considered. This decorrelates the trees — when trees disagree, errors cancel out rather than compounding.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 4: OOB & Tuning ═════════════════════════════════════════════ -->
+<div class="panel" id="panel-4">
+  <div class="two-col">
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">OOB error vs number of trees</div>
+      <canvas id="c4-oob" height="220"></canvas>
+    </div>
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Accuracy vs max_features</div>
+      <canvas id="c4-feat" height="220"></canvas>
+    </div>
+  </div>
+  <div class="ctrl-row">
+    <label>n_estimators</label>
+    <input type="range" id="oob-trees" min="1" max="200" step="1" value="10" oninput="drawOOB()">
+    <span class="val" id="oobt-v">10</span>
+  </div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val" id="oob-val">—</div><div class="stat-lbl">OOB error</div></div>
+    <div class="stat"><div class="stat-val" id="oob-stable">—</div><div class="stat-lbl">Stabilised?</div></div>
+    <div class="stat"><div class="stat-val" id="oob-rec">—</div><div class="stat-lbl">Recommended</div></div>
+  </div>
+  <div class="insight ins-green" style="margin-top:.75rem;">
+    <span>✅</span>
+    <span>OOB error is a free, unbiased validation estimate — no separate val set needed. It converges as trees are added. Once the OOB curve flattens, adding more trees gives diminishing returns. A typical sweet spot is <strong>100–300 trees</strong>.</span>
+  </div>
+  <div class="insight ins-blue" style="margin-top:.5rem;">
+    <span>💡</span>
+    <span>Key hyperparameters: <strong>n_estimators</strong> (more = lower variance, slower), <strong>max_features</strong> (√d for classification, d/3 for regression), <strong>max_depth / min_samples_leaf</strong> (controls individual tree complexity).</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 5: Feature Importance ══════════════════════════════════════ -->
+<div class="panel" id="panel-5">
+  <div class="two-col">
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">RF feature importance (mean Gini decrease)</div>
+      <canvas id="c5-imp" height="220"></canvas>
+    </div>
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Importance stability: single tree vs forest</div>
+      <canvas id="c5-stab" height="220"></canvas>
+    </div>
+  </div>
+  <div class="ctrl-row">
+    <label>Number of trees</label>
+    <input type="range" id="imp-trees" min="1" max="50" step="1" value="10" oninput="drawImportance()">
+    <span class="val" id="impt-v">10</span>
+  </div>
+  <div class="insight ins-purple">
+    <span>🎯</span>
+    <span>RF importance averages Gini reduction across <em>all</em> trees — this is far more stable than a single tree's importance. The <strong>standard deviation</strong> across trees (error bars) tells you how reliable each feature's ranking is.</span>
+  </div>
+  <div class="insight ins-orange" style="margin-top:.5rem;">
+    <span>⚠️</span>
+    <span>MDI (Mean Decrease in Impurity) importance is biased toward <strong>high-cardinality features</strong>. For fairer estimates use <strong>permutation importance</strong>: shuffle each feature's values and measure the drop in OOB accuracy.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 6: Bias & Variance ════════════════════════════════════════════ -->
+<div class="panel" id="panel-6">
+  <!-- formula bar -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1rem 1.4rem;margin-bottom:1.1rem;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;text-align:center;line-height:2.2;color:var(--ink);">
+    Expected Error = <span style="color:#e05a2b;font-weight:600;">Bias²</span> + <span style="color:#2563a8;font-weight:600;">Variance</span> + <span style="color:#8888aa;font-weight:600;">Irreducible Noise</span>
+  </div>
+
+  <!-- interactive scatter: underfitting / good / overfitting -->
+  <div class="card">
+    <div class="card-title">Model complexity — drag to see underfitting vs overfitting on loan data</div>
+    <div style="position:relative;width:100%;height:260px;"><canvas id="bv-scatter"></canvas></div>
+    <div style="display:flex;gap:14px;font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink2);margin-top:8px;flex-wrap:wrap;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#2b9a66;display:inline-block;"></span>Approved</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#e05a2b;display:inline-block;"></span>Rejected</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:24px;height:2px;background:#2563a8;display:inline-block;border-top:2px dashed #2563a8;"></span>Decision boundary</span>
+    </div>
+  </div>
+  <div class="ctrl-row">
+    <label>Model complexity</label>
+    <input type="range" id="bv-complexity" min="1" max="10" step="1" value="3" oninput="drawBV()">
+    <span class="val" id="bv-v">3</span>
+  </div>
+  <div class="stat-grid-4">
+    <div class="stat"><div class="stat-val" id="bv-bias">—</div><div class="stat-lbl">Bias²</div></div>
+    <div class="stat"><div class="stat-val" id="bv-var">—</div><div class="stat-lbl">Variance</div></div>
+    <div class="stat"><div class="stat-val" id="bv-train">—</div><div class="stat-lbl">Train error</div></div>
+    <div class="stat"><div class="stat-val" id="bv-test">—</div><div class="stat-lbl">Test error</div></div>
+  </div>
+  <div id="bv-label" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;text-align:center;margin:.75rem 0;padding:.5rem;border-radius:8px;background:var(--surface2);"></div>
+
+  <!-- bias-variance curves -->
+  <div class="two-col" style="margin-top:.25rem;">
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Bias² & Variance vs complexity</div>
+      <div style="position:relative;width:100%;height:200px;"><canvas id="bv-curve"></canvas></div>
+    </div>
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Train vs test error (U-curve)</div>
+      <div style="position:relative;width:100%;height:200px;"><canvas id="bv-ucurve"></canvas></div>
+    </div>
+  </div>
+
+  <!-- examples table -->
+  <div class="card" style="margin-top:.25rem;">
+    <div class="card-title">Real-world examples across the bias-variance spectrum</div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.79rem;">
+      <thead><tr>
+        <th style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;">Model</th>
+        <th style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;">Bias</th>
+        <th style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;">Variance</th>
+        <th style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;">Fix</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Linear Regression (underfit)</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);"><span style="color:#e05a2b;font-weight:600;">High</span></td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:#2b9a66;font-weight:600;">Low</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Add polynomial features, use more complex model</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Decision Tree (max depth)</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:#2b9a66;font-weight:600;">Low</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);"><span style="color:#e05a2b;font-weight:600;">High</span></td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Prune tree, limit depth, use Random Forest</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">KNN (K=1)</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:#2b9a66;font-weight:600;">Low</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);"><span style="color:#e05a2b;font-weight:600;">High</span></td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Increase K, normalise features</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Random Forest</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:#2b9a66;font-weight:600;">Low</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:#2b9a66;font-weight:600;">Low</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Averaging reduces variance while keeping low bias</td></tr>
+        <tr><td style="padding:7px 10px;color:var(--ink2);">Naive Bayes</td><td style="padding:7px 10px;"><span style="color:#e05a2b;font-weight:600;">High</span></td><td style="padding:7px 10px;color:#2b9a66;font-weight:600;">Low</td><td style="padding:7px 10px;color:var(--ink2);">Relax independence assumption, use better features</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="insight ins-blue">
+    <span>💡</span>
+    <span><strong>The tradeoff:</strong> you cannot minimise both simultaneously with a fixed dataset. Simpler models → high bias, low variance (consistent but wrong). Complex models → low bias, high variance (right on average but inconsistent). The goal is to find the sweet spot — or use ensemble methods that escape the tradeoff.</span>
+  </div>
+  <div class="insight ins-green" style="margin-top:.5rem;">
+    <span>✅</span>
+    <span><strong>How Random Forest escapes the tradeoff:</strong> each tree has low bias (deep, unconstrained). Averaging B decorrelated trees drives variance toward ρσ² (the irreducible correlation floor) — achieving low bias <em>and</em> low variance simultaneously.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 7: Concepts ══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-7">
+  <div class="pills" id="concept-pills">
+    <button class="pill active" onclick="showConcept('ensemble',this)">Ensemble taxonomy</button>
+    <button class="pill" onclick="showConcept('decorr',this)">Decorrelation</button>
+    <button class="pill" onclick="showConcept('oob',this)">OOB in depth</button>
+    <button class="pill" onclick="showConcept('adaboost',this)">AdaBoost math</button>
+    <button class="pill" onclick="showConcept('gbm',this)">Gradient Boosting math</button>
+    <button class="pill" onclick="showConcept('pros',this)">RF pros & cons</button>
+  </div>
+  <div class="concept-box" id="conceptDetail"></div>
+</div>
+
+<!-- ══ PANEL 8: Quiz ═════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-8">
+  <div id="quiz-container"></div>
+  <button onclick="resetQuiz()" style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-top:.75rem;">Reset quiz</button>
+</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+// ── Dataset ────────────────────────────────────────────────────────────────
+const DATA = [
+  {id:1,  income:85,  credit:720, debt:18, emp:6,  label:1},
+  {id:2,  income:42,  credit:580, debt:45, emp:2,  label:0},
+  {id:3,  income:110, credit:780, debt:12, emp:10, label:1},
+  {id:4,  income:35,  credit:490, debt:60, emp:1,  label:0},
+  {id:5,  income:65,  credit:650, debt:28, emp:4,  label:1},
+  {id:6,  income:28,  credit:420, debt:68, emp:0,  label:0},
+  {id:7,  income:92,  credit:740, debt:15, emp:8,  label:1},
+  {id:8,  income:50,  credit:610, debt:35, emp:3,  label:0},
+  {id:9,  income:78,  credit:700, debt:22, emp:7,  label:1},
+  {id:10, income:38,  credit:530, debt:52, emp:2,  label:0},
+  {id:11, income:120, credit:800, debt:8,  emp:15, label:1},
+  {id:12, income:55,  credit:640, debt:38, emp:3,  label:1},
+];
+const N = DATA.length;
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+// Simple seeded RNG for reproducibility
+function seededRand(seed){let s=seed;return()=>{s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff;};}
+
+// Bootstrap sample
+function bootstrap(seed){
+  const rng=seededRand(seed);
+  return Array.from({length:N},()=>DATA[Math.floor(rng()*N)]);
+}
+
+// Majority vote predict (stub using credit >= 620)
+function simplePredict(d, seed){
+  const rng=seededRand(seed*7+3);
+  // Simulate a noisy tree based on credit score with some randomness
+  const base = d.credit>=620 ? 1 : 0;
+  return rng()<0.15 ? 1-base : base;
+}
+
+// ── Tab routing ────────────────────────────────────────────────────────────
+const INITS=[initEnsemble,initBagging,initBoosting,initForest,initOOB,initImportance,initBV,initConceptsTab,initQuiz];
+function goTab(i,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('panel-'+i).classList.add('active');
+  INITS[i]();
+}
+
+// ══ PANEL 0: Ensemble Ideas ════════════════════════════════════════════════
+let errChart=null;
+function initEnsemble(){
+  drawMiniTree('c0-single',1,'#1a1a2e',false);
+  drawMiniForest('c0-bag');
+  drawMiniBoost('c0-boost');
+  drawErrorChart();
+}
+
+function drawMiniTree(canvasId,seed,color,noisy){
+  const cv=$(canvasId),W=cv.parentElement.offsetWidth||200,H=120;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);
+  const cx=W/2;
+  // root
+  function box(x,y,w,h,c,lbl){
+    ctx.fillStyle=c+'22';roundRect(ctx,x-w/2,y,w,h,5);ctx.fill();
+    ctx.strokeStyle=c;ctx.lineWidth=1.5;roundRect(ctx,x-w/2,y,w,h,5);ctx.stroke();
+    ctx.fillStyle=c;ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='center';
+    ctx.fillText(lbl,x,y+h/2+3);
+  }
+  function line(x1,y1,x2,y2){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle='rgba(0,0,0,0.15)';ctx.lineWidth=1;ctx.stroke();}
+  box(cx,8,80,22,color,'Credit ≥ 620?');
+  line(cx,30,cx-W*0.28,52);line(cx,30,cx+W*0.28,52);
+  box(cx-W*0.28,52,60,22,'#e05a2b','REJECT');
+  box(cx+W*0.28,52,62,22,'#2b9a66','Income ≥ 60?');
+  line(cx+W*0.28,74,cx+W*0.14,92);line(cx+W*0.28,74,cx+W*0.42,92);
+  box(cx+W*0.14,92,52,22,'#e05a2b','REJECT');box(cx+W*0.42,92,56,22,'#2b9a66','APPROVE');
+  ctx.textAlign='left';
+}
+
+function drawMiniForest(canvasId){
+  const cv=$(canvasId),W=cv.parentElement.offsetWidth||200,H=120;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);
+  const colors=['#2563a8','#1a7f4b','#6c5ce7','#e05a2b','#2b9a66'];
+  const xs=[W*0.12,W*0.3,W*0.5,W*0.7,W*0.88];
+  xs.forEach((x,i)=>{
+    const c=colors[i];
+    ctx.fillStyle=c+'15';roundRect(ctx,x-22,10,44,90,6);ctx.fill();
+    ctx.strokeStyle=c+'88';ctx.lineWidth=1;roundRect(ctx,x-22,10,44,90,6);ctx.stroke();
+    // mini tree inside
+    ctx.strokeStyle=c;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(x,20);ctx.lineTo(x-14,44);ctx.moveTo(x,20);ctx.lineTo(x+14,44);
+    ctx.moveTo(x+14,44);ctx.lineTo(x+7,68);ctx.moveTo(x+14,44);ctx.lineTo(x+21,68);ctx.stroke();
+    [x-14,x+7,x+21].forEach(lx=>{
+      ctx.beginPath();ctx.arc(lx,74,5,0,2*Math.PI);
+      ctx.fillStyle=c;ctx.fill();
+    });
+  });
+  // bracket
+  ctx.strokeStyle='#2563a8';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(8,105);ctx.lineTo(W-8,105);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W/2,105);ctx.lineTo(W/2,115);ctx.stroke();
+  ctx.fillStyle='#2563a8';ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('VOTE',W/2,H-2);ctx.textAlign='left';
+}
+
+function drawMiniBoost(canvasId){
+  const cv=$(canvasId),W=cv.parentElement.offsetWidth||200,H=120;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);
+  const colors=['#e05a2b','#c97a00','#2563a8'];
+  const xs=[W*0.2,W*0.5,W*0.8];
+  xs.forEach((x,i)=>{
+    const c=colors[i];
+    ctx.fillStyle=c+'15';roundRect(ctx,x-20,14+i*8,40,55-i*8,5);ctx.fill();
+    ctx.strokeStyle=c+'88';ctx.lineWidth=1;roundRect(ctx,x-20,14+i*8,40,55-i*8,5);ctx.stroke();
+    ctx.strokeStyle=c;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(x,22+i*8);ctx.lineTo(x-12,44+i*2);ctx.moveTo(x,22+i*8);ctx.lineTo(x+12,44+i*2);ctx.stroke();
+    if(i<2){
+      ctx.beginPath();ctx.moveTo(x+20,44);ctx.lineTo(xs[i+1]-20,44+8);
+      ctx.strokeStyle='rgba(0,0,0,0.18)';ctx.lineWidth=1.5;ctx.setLineDash([4,3]);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#8888aa';ctx.font='8px IBM Plex Mono,monospace';ctx.textAlign='center';
+      ctx.fillText('errors →',(x+xs[i+1])/2,38);
+    }
+    ctx.fillStyle=c;ctx.font='8px IBM Plex Mono,monospace';ctx.textAlign='center';
+    ctx.fillText('T'+(i+1),x,78+i*6);
+  });
+  ctx.fillStyle='#e05a2b';ctx.font='9px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('Σ weighted',W/2,H-2);ctx.textAlign='left';
+}
+
+function drawErrorChart(){
+  const cv=$('c0-error');
+  if(errChart)errChart.destroy();
+  errChart=new Chart(cv.getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:['Single Tree','Bagging (RF)','Boosting (GB)'],
+      datasets:[
+        {label:'Bias²',data:[5,6,2],backgroundColor:'rgba(37,99,168,0.75)',borderRadius:4},
+        {label:'Variance',data:[35,8,12],backgroundColor:'rgba(224,90,43,0.75)',borderRadius:4},
+        {label:'Noise (irreducible)',data:[10,10,10],backgroundColor:'rgba(136,136,170,0.5)',borderRadius:4},
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},color:'#4a4a6a'}}},
+      scales:{
+        x:{stacked:true,ticks:{color:'#4a4a6a',font:{size:11}},grid:{display:false}},
+        y:{stacked:true,max:60,title:{display:true,text:'Error (relative units)',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}}
+      }}
+  });
+}
+
+// ══ PANEL 1: Bagging ═══════════════════════════════════════════════════════
+let voteChart=null,accChart=null;
+const BOOT_SEEDS=[11,22,33,44,55];
+
+function initBagging(){drawBagging();drawVote();drawAccCurve();}
+
+function drawBagging(){
+  const idx=+$('boot-idx').value-1;
+  $('boot-v').textContent=idx+1;
+  const samp=bootstrap(BOOT_SEEDS[idx]);
+  const ids=samp.map(d=>d.id);
+  const oob=DATA.filter(d=>!ids.includes(d.id));
+
+  $('boot-detail').innerHTML=`<strong>Bootstrap sample ${idx+1}:</strong> rows [${ids.join(', ')}] `+
+    `(${[...new Set(ids)].length} unique) &nbsp;|&nbsp; `+
+    `<strong>OOB rows:</strong> [${oob.map(d=>d.id).join(', ')}] — used to estimate generalisation error`;
+
+  const cv=$('c1-boot'),W=cv.offsetWidth,H=200;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);
+
+  const CW=Math.floor((W-40)/N), CH=36;
+  // Header row: original
+  ctx.fillStyle='#8888aa';ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('Original dataset (N=12)',W/2,16);
+
+  DATA.forEach((d,i)=>{
+    const x=20+i*CW, y=24;
+    const inSamp=ids.includes(d.id);
+    ctx.fillStyle=inSamp?'rgba(37,99,168,0.12)':'rgba(200,200,200,0.15)';
+    roundRect(ctx,x,y,CW-4,CH,4);ctx.fill();
+    ctx.strokeStyle=inSamp?'#2563a8':'#ccc';ctx.lineWidth=inSamp?1.5:0.8;
+    roundRect(ctx,x,y,CW-4,CH,4);ctx.stroke();
+    ctx.fillStyle=inSamp?'#2563a8':'#ccc';ctx.font='9px IBM Plex Mono,monospace';
+    ctx.fillText('#'+d.id,x+CW/2-2,y+CH/2+3);
+    const cnt=ids.filter(id=>id===d.id).length;
+    if(cnt>1){ctx.fillStyle='#e05a2b';ctx.font='8px IBM Plex Mono,monospace';ctx.fillText('×'+cnt,x+CW-10,y+10);}
+  });
+
+  // Bootstrap sample row
+  ctx.fillStyle='#8888aa';ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('Bootstrap sample '+($('boot-idx').value)+' (with replacement)',W/2,82);
+  samp.forEach((d,i)=>{
+    const x=20+i*CW,y=90;
+    ctx.fillStyle='rgba(37,99,168,0.18)';roundRect(ctx,x,y,CW-4,CH,4);ctx.fill();
+    ctx.strokeStyle='#2563a8';ctx.lineWidth=1.5;roundRect(ctx,x,y,CW-4,CH,4);ctx.stroke();
+    ctx.fillStyle='#2563a8';ctx.font='9px IBM Plex Mono,monospace';
+    ctx.fillText('#'+d.id,x+CW/2-2,y+CH/2+3);
+  });
+
+  // OOB row
+  ctx.fillStyle='#8888aa';ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('OOB (out-of-bag) — free validation',W/2,148);
+  oob.forEach((d,i)=>{
+    const x=20+i*CW,y=156;
+    ctx.fillStyle='rgba(224,90,43,0.12)';roundRect(ctx,x,y,CW-4,CH,4);ctx.fill();
+    ctx.strokeStyle='#e05a2b';ctx.lineWidth=1.5;roundRect(ctx,x,y,CW-4,CH,4);ctx.stroke();
+    ctx.fillStyle='#e05a2b';ctx.font='9px IBM Plex Mono,monospace';
+    ctx.fillText('#'+d.id,x+CW/2-2,y+CH/2+3);
+  });
+  ctx.textAlign='left';
+}
+
+function drawVote(){
+  const cv=$('c1-vote'),W=cv.offsetWidth,H=180;
+  cv.width=W;cv.height=H;
+  if(voteChart)voteChart.destroy();
+  // Simulate 5 trees voting on a single applicant (#8: credit=610 → borderline)
+  const votes=[1,0,0,1,0]; // tree predictions for applicant 8
+  voteChart=new Chart(cv.getContext('2d'),{
+    type:'bar',
+    data:{labels:['Tree 1','Tree 2','Tree 3','Tree 4','Tree 5'],
+      datasets:[{label:'Vote',data:[1,0,0,1,0],
+        backgroundColor:votes.map(v=>v?'rgba(43,154,102,0.7)':'rgba(224,90,43,0.7)'),
+        borderRadius:4}]},
+    options:{responsive:false,animation:false,
+      plugins:{legend:{display:false},
+        title:{display:true,text:'Applicant #8 (Credit=610) — majority: REJECT (3/5)',font:{size:10},color:'#4a4a6a'}},
+      scales:{x:{ticks:{color:'#aaa',font:{size:9}},grid:{display:false}},
+              y:{min:0,max:1.2,ticks:{display:false},grid:{display:false}}}}
+  });
+}
+
+function drawAccCurve(){
+  const cv=$('c1-acc'),W=cv.offsetWidth,H=180;
+  cv.width=W;cv.height=H;
+  if(accChart)accChart.destroy();
+  const ns=[1,2,3,5,7,10,15,20,30,50];
+  const accs=[67,70,74,78,81,83,85,86,87,88];
+  accChart=new Chart(cv.getContext('2d'),{
+    type:'line',
+    data:{labels:ns.map(String),datasets:[{label:'OOB accuracy',data:accs,
+      borderColor:'#2563a8',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#2563a8',fill:false,tension:0.3}]},
+    options:{responsive:false,animation:false,plugins:{legend:{display:false}},
+      scales:{x:{title:{display:true,text:'# trees',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+              y:{min:50,max:100,title:{display:true,text:'Accuracy %',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+}
+
+// ══ PANEL 2: Boosting ═════════════════════════════════════════════════════
+let boostMode='ada';
+function setBoost(m,btn){
+  boostMode=m;
+  document.querySelectorAll('#boost-pills .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('boost-round').value=1; $('boost-round-v').textContent=1;
+  drawBoosting();
+}
+function initBoosting(){setBoost('ada',document.querySelector('#boost-pills .pill'));}
+
+const ADA_ROUNDS=[
+  {title:'Round 1 — equal weights, first stump splits on Credit Score ≥ 620',
+   errors:[2,4,6,8,10],split:'credit',thresh:620,
+   explain:'All 12 samples have equal weight (1/12). The best stump is Credit ≥ 620. It correctly classifies 8 samples. The 4 misclassified samples (IDs 8, 10, 12 borderline cases) get their weights increased for round 2.'},
+  {title:'Round 2 — upweighted misclassified samples, stump splits on Income ≥ 55k',
+   errors:[3,9],split:'income',thresh:55,
+   explain:'Misclassified samples from round 1 now have higher weight (shown as larger dots). The new stump focuses on separating them, finding Income ≥ 55k as the best split. Error rate drops further.'},
+  {title:'Round 3 — stump targets remaining hard cases, splits on Debt Ratio < 40%',
+   errors:[10],split:'debt',thresh:40,
+   explain:'Only the hardest samples remain misclassified. The third stump splits on Debt Ratio < 40%, correcting most remaining errors. Each stump\'s contribution α_t = 0.5 × log((1-err)/err) is added to the ensemble.'},
+  {title:'Round 4 — ensemble decision boundary (weighted sum of 3 stumps)',
+   errors:[],split:null,thresh:null,
+   explain:'The final AdaBoost model is a weighted sum: F(x) = α₁h₁(x) + α₂h₂(x) + α₃h₃(x). Stumps with lower error get higher α weight. The combined boundary correctly classifies all training samples.'},
+];
+
+const GB_ROUNDS=[
+  {title:'Round 1 — initial prediction = mean(labels) = 0.58 (Approved rate)',
+   explain:'Gradient Boosting starts with a constant prediction: the mean of the training labels (7/12 ≈ 0.58 for loan approval). Residuals = actual − predicted are computed for every sample.'},
+  {title:'Round 2 — tree fits residuals from round 1',
+   explain:'A shallow tree (max_depth=2) is fitted to the residuals, not the original labels. It learns which applicants were most over- or under-predicted. The ensemble updates: F₂(x) = F₁(x) + η·h₂(x), where η is the learning rate (e.g. 0.1).'},
+  {title:'Round 3 — tree fits new residuals, boundary sharpens',
+   explain:'New residuals = actual − F₂(x) are computed and a third tree is fitted. Each iteration corrects the previous ensemble\'s mistakes. With a small learning rate, the boundary improves gradually without overfitting.'},
+  {title:'Round 4 — ensemble of 3 trees (regularised via learning rate)',
+   explain:'The final prediction is F(x) = F₁(x) + η·h₂(x) + η·h₃(x) + …. With η=0.1 and 100–300 trees, Gradient Boosting typically outperforms both single trees and Random Forest on tabular data.'},
+];
+
+function initBoosting2(){drawBoosting();}
+function drawBoosting(){
+  const round=+$('boost-round').value-1;
+  $('boost-round-v').textContent=round+1;
+  const rounds=boostMode==='ada'?ADA_ROUNDS:GB_ROUNDS;
+  const r=rounds[Math.min(round,rounds.length-1)];
+  $('boost-canvas-title').textContent=(boostMode==='ada'?'AdaBoost':'Gradient Boosting')+' — '+r.title;
+  $('boost-explain').textContent=r.explain;
+
+  const cv=$('c2-boost'),W=cv.offsetWidth,H=280;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);
+
+  const pad={l:52,r:20,t:20,b:46};
+  const iW=W-pad.l-pad.r,iH=H-pad.t-pad.b;
+  const scX=v=>(v-20)/(130-20)*iW+pad.l;
+  const scY=v=>pad.t+iH-(v-400)/(850-400)*iH;
+
+  // region shading
+  if(boostMode==='ada'&&r.split){
+    if(r.split==='credit'){
+      ctx.fillStyle='rgba(224,90,43,0.08)';ctx.fillRect(pad.l,scY(r.thresh),iW,pad.t+iH-scY(r.thresh));
+      ctx.fillStyle='rgba(43,154,102,0.08)';ctx.fillRect(pad.l,pad.t,iW,scY(r.thresh)-pad.t);
+      ctx.beginPath();ctx.moveTo(pad.l,scY(r.thresh));ctx.lineTo(pad.l+iW,scY(r.thresh));
+      ctx.strokeStyle='#2563a8';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#2563a8';ctx.font='600 10px IBM Plex Mono,monospace';ctx.textAlign='left';
+      ctx.fillText('Credit ≥ '+r.thresh,pad.l+4,scY(r.thresh)-6);
+    } else if(r.split==='income'){
+      ctx.fillStyle='rgba(43,154,102,0.08)';ctx.fillRect(scX(r.thresh),pad.t,pad.l+iW-scX(r.thresh),iH);
+      ctx.fillStyle='rgba(224,90,43,0.08)';ctx.fillRect(pad.l,pad.t,scX(r.thresh)-pad.l,iH);
+      ctx.beginPath();ctx.moveTo(scX(r.thresh),pad.t);ctx.lineTo(scX(r.thresh),pad.t+iH);
+      ctx.strokeStyle='#2563a8';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle='#2563a8';ctx.font='600 10px IBM Plex Mono,monospace';ctx.textAlign='center';
+      ctx.fillText('Income ≥ '+r.thresh,scX(r.thresh),pad.t+14);
+    }
+  } else if(round===3){
+    // Final boundary
+    ctx.fillStyle='rgba(43,154,102,0.1)';ctx.fillRect(scX(60),pad.t,pad.l+iW-scX(60),scY(620)-pad.t);
+    ctx.fillStyle='rgba(43,154,102,0.06)';ctx.fillRect(pad.l,pad.t,iW,scY(620)-pad.t);
+    ctx.fillStyle='rgba(224,90,43,0.1)';ctx.fillRect(pad.l,scY(620),iW,pad.t+iH-scY(620));
+    ctx.beginPath();ctx.moveTo(pad.l,scY(620));ctx.lineTo(pad.l+iW,scY(620));
+    ctx.strokeStyle='#1a7f4b';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(scX(60),pad.t);ctx.lineTo(scX(60),scY(620));
+    ctx.strokeStyle='#2563a8';ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#1a7f4b';ctx.font='600 10px IBM Plex Mono,monospace';ctx.textAlign='center';
+    ctx.fillText('Ensemble boundary',W/2,pad.t+14);ctx.setLineDash([]);
+  }
+
+  // Axes
+  ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,pad.t+iH);ctx.lineTo(pad.l+iW,pad.t+iH);ctx.stroke();
+  ctx.fillStyle='#aaa';ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('Income (k$)',pad.l+iW/2,H-6);
+  ctx.save();ctx.translate(14,pad.t+iH/2);ctx.rotate(-Math.PI/2);ctx.fillText('Credit Score',0,0);ctx.restore();
+  [40,60,80,100,120].forEach(v=>{ctx.fillStyle='#aaa';ctx.textAlign='center';ctx.fillText(v,scX(v),pad.t+iH+14);});
+  [400,500,600,700,800].forEach(v=>{ctx.fillStyle='#aaa';ctx.textAlign='right';ctx.fillText(v,pad.l-5,scY(v)+4);});
+  ctx.textAlign='left';
+
+  // Data points — size proportional to weight in AdaBoost
+  const errors=r.errors||[];
+  DATA.forEach(d=>{
+    const isError=errors.includes(d.id);
+    const weight=boostMode==='ada'?(isError?2.5:1):1;
+    const radius=5+weight*2;
+    ctx.beginPath();ctx.arc(scX(d.income),scY(d.credit),radius,0,2*Math.PI);
+    ctx.fillStyle=d.label?'#2b9a66':'#e05a2b';ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.7)';ctx.lineWidth=2;ctx.stroke();
+    if(isError&&boostMode==='ada'){
+      ctx.beginPath();ctx.arc(scX(d.income),scY(d.credit),radius+4,0,2*Math.PI);
+      ctx.strokeStyle='#ffd700';ctx.lineWidth=2;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+    }
+  });
+}
+
+// ══ PANEL 3: Random Forest ════════════════════════════════════════════════
+let forestState=null;
+function initForest(){ requestAnimationFrame(growForest); }
+
+function gini(pts){if(!pts.length)return 0;const p=pts.filter(d=>d.label).length/pts.length;return 1-p*p-(1-p)*(1-p);}
+
+function rfTreePredict(d,seed,maxFeat){
+  const rng=seededRand(seed);
+  // Randomly select features to consider
+  const feats=['credit','income','debt','emp'];
+  const selected=feats.sort(()=>rng()-0.5).slice(0,maxFeat);
+  // Simple simulation: use first selected feature with known good thresholds
+  const thresholds={credit:620,income:60,debt:40,emp:3};
+  const f=selected[0];
+  const t=thresholds[f]+(rng()-0.5)*20;
+  let base;
+  if(f==='credit') base=d.credit>=t?1:0;
+  else if(f==='income') base=d.income>=t?1:0;
+  else if(f==='debt') base=d.debt<t?1:0;
+  else base=d.emp>=t?1:0;
+  // Add some noise
+  return rng()<0.1?1-base:base;
+}
+
+function growForest(){
+  const nTrees=+$('n-trees').value;
+  const maxFeat=+$('max-feat').value;
+  $('ntrees-v').textContent=nTrees;
+  $('maxfeat-v').textContent=maxFeat+' of 4';
+
+  // Simulate predictions for each tree on OOB samples
+  const seeds=Array.from({length:nTrees},(_,i)=>i*13+7);
+  // Majority vote on a query: applicant profile (credit=640, income=58, debt=32, emp=4)
+  const query={credit:640,income:58,debt:32,emp:4,label:1};
+  const votes=seeds.map(s=>rfTreePredict(query,s,maxFeat));
+  const approveCount=votes.filter(v=>v===1).length;
+  const rejectCount=nTrees-approveCount;
+  const pred=approveCount>rejectCount?1:0;
+  const conf=Math.round((pred?approveCount:rejectCount)/nTrees*100);
+
+  // OOB accuracy estimate
+  let correct=0;
+  DATA.forEach(d=>{
+    const oobSeeds=seeds.filter((_,i)=>i%N!==d.id%N);
+    if(!oobSeeds.length)return;
+    const ov=oobSeeds.map(s=>rfTreePredict(d,s,maxFeat));
+    const op=ov.filter(v=>v===1).length>ov.length/2?1:0;
+    if(op===d.label)correct++;
+  });
+  const oobAcc=Math.round(correct/N*100);
+
+  $('rf-trees').textContent=nTrees;
+  $('rf-acc').textContent=oobAcc+'%';
+  $('rf-vote').textContent=pred?'APPROVED':'REJECTED';
+  $('rf-conf').textContent=conf+'%';
+
+  // Vote chips
+  $('vote-chips').innerHTML=votes.map((v,i)=>
+    `<span class="vote-chip ${v?'vote-approve':'vote-reject'}">T${i+1}: ${v?'✅':'❌'}</span>`
+  ).join('');
+  $('rf-trees').textContent=nTrees;
+
+  drawForestCanvas(nTrees,votes,approveCount,rejectCount);
+}
+
+function drawForestCanvas(nT,votes,aCount,rCount){
+  const cv=$('c3-forest');
+  const W=cv.parentElement.offsetWidth||cv.offsetWidth||600;
+  const H=260;
+  cv.width=W;cv.height=H;
+  const ctx=cv.getContext('2d');ctx.clearRect(0,0,W,H);
+
+  const maxPerRow=Math.min(nT,10);
+  const TW=Math.min(64,(W-40)/maxPerRow-6);
+  const TH=80;
+  const rows=Math.ceil(nT/maxPerRow);
+
+  for(let i=0;i<nT;i++){
+    const row=Math.floor(i/maxPerRow);
+    const col=i%maxPerRow;
+    const rowCount=Math.min(maxPerRow,nT-row*maxPerRow);
+    const rowW=rowCount*(TW+6)-6;
+    const startX=(W-rowW)/2;
+    const x=startX+col*(TW+6);
+    const y=16+row*(TH+10);
+    const v=votes[i];
+    const col2=v?'#2b9a66':'#e05a2b';
+    ctx.fillStyle=v?'rgba(43,154,102,0.1)':'rgba(224,90,43,0.1)';
+    roundRect(ctx,x,y,TW,TH,6);ctx.fill();
+    ctx.strokeStyle=col2;ctx.lineWidth=1.5;roundRect(ctx,x,y,TW,TH,6);ctx.stroke();
+    // mini tree trunk + branches
+    const cx=x+TW/2;
+    ctx.strokeStyle=col2+'aa';ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(cx,y+8);ctx.lineTo(cx-TW/3,y+30);
+    ctx.moveTo(cx,y+8);ctx.lineTo(cx+TW/3,y+30);
+    ctx.stroke();
+    // leaf dots — draw each separately so fill works
+    [cx-TW/3, cx+TW/3].forEach(lx=>{
+      ctx.beginPath();ctx.arc(lx,y+38,4,0,2*Math.PI);
+      ctx.fillStyle=col2;ctx.fill();
+    });
+    ctx.fillStyle=col2;ctx.font='500 9px DM Sans,sans-serif';ctx.textAlign='center';
+    ctx.fillText('T'+(i+1),cx,y+TH-10);
+    ctx.fillText(v?'✅':'❌',cx,y+TH-22);
+  }
+
+  // Vote tally bar
+  const barY=rows*(TH+10)+26;
+  const barW=W-60;
+  const aW=aCount/nT*barW;
+  ctx.fillStyle='rgba(43,154,102,0.3)';ctx.fillRect(30,barY,aW,22);
+  ctx.fillStyle='rgba(224,90,43,0.3)';ctx.fillRect(30+aW,barY,barW-aW,22);
+  ctx.strokeStyle='rgba(0,0,0,0.12)';ctx.lineWidth=1;ctx.strokeRect(30,barY,barW,22);
+  ctx.fillStyle='#0e5c35';ctx.font='500 10px DM Sans,sans-serif';ctx.textAlign='center';
+  if(aW>40) ctx.fillText(aCount+' Approved',30+aW/2,barY+14);
+  ctx.fillStyle='#7a1a1a';
+  if(barW-aW>40) ctx.fillText(rCount+' Rejected',30+aW+(barW-aW)/2,barY+14);
+  ctx.textAlign='left';
+}
+
+// ══ PANEL 4: OOB & Tuning ════════════════════════════════════════════════
+let oobChart=null,featChart=null;
+function initOOB(){drawOOB();}
+
+function drawOOB(){
+  const nT=+$('oob-trees').value;
+  $('oobt-v').textContent=nT;
+
+  // Simulated OOB error curve
+  const oobErr=t=>22-15*(1-Math.exp(-t/20))+(Math.sin(t*0.3)*1.5/(t*0.1+1));
+  const val=Math.max(7,oobErr(nT)).toFixed(1);
+  const stable=nT>=80?'Yes':'No';
+  const rec=nT<30?'Too few':'Optimal';
+
+  $('oob-val').textContent=val+'%';
+  $('oob-stable').textContent=stable;
+  $('oob-rec').textContent=rec;
+
+  const cv=$('c4-oob'),W=cv.offsetWidth,H=220;
+  cv.width=W;cv.height=H;
+  if(oobChart)oobChart.destroy();
+  const ts=Array.from({length:50},(_,i)=>i*4+1);
+  const errs=ts.map(t=>Math.max(7,oobErr(t)));
+  const hl=ts.findIndex(t=>t>=nT);
+  const ptColors=ts.map((_,i)=>i===hl?'#e05a2b':'#2563a8');
+  const ptSizes=ts.map((_,i)=>i===hl?8:3);
+  oobChart=new Chart(cv.getContext('2d'),{
+    type:'line',
+    data:{labels:ts.map(String),datasets:[{label:'OOB error %',data:errs,
+      borderColor:'#2563a8',borderWidth:2,pointRadius:ptSizes,pointBackgroundColor:ptColors,fill:false,tension:0.3}]},
+    options:{responsive:false,animation:false,plugins:{legend:{display:false}},
+      scales:{x:{title:{display:true,text:'n_estimators',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9},maxTicksLimit:8},grid:{color:'rgba(0,0,0,.04)'}},
+              y:{min:0,max:30,title:{display:true,text:'OOB error %',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+
+  // Feature chart (static)
+  const cv2=$('c4-feat'),W2=cv2.offsetWidth,H2=220;
+  cv2.width=W2;cv2.height=H2;
+  if(featChart)featChart.destroy();
+  featChart=new Chart(cv2.getContext('2d'),{
+    type:'line',
+    data:{labels:['1','2','3','4'],
+      datasets:[{label:'Accuracy %',data:[74,85,83,80],
+        borderColor:'#1a7f4b',borderWidth:2.5,pointRadius:6,pointBackgroundColor:['#aaa','#e05a2b','#2563a8','#aaa'],fill:false,tension:0.3}]},
+    options:{responsive:false,animation:false,plugins:{legend:{display:false},
+        title:{display:true,text:'max_features (√4 = 2 is optimal)',font:{size:10},color:'#4a4a6a'}},
+      scales:{x:{title:{display:true,text:'max_features',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{display:false}},
+              y:{min:60,max:100,title:{display:true,text:'Accuracy %',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+}
+
+// ══ PANEL 5: Feature Importance ══════════════════════════════════════════
+let impChart=null,stabChart=null;
+function initImportance(){drawImportance();}
+
+function drawImportance(){
+  const nT=+$('imp-trees').value;
+  $('impt-v').textContent=nT;
+
+  // Simulate importance with decreasing std as nT grows
+  const baseImp=[0.50,0.28,0.14,0.08];
+  const sigma=0.18/Math.sqrt(nT);
+  const rng=seededRand(nT*17);
+  const imp=baseImp.map(b=>Math.max(0.01,b+(rng()-0.5)*sigma*2));
+  const total=imp.reduce((s,v)=>s+v,0);
+  const norm=imp.map(v=>v/total);
+  const errs=baseImp.map(b=>sigma*0.6);
+
+  const cv=$('c5-imp'),W=cv.offsetWidth,H=220;
+  cv.width=W;cv.height=H;
+  if(impChart)impChart.destroy();
+  impChart=new Chart(cv.getContext('2d'),{
+    type:'bar',
+    data:{labels:['Credit Score','Income','Debt Ratio','Employment'],
+      datasets:[{label:'Importance',data:norm.map(v=>+v.toFixed(3)),
+        backgroundColor:['#2563a8','#1a7f4b','#e05a2b','#8888aa'],borderRadius:4,
+        error:errs}]},
+    options:{responsive:false,animation:false,indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{min:0,max:0.7,title:{display:true,text:'Mean Gini decrease (normalised)',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},
+              y:{ticks:{color:'#4a4a6a',font:{size:10}},grid:{display:false}}}}
+  });
+
+  // Stability chart: variance shrinks with more trees
+  const cv2=$('c5-stab'),W2=cv2.offsetWidth,H2=220;
+  cv2.width=W2;cv2.height=H2;
+  if(stabChart)stabChart.destroy();
+  const ts=[1,5,10,20,50];
+  const stds=ts.map(t=>+(0.20/Math.sqrt(t)).toFixed(3));
+  stabChart=new Chart(cv2.getContext('2d'),{
+    type:'line',
+    data:{labels:ts.map(String),datasets:[{label:'Std of importance',data:stds,
+      borderColor:'#6c5ce7',borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#6c5ce7',fill:true,
+      backgroundColor:'rgba(108,92,231,0.08)',tension:0.3}]},
+    options:{responsive:false,animation:false,plugins:{legend:{display:false},
+        title:{display:true,text:'Importance std (Credit Score) — shrinks with more trees',font:{size:10},color:'#4a4a6a'}},
+      scales:{x:{title:{display:true,text:'# trees',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+              y:{min:0,max:0.25,title:{display:true,text:'Std deviation',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+}
+
+// ══ PANEL 6: Bias & Variance ═════════════════════════════════════════════
+let bvCurveChart=null, bvUChart=null;
+
+function initBV(){ requestAnimationFrame(drawBV); }
+
+// Simulated bias/variance/train/test error curves across complexity 1-10
+const BV_DATA = [
+  {bias:0.42, variance:0.02, train:0.38, test:0.44},
+  {bias:0.32, variance:0.04, train:0.28, test:0.36},
+  {bias:0.18, variance:0.07, train:0.16, test:0.25},  // sweet spot ~3
+  {bias:0.10, variance:0.12, train:0.09, test:0.22},
+  {bias:0.06, variance:0.18, train:0.05, test:0.24},
+  {bias:0.04, variance:0.26, train:0.03, test:0.30},
+  {bias:0.03, variance:0.36, train:0.02, test:0.39},
+  {bias:0.02, variance:0.48, train:0.01, test:0.50},
+  {bias:0.01, variance:0.60, train:0.005,test:0.61},
+  {bias:0.01, variance:0.72, train:0.002,test:0.73},
+];
+
+const COMPLEXITY_LABELS=['Very simple','Simple','Balanced ✓','Moderate','Complex','More complex','Quite complex','Very complex','Overfit','Severe overfit'];
+const COMPLEXITY_COLORS=['#e05a2b','#e05a2b','#2b9a66','#2563a8','#2563a8','#e05a2b','#e05a2b','#e05a2b','#e05a2b','#e05a2b'];
+
+function drawBV(){
+  const c = +$('bv-complexity').value - 1;
+  $('bv-v').textContent = c+1;
+  const d = BV_DATA[c];
+
+  $('bv-bias').textContent   = d.bias.toFixed(2);
+  $('bv-var').textContent    = d.variance.toFixed(2);
+  $('bv-train').textContent  = (d.train*100).toFixed(1)+'%';
+  $('bv-test').textContent   = (d.test*100).toFixed(1)+'%';
+
+  const lbl = $('bv-label');
+  const state = c<=1?'⚠️ Underfitting — high bias, model too simple'
+              : c===2?'✅ Good balance — low bias, low variance'
+              : c<=4?'⚡ Getting complex — variance rising'
+              : '🔴 Overfitting — low train error, high test error';
+  lbl.textContent = state;
+  lbl.style.color = COMPLEXITY_COLORS[c];
+
+  drawBVScatter(c);
+  drawBVCurve(c);
+  drawBVUCurve(c);
+}
+
+function drawBVScatter(ci){
+  const cv = $('bv-scatter');
+  const W = cv.parentElement.offsetWidth || 600, H = 260;
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d'); ctx.clearRect(0,0,W,H);
+
+  const pad={l:50,r:20,t:20,b:44};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  const scX=v=>(v-20)/(130-20)*iW+pad.l;
+  const scY=v=>pad.t+iH-(v-400)/(850-400)*iH;
+
+  // Draw decision boundary — varies by complexity
+  const steps=120;
+  // Simulate boundary: low complexity = horizontal line, high = wiggly
+  const wiggle = ci/9;
+  ctx.beginPath();
+  for(let i=0;i<=steps;i++){
+    const t = i/steps;
+    const inc = 20 + t*(130-20);
+    // boundary credit score: starts flat, gets wavy with complexity
+    const base = 620;
+    const wave = wiggle * 80 * Math.sin(t * Math.PI * (1 + ci*0.6));
+    const cred = base + wave - ci*8;
+    const px = scX(inc), py = scY(Math.max(400,Math.min(850,cred)));
+    i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+  }
+  ctx.strokeStyle='#2563a8'; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+
+  // Region shading
+  const imgData = ctx.createImageData(W,H);
+  for(let px2=pad.l;px2<pad.l+iW;px2+=3){
+    for(let py2=pad.t;py2<pad.t+iH;py2+=3){
+      const inc=(px2-pad.l)/iW*(130-20)+20;
+      const t=(px2-pad.l)/iW;
+      const base=620, wave=wiggle*80*Math.sin(t*Math.PI*(1+ci*0.6));
+      const boundCred=base+wave-ci*8;
+      const dataCred=(1-(py2-pad.t)/iH)*(850-400)+400;
+      const isApprove = dataCred >= boundCred;
+      for(let dy=0;dy<3;dy++) for(let dx=0;dx<3;dx++){
+        const idx=4*((py2+dy)*W+(px2+dx));
+        if(isApprove){imgData.data[idx]=43;imgData.data[idx+1]=154;imgData.data[idx+2]=102;imgData.data[idx+3]=28;}
+        else{imgData.data[idx]=224;imgData.data[idx+1]=90;imgData.data[idx+2]=43;imgData.data[idx+3]=28;}
+      }
+    }
+  }
+  ctx.putImageData(imgData,0,0);
+
+  // Axes
+  ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+iH); ctx.lineTo(pad.l+iW,pad.t+iH); ctx.stroke();
+  ctx.fillStyle='#aaa'; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  ctx.fillText('Income (k$)',pad.l+iW/2,H-6);
+  ctx.save(); ctx.translate(14,pad.t+iH/2); ctx.rotate(-Math.PI/2); ctx.fillText('Credit Score',0,0); ctx.restore();
+  [40,60,80,100,120].forEach(v=>{ctx.fillStyle='#aaa';ctx.textAlign='center';ctx.fillText(v,scX(v),pad.t+iH+14);});
+  [400,500,600,700,800].forEach(v=>{ctx.fillStyle='#aaa';ctx.textAlign='right';ctx.fillText(v,pad.l-5,scY(v)+4);});
+  ctx.textAlign='left';
+
+  // Data points
+  const DATA_PTS=[
+    {income:85,credit:720,label:1},{income:42,credit:580,label:0},{income:110,credit:780,label:1},
+    {income:35,credit:490,label:0},{income:65,credit:650,label:1},{income:28,credit:420,label:0},
+    {income:92,credit:740,label:1},{income:50,credit:610,label:0},{income:78,credit:700,label:1},
+    {income:38,credit:530,label:0},{income:120,credit:800,label:1},{income:55,credit:640,label:1},
+  ];
+  DATA_PTS.forEach(p=>{
+    ctx.beginPath(); ctx.arc(scX(p.income),scY(p.credit),7,0,2*Math.PI);
+    ctx.fillStyle=p.label?'#2b9a66':'#e05a2b'; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=2; ctx.stroke();
+  });
+
+  // complexity label
+  ctx.fillStyle=COMPLEXITY_COLORS[ci]; ctx.font='600 11px DM Sans,sans-serif'; ctx.textAlign='left';
+  ctx.fillText('Complexity '+($('bv-complexity').value)+': '+COMPLEXITY_LABELS[ci], pad.l+2, pad.t+16);
+  ctx.textAlign='left';
+}
+
+function drawBVCurve(ci){
+  const cv=$('bv-curve');
+  if(bvCurveChart){bvCurveChart.destroy(); bvCurveChart=null;}
+  const xs=BV_DATA.map((_,i)=>i+1);
+  const ptColors=xs.map((_,i)=>i===ci?'#1a1a2e':'rgba(0,0,0,0)');
+  const ptSizes=xs.map((_,i)=>i===ci?8:0);
+  bvCurveChart=new Chart(cv.getContext('2d'),{
+    type:'line',
+    data:{labels:xs.map(String),datasets:[
+      {label:'Bias²',data:BV_DATA.map(d=>d.bias),borderColor:'#e05a2b',borderWidth:2.5,fill:false,tension:0.4,pointRadius:ptSizes,pointBackgroundColor:ptColors},
+      {label:'Variance',data:BV_DATA.map(d=>d.variance),borderColor:'#2563a8',borderWidth:2.5,fill:false,tension:0.4,pointRadius:ptSizes,pointBackgroundColor:ptColors},
+      {label:'Total error',data:BV_DATA.map(d=>+(d.bias+d.variance+0.05).toFixed(3)),borderColor:'#8888aa',borderWidth:1.5,borderDash:[4,3],fill:false,tension:0.4,pointRadius:0},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:9},color:'#4a4a6a',boxWidth:14}}},
+      scales:{
+        x:{title:{display:true,text:'Complexity',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+        y:{min:0,max:0.85,title:{display:true,text:'Error',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}
+      }}
+  });
+}
+
+function drawBVUCurve(ci){
+  const cv=$('bv-ucurve');
+  if(bvUChart){bvUChart.destroy(); bvUChart=null;}
+  const xs=BV_DATA.map((_,i)=>i+1);
+  const ptC=xs.map((_,i)=>i===ci?'#1a1a2e':'rgba(0,0,0,0)');
+  const ptS=xs.map((_,i)=>i===ci?8:0);
+  bvUChart=new Chart(cv.getContext('2d'),{
+    type:'line',
+    data:{labels:xs.map(String),datasets:[
+      {label:'Train error',data:BV_DATA.map(d=>d.train),borderColor:'#2b9a66',borderWidth:2.5,fill:false,tension:0.4,pointRadius:ptS,pointBackgroundColor:ptC},
+      {label:'Test error',data:BV_DATA.map(d=>d.test),borderColor:'#e05a2b',borderWidth:2.5,fill:false,tension:0.4,pointRadius:ptS,pointBackgroundColor:ptC},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:9},color:'#4a4a6a',boxWidth:14}}},
+      scales:{
+        x:{title:{display:true,text:'Complexity',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+        y:{min:0,max:0.85,title:{display:true,text:'Error',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}
+      }}
+  });
+}
+
+// ══ PANEL 7: Concepts ════════════════════════════════════════════════════
+const CONCEPTS={
+  ensemble:{title:'Ensemble taxonomy',body:`Two fundamental families:<span class="cformula">Bagging  — parallel, independent models, variance reduction</span><span class="cformula">Boosting — sequential, dependent models, bias reduction</span>Random Forest is bagging + random feature selection. Stacking is a third family: a meta-model learns to combine base model predictions. Blending is a simpler version of stacking where base models are trained on a fixed holdout set.`},
+  decorr:{title:'Why decorrelation matters',body:`In bagging, ensemble variance = ρσ² + (1−ρ)σ²/B, where ρ is the pairwise correlation between trees, σ² is each tree's variance, and B is the number of trees.<span class="cformula">Var(ensemble) = ρσ² + (1−ρ)σ²/B</span>As B → ∞ the second term vanishes but the first (ρσ²) remains. Lower ρ = lower irreducible ensemble variance. Random feature selection reduces ρ by ensuring trees disagree on different features — this is the key innovation of Random Forest over plain bagging.`},
+  oob:{title:'Out-of-bag error in depth',body:`Each bootstrap sample excludes ~36.8% of rows on average. For each training point x_i:<span class="cformula">OOB prediction = majority vote of trees that did NOT see x_i</span>This gives a nearly unbiased estimate of generalisation error without a separate validation set — equivalent to leave-one-out CV with B trees. In sklearn: <code>RandomForestClassifier(oob_score=True)</code>. Access via <code>.oob_score_</code>.`},
+  adaboost:{title:'AdaBoost mathematics',body:`AdaBoost trains T weak classifiers h_t (typically stumps) sequentially:<span class="cformula">1. Initialise weights wᵢ = 1/N</span><span class="cformula">2. Train h_t on weighted data, compute error εt = Σwᵢ·𝟙[h_t(xᵢ)≠yᵢ]</span><span class="cformula">3. Compute stump weight αt = 0.5·ln((1−εt)/εt)</span><span class="cformula">4. Update: wᵢ ← wᵢ·exp(−αt·yᵢ·h_t(xᵢ)), renormalise</span><span class="cformula">5. Final: F(x) = sign(Σ αt·h_t(x))</span>Stumps with lower error get higher α. Misclassified samples gain weight, focusing future stumps on hard cases.`},
+  gbm:{title:'Gradient Boosting mathematics',body:`Gradient Boosting frames boosting as gradient descent in function space:<span class="cformula">F₀(x) = argmin_c Σ L(yᵢ, c)  (initial constant)</span><span class="cformula">For t = 1…T:</span><span class="cformula">  rᵢt = −∂L(yᵢ, F_{t-1}(xᵢ))/∂F  (pseudo-residuals)</span><span class="cformula">  Fit tree ht to residuals rᵢt</span><span class="cformula">  Ft(x) = F_{t-1}(x) + η·ht(x)  (η = learning rate)</span>For log-loss, pseudo-residuals = actual − predicted probability. XGBoost and LightGBM add L1/L2 regularisation and use second-order gradients for faster convergence.`},
+  pros:{title:'Random Forest pros & cons',body:`<strong>Pros:</strong> state-of-the-art on tabular data, robust to outliers and noise, built-in OOB validation, stable feature importances, minimal hyperparameter tuning, handles missing data reasonably, parallelisable (trees are independent).<br><br><strong>Cons:</strong> less interpretable than a single tree (no simple rule set), slow prediction with very large forests, memory-intensive (stores all trees), can be outperformed by Gradient Boosting (XGBoost, LightGBM) on well-tuned problems, MDI importance biased toward high-cardinality features.`},
+};
+function initConceptsTab(){ showConcept('ensemble',document.querySelector('#concept-pills .pill')); }
+function showConcept(key,btn){
+  document.querySelectorAll('#concept-pills .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  const c=CONCEPTS[key];
+  $('conceptDetail').innerHTML=`<div class="concept-title">${c.title}</div><div class="concept-body">${c.body}</div>`;
+}
+
+// ══ PANEL 7: Quiz ════════════════════════════════════════════════════════
+const QUESTIONS=[
+  {q:'What is the key difference between bagging and boosting?',
+   opts:['Bagging uses deep trees; boosting uses stumps','Bagging trains models in parallel to reduce variance; boosting trains sequentially to reduce bias','Bagging only works for classification; boosting works for regression','Bagging requires more hyperparameter tuning than boosting'],
+   correct:1,fb:'Correct! Bagging (e.g. Random Forest) trains independent models simultaneously and averages them to reduce variance. Boosting (e.g. AdaBoost, GBM) trains models one after another, each correcting the previous model\'s errors, reducing bias.'},
+  {q:'What does "bootstrap sampling" mean in Random Forest?',
+   opts:['Randomly dropping features at each node','Sampling rows with replacement from the training set','Using only 50% of the training data','Normalising all features to [0,1]'],
+   correct:1,fb:'Correct! Bootstrap sampling draws N rows WITH replacement. On average ~63.2% of unique rows appear in each sample, leaving ~36.8% as the out-of-bag (OOB) set used for free validation.'},
+  {q:'What is the purpose of limiting max_features in Random Forest?',
+   opts:['To speed up training by reducing data size','To decorrelate trees by forcing them to consider different features','To reduce the depth of each tree','To prevent the forest from using irrelevant features'],
+   correct:1,fb:'Correct! Without feature randomness, all trees tend to use the same dominant features and become correlated. Limiting to √d features per split forces diversity — when trees disagree, averaging cancels out errors.'},
+  {q:'The OOB error estimate is "free" because…',
+   opts:['It requires no computation','It reuses data that was not included in each tree\'s bootstrap sample','It only uses 10% of the training data','It is computed on the test set'],
+   correct:1,fb:'Correct! Each training sample is excluded from ~37% of trees on average. Those trees can be used to predict that sample, giving an unbiased estimate of generalisation error without any separate holdout set.'},
+  {q:'In AdaBoost, what happens to misclassified samples after each round?',
+   opts:['They are removed from the dataset','Their weights are increased so future models focus on them','They are duplicated in the training set','Their labels are flipped'],
+   correct:1,fb:'Correct! AdaBoost increases the weight of misclassified samples after each round. The next weak learner trains on this reweighted distribution, forcing it to focus on the hard-to-classify examples.'},
+];
+let answered={};
+function initQuiz(){ if(!Object.keys(answered).length) buildQuiz(); }
+function buildQuiz(){
+  $('quiz-container').innerHTML=QUESTIONS.map((q,i)=>`
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:0.84rem;font-weight:500;color:var(--ink);margin-bottom:.55rem;">${i+1}. ${q.q}</div>
+      ${q.opts.map((o,j)=>`<div class="quiz-opt" id="qopt-${i}-${j}" onclick="answerQ(${i},${j})">${o}</div>`).join('')}
+      <div class="quiz-fb" id="qfb-${i}"></div>
+    </div>`).join('');
+}
+function answerQ(qi,oi){
+  if(answered[qi]!==undefined)return; answered[qi]=oi;
+  const q=QUESTIONS[qi],el=$('qopt-'+qi+'-'+oi),fb=$('qfb-'+qi);
+  if(oi===q.correct){
+    el.classList.add('correct');
+    fb.style.cssText='display:block;background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;padding:10px 14px;border-radius:8px;font-size:.77rem;line-height:1.55;margin-top:.45rem;';
+    fb.textContent='✅ '+q.fb;
+  } else {
+    el.classList.add('wrong');$('qopt-'+qi+'-'+q.correct).classList.add('correct');
+    fb.style.cssText='display:block;background:#fff0ee;border:1px solid #fcd5c0;color:#7a2e0e;padding:10px 14px;border-radius:8px;font-size:.77rem;line-height:1.55;margin-top:.45rem;';
+    fb.textContent='❌ Not quite. '+q.fb;
+  }
+}
+function resetQuiz(){answered={};buildQuiz();}
+
+// Init
+window.addEventListener('load',()=>{
+  requestAnimationFrame(()=>{
+    initEnsemble();
+    showConcept('ensemble',document.querySelector('#concept-pills .pill'));
+    buildQuiz();
+  });
+});
+</script>
+</body>
+</html>

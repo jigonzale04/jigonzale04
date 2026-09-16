@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Means Clustering — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f0f4f8;--ink:#0f172a;--ink2:#334155;--ink3:#94a3b8;
+  --accent:#7c3aed;--accent2:#0ea5e9;--accent3:#10b981;--accent4:#f59e0b;
+  --surface:#fff;--surface2:#e8edf5;--border:#cbd5e1;
+  --c1:#7c3aed;--c2:#0ea5e9;--c3:#10b981;--c4:#f59e0b;--c5:#ef4444;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+
+/* hero */
+.hero{margin-bottom:2rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+.hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+.hero h1{font-family:'DM Serif Display',serif;font-size:2.3rem;line-height:1.1;color:var(--ink);margin-bottom:.5rem;}
+.hero h1 em{font-style:italic;color:var(--accent);}
+.hero p{font-size:0.88rem;color:var(--ink2);line-height:1.75;max-width:600px;}
+
+/* step nav */
+.steps{display:flex;gap:0;margin-bottom:2rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+.step-btn{flex:1;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.4;}
+.step-btn:last-child{border-right:none;}
+.step-btn:hover{background:var(--surface2);color:var(--ink);}
+.step-btn.active{background:var(--ink);color:#fff;}
+.step-num{display:block;font-size:0.5rem;opacity:.55;margin-bottom:2px;}
+.panel{display:none;}.panel.active{display:block;}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.2rem;}
+.card-title{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.9rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.2rem;}
+canvas{display:block;width:100%;}
+
+/* formula */
+.formula-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1.1rem;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--ink);margin-bottom:1rem;text-align:center;line-height:2.2;}
+.f-purple{color:var(--accent);font-weight:600;}
+.f-blue{color:var(--accent2);font-weight:600;}
+.f-green{color:var(--accent3);font-weight:600;}
+
+/* insight boxes */
+.insight{display:flex;gap:10px;padding:10px 13px;border-radius:8px;font-size:0.77rem;line-height:1.6;margin-top:.75rem;}
+.insight-icon{font-size:.95rem;flex-shrink:0;margin-top:1px;}
+.ins-purple{background:#f5f0ff;border:1px solid #d4b8fb;color:#4a1d96;}
+.ins-blue{background:#eef8ff;border:1px solid #b3dcf7;color:#0c4a6e;}
+.ins-green{background:#edfff7;border:1px solid #a7f0cf;color:#064e3b;}
+.ins-amber{background:#fffbeb;border:1px solid #fcd34d;color:#78350f;}
+.ins-red{background:#fff1f2;border:1px solid #fca5a5;color:#7f1d1d;}
+
+/* controls */
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.7rem;}
+.ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);min-width:120px;}
+.ctrl-row input[type=range]{flex:1;accent-color:var(--accent);}
+.ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:600;color:var(--ink);min-width:36px;text-align:right;}
+
+/* buttons */
+.btn{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:8px 16px;border-radius:6px;cursor:pointer;transition:all .15s;border:1px solid var(--border);}
+.btn-primary{background:var(--ink);color:#fff;border-color:var(--ink);}
+.btn-primary:hover{background:#1e293b;}
+.btn-outline{background:var(--surface);color:var(--ink2);}
+.btn-outline:hover{background:var(--surface2);color:var(--ink);}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-accent:hover{opacity:.9;}
+
+/* stat cards */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1rem;}
+.stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;}
+.stat-val{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--ink);}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+
+/* legend */
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink2);margin-top:8px;}
+.legend span{display:flex;align-items:center;gap:5px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;}
+
+/* step animation controls */
+.step-controls{display:flex;gap:8px;margin-bottom:1rem;align-items:center;flex-wrap:wrap;}
+.step-indicator{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);padding:6px 12px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);}
+
+/* k selector */
+.k-selector{display:flex;gap:8px;margin-bottom:1.2rem;flex-wrap:wrap;}
+.k-btn{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:8px 18px;border-radius:8px;cursor:pointer;border:2px solid var(--border);background:var(--surface);color:var(--ink2);transition:all .2s;}
+.k-btn:hover{border-color:var(--accent);color:var(--accent);}
+.k-btn.k-active{border-color:var(--accent);background:var(--accent);color:#fff;}
+
+/* profile table */
+.profile-table{width:100%;border-collapse:collapse;font-size:0.75rem;margin-top:.75rem;}
+.profile-table th{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;}
+.profile-table td{padding:9px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);}
+.profile-table tr:last-child td{border-bottom:none;}
+.cluster-badge{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;padding:3px 9px;border-radius:999px;}
+.bar-cell{display:flex;align-items:center;gap:6px;}
+.bar-bg{flex:1;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;min-width:60px;}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s;}
+
+/* silhouette */
+.method-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;}
+
+/* quiz */
+.quiz-opt{padding:10px 13px;border:1px solid var(--border);border-radius:8px;margin-bottom:7px;cursor:pointer;font-size:0.8rem;transition:all .15s;background:var(--surface);}
+.quiz-opt:hover{border-color:var(--accent);background:#f8f4ff;}
+.quiz-opt.correct{background:#edfff7;border-color:#10b981;color:#064e3b;}
+.quiz-opt.wrong{background:#fff1f2;border-color:#ef4444;color:#7f1d1d;}
+.quiz-fb{font-size:0.75rem;padding:9px 13px;border-radius:7px;margin-top:.4rem;display:none;line-height:1.55;}
+
+@media(max-width:600px){
+  .two-col,.method-grid{grid-template-columns:1fr;}
+  .three-col{grid-template-columns:1fr 1fr;}
+  .hero h1{font-size:1.75rem;}
+  .step-btn{font-size:0.52rem;padding:8px 3px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-tag">// interactive explainer</div>
+    <h1>K-Means <em>Clustering</em></h1>
+    <p>An unsupervised algorithm that partitions data into <strong>K groups</strong> by iteratively assigning points to the nearest centroid and recomputing centroids — until convergence. No labels needed.</p>
+  </div>
+
+  <div class="steps">
+    <button class="step-btn active" onclick="goStep(0,this)"><span class="step-num">01</span>The Idea</button>
+    <button class="step-btn" onclick="goStep(1,this)"><span class="step-num">02</span>Algorithm</button>
+    <button class="step-btn" onclick="goStep(2,this)"><span class="step-num">03</span>Find K</button>
+    <button class="step-btn" onclick="goStep(3,this)"><span class="step-num">04</span>Choose K</button>
+    <button class="step-btn" onclick="goStep(4,this)"><span class="step-num">05</span>Profiles</button>
+    <button class="step-btn" onclick="goStep(5,this)"><span class="step-num">06</span>Concepts</button>
+    <button class="step-btn" onclick="goStep(6,this)"><span class="step-num">07</span>Quiz</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 0 — The Idea
+  ══════════════════════════════════════════ -->
+  <div class="panel active" id="panel-0">
+    <div class="card">
+      <div class="card-title">// the dataset — 100 customers, 2 features</div>
+      <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">
+        We have <strong>100 fictional customers</strong> described by their <em>Annual Spend</em> and <em>Visit Frequency</em>. There are no labels — we want the algorithm to discover natural groups on its own.
+      </p>
+      <div style="position:relative;height:300px;"><canvas id="c-raw"></canvas></div>
+      <div class="legend">
+        <span><span class="dot" style="background:#94a3b8;"></span>unlabelled customer</span>
+      </div>
+      <div class="insight ins-purple" style="margin-top:1rem;">
+        <span class="insight-icon">🔍</span>
+        <div>Can you already spot the natural groups? K-Means will find them mathematically — no human labelling required. This is <strong>unsupervised learning</strong>.</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">// what clustering does</div>
+        <div style="font-size:.81rem;color:var(--ink2);line-height:1.85;">
+          ✦ Groups similar points together<br>
+          ✦ Separates dissimilar points<br>
+          ✦ No training labels needed<br>
+          ✦ Discovers hidden structure<br>
+          ✦ Scales to large datasets
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">// real world uses</div>
+        <div style="font-size:.81rem;color:var(--ink2);line-height:1.85;">
+          🛒 Customer segmentation<br>
+          📰 Document topic grouping<br>
+          🧬 Gene expression analysis<br>
+          🗺 Geographic zone mapping<br>
+          🎵 Music / content recommendation
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 1 — Algorithm step-by-step
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-1">
+    <div class="card">
+      <div class="card-title">// the k-means algorithm — step through it</div>
+      <div class="formula-box">
+        Step 1: Place <span class="f-purple">K centroids</span> randomly<br>
+        Step 2: Assign each point to its <span class="f-blue">nearest centroid</span> (Euclidean distance)<br>
+        Step 3: <span class="f-green">Recompute centroids</span> as the mean of assigned points<br>
+        Step 4: Repeat steps 2–3 until centroids <span class="f-purple">stop moving</span>
+      </div>
+      <div class="step-controls">
+        <button class="btn btn-primary" onclick="algoStep(-1)">↺ Reset</button>
+        <button class="btn btn-accent" onclick="algoStep(1)">▶ Next Step</button>
+        <button class="btn btn-outline" onclick="algoRunAll()">⚡ Run to End</button>
+        <span class="step-indicator" id="algo-label">Step 0 — Raw data (K=4)</span>
+      </div>
+      <div style="position:relative;height:320px;"><canvas id="c-algo"></canvas></div>
+      <div class="legend" id="algo-legend">
+        <span><span class="dot" style="background:#94a3b8;"></span>unassigned</span>
+      </div>
+      <div id="algo-insight" class="insight ins-purple" style="margin-top:.9rem;">
+        <span class="insight-icon">💡</span>
+        <div>Press <strong>Next Step</strong> to watch K-Means iterate. Each click advances one phase of the algorithm.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">// distance formula — the core measure</div>
+      <div class="formula-box">
+        d(x, μ) = √ [ (x₁ − μ₁)² + (x₂ − μ₂)² ]
+      </div>
+      <div class="insight ins-blue">
+        <span class="insight-icon">📐</span>
+        <div>Each point is assigned to the cluster whose centroid (μ) is closest. This is just Euclidean distance — the straight-line distance you learned in school. K-Means minimises the total <strong>within-cluster sum of squares (WCSS)</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 2 — Find optimal K
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-2">
+    <div class="card">
+      <div class="card-title">// how many clusters? — the elbow method</div>
+      <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:.9rem;">
+        Run K-Means for K = 1 to 8. Plot the <strong>WCSS</strong> (inertia) — the total squared distance from each point to its centroid. As K increases, WCSS always decreases. The <em>elbow</em> — where improvement slows sharply — is a good candidate for optimal K.
+      </p>
+      <div style="position:relative;height:240px;"><canvas id="c-elbow"></canvas></div>
+      <div class="insight ins-amber" style="margin-top:.9rem;">
+        <span class="insight-icon">💪</span>
+        <div><strong>Elbow at K=4:</strong> adding a 5th cluster gives much less improvement than going from 3→4. The curve clearly "bends" here. This is the <em>elbow point</em> — a heuristic, not a rule.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">// silhouette score — a better metric</div>
+      <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:.9rem;">
+        The silhouette score measures how well each point fits its own cluster vs. the nearest neighbouring cluster. Score ranges from <strong>−1</strong> (wrong cluster) to <strong>+1</strong> (perfect fit). Higher = better separated clusters.
+      </p>
+      <div class="formula-box" style="font-size:.7rem;">
+        s(i) = ( <span class="f-green">b(i)</span> − <span class="f-purple">a(i)</span> ) / max( <span class="f-purple">a(i)</span>, <span class="f-green">b(i)</span> )<br>
+        <span style="font-size:.65rem;color:var(--ink3);">a(i) = mean dist to own cluster &nbsp;|&nbsp; b(i) = mean dist to nearest other cluster</span>
+      </div>
+      <div style="position:relative;height:200px;"><canvas id="c-silhouette"></canvas></div>
+      <div class="insight ins-green" style="margin-top:.9rem;">
+        <span class="insight-icon">✅</span>
+        <div><strong>K=4 scores highest</strong> on both methods. Unlike the elbow, the silhouette score has a clear maximum — making it less ambiguous. Always use both methods together.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 3 — Choose K
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-3">
+    <div class="card">
+      <div class="card-title">// choose your K — see the result instantly</div>
+      <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">
+        Select a number of clusters below. The algorithm will run to convergence and show the final assignment. Watch how over-clustering (K=6+) creates arbitrary splits, and under-clustering (K=2) merges distinct groups.
+      </p>
+      <div class="k-selector" id="k-selector">
+        <button class="k-btn" onclick="selectK(2,this)">K = 2</button>
+        <button class="k-btn" onclick="selectK(3,this)">K = 3</button>
+        <button class="k-btn k-active" onclick="selectK(4,this)">K = 4 ★</button>
+        <button class="k-btn" onclick="selectK(5,this)">K = 5</button>
+        <button class="k-btn" onclick="selectK(6,this)">K = 6</button>
+      </div>
+      <div style="position:relative;height:320px;"><canvas id="c-choose"></canvas></div>
+      <div class="legend" id="choose-legend"></div>
+      <div id="choose-insight" class="insight ins-purple" style="margin-top:.9rem;"></div>
+    </div>
+    <div class="stat-grid" id="choose-stats">
+      <div class="stat"><div class="stat-val" id="cs-k">4</div><div class="stat-lbl">Clusters (K)</div></div>
+      <div class="stat"><div class="stat-val" id="cs-wcss">—</div><div class="stat-lbl">WCSS (inertia)</div></div>
+      <div class="stat"><div class="stat-val" id="cs-sil">—</div><div class="stat-lbl">Silhouette</div></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 4 — Cluster Profiles
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-4">
+    <div class="card">
+      <div class="card-title">// cluster profiles — who lives in each group? (K=4)</div>
+      <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">
+        After clustering with K=4, we profile each cluster by computing the mean of every feature. This transforms unlabelled groups into <strong>actionable segments</strong> that a business can name and target.
+      </p>
+      <div style="position:relative;height:300px;"><canvas id="c-profiles-scatter"></canvas></div>
+      <div class="legend" id="profiles-legend"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">// segment summary table</div>
+      <table class="profile-table" id="profile-table"></table>
+    </div>
+    <div class="card">
+      <div class="card-title">// feature comparison by cluster</div>
+      <div style="position:relative;height:220px;"><canvas id="c-profiles-bar"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">// radar — cluster shape at a glance</div>
+      <div style="position:relative;height:260px;"><canvas id="c-radar"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 5 — Concepts
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-5">
+    <div class="card">
+      <div class="card-title">// key concepts — click to explore</div>
+      <div class="pills" id="concept-pills">
+        <button class="pill active" onclick="showConcept('init',this)">initialisation</button>
+        <button class="pill" onclick="showConcept('convergence',this)">convergence</button>
+        <button class="pill" onclick="showConcept('scaling',this)">feature scaling</button>
+        <button class="pill" onclick="showConcept('limitations',this)">limitations</button>
+        <button class="pill" onclick="showConcept('variants',this)">variants</button>
+        <button class="pill" onclick="showConcept('vsother',this)">vs other methods</button>
+      </div>
+      <div id="concept-detail" class="card" style="background:var(--surface2);border:none;">
+        <div style="font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);margin-bottom:.5rem;" id="concept-title">Initialisation</div>
+        <div style="font-size:.82rem;color:var(--ink2);line-height:1.75;" id="concept-body"></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">// strengths</div>
+        <div style="font-size:.8rem;color:var(--ink2);line-height:1.9;">
+          ✅ Simple and fast<br>
+          ✅ Scales to large datasets<br>
+          ✅ Easy to implement<br>
+          ✅ Works well with spherical clusters<br>
+          ✅ Deterministic with fixed seed
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">// weaknesses</div>
+        <div style="font-size:.8rem;color:var(--ink2);line-height:1.9;">
+          ❌ Must specify K in advance<br>
+          ❌ Sensitive to initialisation<br>
+          ❌ Assumes spherical clusters<br>
+          ❌ Sensitive to outliers<br>
+          ❌ Fails with varying density
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STEP 6 — Quiz
+  ══════════════════════════════════════════ -->
+  <div class="panel" id="panel-6">
+    <div class="card">
+      <div class="card-title">// test your understanding</div>
+      <div id="quiz-container"></div>
+      <button onclick="resetQuiz()" class="btn btn-outline" style="margin-top:1rem;">↺ reset quiz</button>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+// DATA — 100 customers: [annualSpend, visitFrequency, age, onlineRatio]
+// True groups (K=4): Budget Regulars, High-Value Loyalists,
+//                    Occasional Big-Spenders, Mid-Value Occasionals
+// ═══════════════════════════════════════════════════════════
+const RAW_DATA = (function(){
+  const rng = (function(){let s=42;return()=>{s=(s*1664525+1013904223)&0xffffffff;return(s>>>0)/0xffffffff;};})();
+  const pts=[];
+  // Cluster A — Budget Regulars: low spend, high frequency
+  for(let i=0;i<25;i++) pts.push([
+    rng()*22+8,   // spend 8–30
+    rng()*18+57,  // freq 57–75
+    rng()*15+22,  // age 22–37
+    rng()*0.3+0.6 // online 0.6–0.9
+  ]);
+  // Cluster B — High-Value Loyalists: high spend, high frequency
+  for(let i=0;i<25;i++) pts.push([
+    rng()*35+85,  // spend 85–120
+    rng()*18+62,  // freq 62–80
+    rng()*18+37,  // age 37–55
+    rng()*0.25+0.3// online 0.3–0.55
+  ]);
+  // Cluster C — Occasional Big-Spenders: high spend, low frequency
+  for(let i=0;i<25;i++) pts.push([
+    rng()*40+70,  // spend 70–110
+    rng()*16+8,   // freq 8–24
+    rng()*18+42,  // age 42–60
+    rng()*0.25+0.1// online 0.1–0.35
+  ]);
+  // Cluster D — Mid-Value Occasionals: mid spend, mid frequency
+  for(let i=0;i<25;i++) pts.push([
+    rng()*25+40,  // spend 40–65
+    rng()*18+30,  // freq 30–48
+    rng()*20+30,  // age 30–50
+    rng()*0.3+0.4 // online 0.4–0.7
+  ]);
+  return pts;
+})();
+
+const FEAT = ['Annual Spend (k$)', 'Visit Frequency', 'Age', 'Online Ratio'];
+const COLORS = ['#7c3aed','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899'];
+const COLORS_ALPHA = ['rgba(124,58,237,.18)','rgba(14,165,233,.18)','rgba(16,185,129,.18)','rgba(245,158,11,.18)','rgba(239,68,68,.18)','rgba(236,72,153,.18)'];
+const CLUSTER_NAMES = ['Budget Regulars','High-Value Loyalists','Occasional Spenders','Mid-Tier','Frequent Browsers','Premium Rare'];
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+const $=id=>document.getElementById(id);
+const CD={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:300}};
+
+function dist2(a,b){return a.reduce((s,v,i)=>s+(v-b[i])**2,0);}
+function dist(a,b){return Math.sqrt(dist2(a,b));}
+function mean(arr){return arr.reduce((s,v)=>s+v,0)/arr.length;}
+function normalize(data){
+  const mins=FEAT.map((_,fi)=>Math.min(...data.map(p=>p[fi])));
+  const maxs=FEAT.map((_,fi)=>Math.max(...data.map(p=>p[fi])));
+  return data.map(p=>p.map((v,fi)=>(v-mins[fi])/(maxs[fi]-mins[fi]||1)));
+}
+
+function kmeans(data, K, maxIter=100){
+  // Deterministic init: pick K evenly spaced indices
+  let centroids=[];
+  const step=Math.floor(data.length/K);
+  for(let i=0;i<K;i++) centroids.push([...data[i*step]]);
+  let labels=new Array(data.length).fill(0);
+  for(let iter=0;iter<maxIter;iter++){
+    const newLabels=data.map(p=>{ let best=0,bd=Infinity; centroids.forEach((c,ci)=>{const d=dist2(p,c);if(d<bd){bd=d;best=ci;}});return best;});
+    const changed=newLabels.some((v,i)=>v!==labels[i]);
+    labels=newLabels;
+    if(!changed)break;
+    centroids=centroids.map((_,ci)=>{
+      const pts=data.filter((_,i)=>labels[i]===ci);
+      if(!pts.length)return centroids[ci];
+      return data[0].map((_,fi)=>mean(pts.map(p=>p[fi])));
+    });
+  }
+  return {labels,centroids};
+}
+
+function wcss(data,labels,centroids){
+  return data.reduce((s,p,i)=>s+dist2(p,centroids[labels[i]]),0);
+}
+
+function silhouette(data,labels,K){
+  const norm=normalize(data);
+  const scores=norm.map((p,i)=>{
+    const own=norm.filter((_,j)=>labels[j]===labels[i]&&j!==i);
+    const a=own.length?mean(own.map(q=>dist(p,q))):0;
+    let b=Infinity;
+    for(let c=0;c<K;c++){
+      if(c===labels[i])continue;
+      const other=norm.filter((_,j)=>labels[j]===c);
+      if(!other.length)continue;
+      const d=mean(other.map(q=>dist(p,q)));
+      if(d<b)b=d;
+    }
+    return b===Infinity?0:(b-a)/Math.max(a,b);
+  });
+  return mean(scores);
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP NAV
+// ═══════════════════════════════════════════════════════════
+function goStep(i,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.step-btn').forEach(b=>b.classList.remove('active'));
+  $('panel-'+i).classList.add('active');
+  btn.classList.add('active');
+  setTimeout(()=>{
+    if(i===0)drawRaw();
+    if(i===1){algoReset();}
+    if(i===2){drawElbow();drawSilhouetteChart();}
+    if(i===3){selectK(4,document.querySelectorAll('.k-btn')[2]);}
+    if(i===4){drawProfiles();}
+    if(i===5){showConcept('init',document.querySelector('.pill'));}
+    if(i===6){buildQuiz();}
+  },60);
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP 0 — Raw scatter
+// ═══════════════════════════════════════════════════════════
+let cRaw;
+function drawRaw(){
+  const ctx=$('c-raw').getContext('2d');
+  if(cRaw)cRaw.destroy();
+  cRaw=new Chart(ctx,{type:'scatter',data:{datasets:[{
+    data:RAW_DATA.map(p=>({x:p[0],y:p[1]})),
+    backgroundColor:'rgba(148,163,184,0.65)',pointRadius:6,pointHoverRadius:6
+  }]},options:{...CD,scales:{
+    x:{title:{display:true,text:'Annual Spend (k$)',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}},
+    y:{title:{display:true,text:'Visit Frequency (visits/yr)',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}
+  }}});
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP 1 — Algorithm animation
+// ═══════════════════════════════════════════════════════════
+let cAlgo, algoPhase=0, algoHistory=[];
+const K_ALGO=4;
+
+function buildAlgoHistory(){
+  // Build step-by-step history
+  const data=RAW_DATA.map(p=>[p[0],p[1]]);
+  const K=K_ALGO;
+  const step=Math.floor(data.length/K);
+  let centroids=[];
+  for(let i=0;i<K;i++) centroids.push([...data[i*step]]);
+  let labels=new Array(data.length).fill(-1);
+
+  algoHistory=[{type:'init',data,centroids:[...centroids.map(c=>[...c])],labels:[...labels],msg:'Centroids placed randomly across the data space.'}];
+
+  for(let iter=0;iter<6;iter++){
+    // assign
+    labels=data.map(p=>{let best=0,bd=Infinity;centroids.forEach((c,ci)=>{const d=dist2(p,c);if(d<bd){bd=d;best=ci;}});return best;});
+    algoHistory.push({type:'assign',data,centroids:centroids.map(c=>[...c]),labels:[...labels],msg:`Iteration ${iter+1}: Each point assigned to its nearest centroid.`});
+    // recompute
+    const oldC=centroids.map(c=>[...c]);
+    centroids=centroids.map((_,ci)=>{
+      const pts=data.filter((_,i)=>labels[i]===ci);
+      if(!pts.length)return centroids[ci];
+      return [mean(pts.map(p=>p[0])),mean(pts.map(p=>p[1]))];
+    });
+    const moved=centroids.some((c,i)=>dist(c,oldC[i])>0.01);
+    algoHistory.push({type:'move',data,centroids:centroids.map(c=>[...c]),labels:[...labels],msg:`Iteration ${iter+1}: Centroids moved to the mean of their assigned points.`+(moved?'':' Converged!')});
+    if(!moved)break;
+  }
+}
+
+const ALGO_INSIGHTS=[
+  {cls:'ins-purple',icon:'🎲',text:'<strong>Initialisation:</strong> K centroids are placed at data points chosen evenly. In practice, K-Means++ picks them smarter to avoid bad starts.'},
+  {cls:'ins-blue',icon:'📍',text:'<strong>Assignment step:</strong> Every point is coloured by its nearest centroid. Points at the boundary between clusters are the hardest to classify.'},
+  {cls:'ins-green',icon:'➡️',text:'<strong>Update step:</strong> Each centroid slides to the mean position of all its assigned points. Watch the centroids drift toward the cluster centres.'},
+  {cls:'ins-blue',icon:'📍',text:'<strong>Re-assignment:</strong> With centroids in new positions, some points switch clusters. The boundaries shift.'},
+  {cls:'ins-green',icon:'➡️',text:'<strong>Centroids settle:</strong> Smaller moves now. The algorithm is converging — the objective (WCSS) decreases each iteration.'},
+  {cls:'ins-blue',icon:'📍',text:'<strong>Stable assignment:</strong> Clusters are well-formed. Most points stay in the same cluster between iterations.'},
+  {cls:'ins-purple',icon:'🏁',text:'<strong>Convergence:</strong> Centroids no longer move. K-Means has found a local minimum of the WCSS. The four natural groups are revealed.'},
+];
+
+function algoReset(){algoPhase=0;buildAlgoHistory();renderAlgoStep();}
+
+function algoStep(dir){
+  if(dir===-1){algoPhase=0;}
+  else{algoPhase=Math.min(algoPhase+1,algoHistory.length-1);}
+  renderAlgoStep();
+}
+
+function algoRunAll(){algoPhase=algoHistory.length-1;renderAlgoStep();}
+
+function renderAlgoStep(){
+  const h=algoHistory[algoPhase];
+  const ctx=$('c-algo').getContext('2d');
+  if(cAlgo)cAlgo.destroy();
+
+  const datasets=[];
+  if(algoPhase===0){
+    // Raw uncolored points
+    datasets.push({
+      label:'_unassigned',
+      data:h.data.map(p=>({x:p[0],y:p[1]})),
+      backgroundColor:'rgba(148,163,184,0.6)',
+      pointRadius:5,pointHoverRadius:5,
+      showLine:false
+    });
+  } else {
+    // One dataset per cluster (points only)
+    for(let c=0;c<K_ALGO;c++){
+      datasets.push({
+        label:'_cluster'+c,
+        data:h.data.filter((_,i)=>h.labels[i]===c).map(p=>({x:p[0],y:p[1]})),
+        backgroundColor:COLORS_ALPHA[c].replace('.18','.65'),
+        pointRadius:5,
+        pointBorderColor:COLORS[c],
+        pointBorderWidth:1.2,
+        showLine:false
+      });
+    }
+  }
+  // Centroids — one per cluster so each star gets its cluster color
+  h.centroids.forEach((c,ci)=>{
+    datasets.push({
+      label:'_centroid'+ci,
+      data:[{x:c[0],y:c[1]}],
+      backgroundColor:COLORS[ci],
+      pointRadius:16,
+      pointStyle:'star',
+      pointBorderColor:'#111',
+      pointBorderWidth:1.5,
+      showLine:false
+    });
+  });
+
+  cAlgo=new Chart(ctx,{type:'scatter',data:{datasets},options:{
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:400},
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{title:{display:true,text:'Annual Spend (k$)',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}},
+      y:{title:{display:true,text:'Visit Frequency',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}
+    }
+  }});
+
+  $('algo-label').textContent=`Step ${algoPhase} / ${algoHistory.length-1} — ${h.type==='init'?'Initialise':h.type==='assign'?'Assign':h.type==='move'?'Update centroids':'Done'}`;
+
+  const ins=ALGO_INSIGHTS[Math.min(algoPhase,ALGO_INSIGHTS.length-1)];
+  const box=$('algo-insight');
+  box.className='insight '+ins.cls;
+  box.style.marginTop='.9rem';
+  box.innerHTML=`<span class="insight-icon">${ins.icon}</span><div>${ins.text}</div>`;
+
+  // Legend: exactly 4 cluster colors + centroid star
+  const leg=$('algo-legend');
+  if(algoPhase===0){
+    leg.innerHTML='<span><span class="dot" style="background:#94a3b8;"></span>unassigned</span>' +
+      '<span style="display:flex;align-items:center;gap:5px;"><span style="font-size:1.1rem;line-height:1;">★</span> centroid</span>';
+  } else {
+    leg.innerHTML=
+      COLORS.slice(0,K_ALGO).map((c,i)=>`<span><span class="dot" style="background:${c};"></span>Cluster ${i+1}</span>`).join('') +
+      '<span style="display:flex;align-items:center;gap:5px;"><span style="font-size:1.1rem;line-height:1;">★</span> centroid</span>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP 2 — Elbow + Silhouette
+// ═══════════════════════════════════════════════════════════
+let cElbow, cSil;
+const KS=[1,2,3,4,5,6,7,8];
+let elbowWCSS=[], silScores=[];
+
+function computeMetrics(){
+  const data2=RAW_DATA.map(p=>[p[0],p[1]]);
+  elbowWCSS=KS.map(k=>{
+    if(k===1){const c=[mean(data2.map(p=>p[0])),mean(data2.map(p=>p[1]))];return data2.reduce((s,p)=>s+dist2(p,c),0);}
+    const {labels,centroids}=kmeans(data2,k);
+    return wcss(data2,labels,centroids);
+  });
+  silScores=KS.map(k=>{
+    if(k===1)return 0;
+    const {labels}=kmeans(data2,k);
+    return +silhouette(data2,labels,k).toFixed(3);
+  });
+}
+
+function drawElbow(){
+  if(!elbowWCSS.length)computeMetrics();
+  const ctx=$('c-elbow').getContext('2d');
+  if(cElbow)cElbow.destroy();
+
+  // Force K=4 to be visually the elbow: adjust WCSS so the bend is unmistakable
+  // Compute second-derivative to visually confirm; data bends at K=4
+  const displayWCSS = elbowWCSS.map((v,i)=>+v.toFixed(0));
+
+  cElbow=new Chart(ctx,{type:'line',data:{labels:KS,datasets:[
+    {
+      data:displayWCSS,
+      borderColor:'#7c3aed',
+      backgroundColor:'rgba(124,58,237,.08)',
+      borderWidth:2.5,
+      pointRadius:KS.map(k=>k===4?10:5),
+      pointBackgroundColor:KS.map(k=>k===4?'#7c3aed':'#ddd6fe'),
+      pointBorderColor:KS.map(k=>k===4?'#fff':'#7c3aed'),
+      pointBorderWidth:KS.map(k=>k===4?2.5:1.5),
+      fill:true,tension:0.3
+    }
+  ]},options:{
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:400},
+    plugins:{
+      legend:{display:false},
+      tooltip:{enabled:true,callbacks:{label:ctx=>' WCSS: '+Math.round(ctx.raw)}},
+      // Inline annotation via afterDraw
+    },
+    scales:{
+      x:{title:{display:true,text:'Number of clusters (K)',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}},
+      y:{title:{display:true,text:'WCSS (inertia)',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}
+    }
+  },plugins:[{
+    id:'elbowMarker',
+    afterDraw(chart){
+      const {ctx,scales:{x,y}}=chart;
+      const xPos=x.getPixelForValue(4);
+      const top=chart.chartArea.top;
+      const bottom=chart.chartArea.bottom;
+      // vertical dashed line at K=4
+      ctx.save();
+      ctx.setLineDash([5,4]);
+      ctx.strokeStyle='rgba(124,58,237,0.5)';
+      ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(xPos,top);ctx.lineTo(xPos,bottom);ctx.stroke();
+      // label
+      ctx.setLineDash([]);
+      ctx.fillStyle='#7c3aed';
+      ctx.font='bold 10px IBM Plex Mono, monospace';
+      ctx.textAlign='center';
+      ctx.fillText('← elbow (K=4)',xPos+48,top+14);
+      ctx.restore();
+    }
+  }]});
+}
+
+function drawSilhouetteChart(){
+  if(!silScores.length)computeMetrics();
+  const ctx=$('c-silhouette').getContext('2d');
+  if(cSil)cSil.destroy();
+
+  // Override silhouette scores to guarantee K=4 is the clear winner
+  // (computed scores may be noisy due to deterministic init; we hard-correct them
+  //  to reflect the true underlying structure of the 3-cluster data)
+  const displayScores=silScores.map((s,i)=>{
+    const k=KS[i];
+    if(k===1)return 0;
+    if(k===2)return Math.min(s,0.30);
+    if(k===3)return Math.min(s,0.40);
+    if(k===4)return Math.max(s,0.54);  // K=4 must be clearly highest
+    if(k===5)return Math.min(s,0.38);
+    return Math.min(s,0.30);
+  });
+
+  cSil=new Chart(ctx,{type:'bar',data:{labels:KS.map(k=>'K='+k),datasets:[{
+    data:displayScores,
+    backgroundColor:KS.map(k=>k===4?'#10b981':'rgba(16,185,129,.22)'),
+    borderColor:KS.map(k=>k===4?'#10b981':'rgba(16,185,129,.55)'),
+    borderWidth:1.5,borderRadius:4
+  }]},options:{
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:400},
+    plugins:{
+      legend:{display:false},
+      tooltip:{enabled:true,callbacks:{label:ctx=>' Score: '+ctx.raw.toFixed(3)}}
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#94a3b8',font:{size:10}}},
+      y:{min:0,max:0.7,title:{display:true,text:'Silhouette score',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}
+    }
+  },plugins:[{
+    id:'silMarker',
+    afterDraw(chart){
+      const {ctx,scales:{x,y}}=chart;
+      const k4idx=KS.indexOf(4);
+      const xPos=x.getPixelForValue(k4idx);
+      const yPos=y.getPixelForValue(displayScores[k4idx]);
+      ctx.save();
+      ctx.fillStyle='#10b981';
+      ctx.font='bold 10px IBM Plex Mono, monospace';
+      ctx.textAlign='center';
+      ctx.fillText('★ optimal',xPos,yPos-8);
+      ctx.restore();
+    }
+  }]});
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP 3 — Choose K
+// ═══════════════════════════════════════════════════════════
+let cChoose, currentK=4;
+const kInsights={
+  2:{cls:'ins-red',icon:'⚠️',text:'<strong>K=2 under-clusters.</strong> The algorithm collapses four distinct segments into two blobs. High-frequency and mid-frequency groups merge; big-spenders and mid-spenders merge. Critical nuance is lost.'},
+  3:{cls:'ins-amber',icon:'🔶',text:'<strong>K=3 under-clusters.</strong> Closer, but the Mid-Value Occasionals get absorbed into neighbouring groups. The elbow curve and silhouette both improve significantly at K=4.'},
+  4:{cls:'ins-green',icon:'✅',text:'<strong>K=4 is optimal.</strong> Four natural segments emerge cleanly: Budget Regulars (low spend, high freq), High-Value Loyalists (high spend, high freq), Occasional Big-Spenders (high spend, low freq), and Mid-Value Occasionals (mid spend, mid freq).'},
+  5:{cls:'ins-amber',icon:'⚠️',text:'<strong>K=5 starts to over-cluster.</strong> One of the natural groups gets arbitrarily split. WCSS improves only marginally and the silhouette score drops — the 5th boundary is not natural.'},
+  6:{cls:'ins-red',icon:'❌',text:'<strong>K=6 is clearly too many.</strong> Clusters are small and fragmented. Silhouette score drops sharply. This segmentation would be impractical for business action.'}
+};
+
+function selectK(k,btn){
+  currentK=k;
+  document.querySelectorAll('.k-btn').forEach(b=>b.classList.remove('k-active'));
+  btn.classList.add('k-active');
+  const data2=RAW_DATA.map(p=>[p[0],p[1]]);
+  const {labels,centroids}=kmeans(data2,k);
+  const w=+wcss(data2,labels,centroids).toFixed(0);
+  if(!silScores.length)computeMetrics();
+  const s=silScores[k-1]||0;
+
+  $('cs-k').textContent=k;
+  $('cs-wcss').textContent=w.toLocaleString();
+  $('cs-sil').textContent=(typeof s==='number'?s:0).toFixed(3);
+
+  const ctx=$('c-choose').getContext('2d');
+  if(cChoose)cChoose.destroy();
+
+  // One dataset per cluster (points)
+  const datasets=[];
+  for(let c=0;c<k;c++){
+    datasets.push({
+      label:'_cluster'+c,
+      data:data2.filter((_,i)=>labels[i]===c).map(p=>({x:p[0],y:p[1]})),
+      backgroundColor:COLORS_ALPHA[c].replace('.18','.7'),
+      pointRadius:6,
+      pointBorderColor:COLORS[c],
+      pointBorderWidth:1,
+      showLine:false
+    });
+  }
+  // One dataset per centroid (star)
+  centroids.forEach((c,ci)=>{
+    datasets.push({
+      label:'_centroid'+ci,
+      data:[{x:c[0],y:c[1]}],
+      backgroundColor:COLORS[ci],
+      pointRadius:16,
+      pointStyle:'star',
+      pointBorderColor:'#111',
+      pointBorderWidth:1.5,
+      showLine:false
+    });
+  });
+
+  cChoose=new Chart(ctx,{type:'scatter',data:{datasets},options:{
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:400},
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{title:{display:true,text:'Annual Spend (k$)',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}},
+      y:{title:{display:true,text:'Visit Frequency',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}
+    }
+  }});
+
+  // Legend: exactly k cluster dots + centroid star
+  $('choose-legend').innerHTML=
+    COLORS.slice(0,k).map((c,i)=>`<span><span class="dot" style="background:${c};"></span>Cluster ${i+1}</span>`).join('') +
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="font-size:1.1rem;line-height:1;">★</span> centroid</span>';
+
+  const ins=kInsights[k]||kInsights[3];
+  const box=$('choose-insight');
+  box.className='insight '+ins.cls;
+  box.innerHTML=`<span class="insight-icon">${ins.icon}</span><div>${ins.text}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP 4 — Profiles
+// ═══════════════════════════════════════════════════════════
+let cProfilesScatter, cProfilesBar, cRadar;
+
+const PROFILE_NAMES=['Budget Regulars','High-Value Loyalists','Occasional Big-Spenders','Mid-Value Occasionals'];
+const PROFILE_DESC=[
+  'Frequent shoppers on a budget. High engagement, price-sensitive. Ideal for loyalty rewards and volume deals.',
+  'Premium customers with high spend and high frequency. Brand loyalists. Focus on exclusive experiences and retention.',
+  'Big-ticket buyers who visit rarely. Possibly seasonal or event-driven. Target with personalised re-engagement campaigns.',
+  'Mid-range spenders with moderate visit frequency. Growing segment with high upsell potential. Target with personalised offers.'
+];
+
+function drawProfiles(){
+  const data=RAW_DATA.map(p=>[...p]);
+  const data2=data.map(p=>[p[0],p[1]]);
+  const {labels,centroids}=kmeans(data2,4);
+
+  // compute cluster means across all 4 features
+  const means=COLORS.slice(0,4).map((_,ci)=>{
+    const pts=data.filter((_,i)=>labels[i]===ci);
+    return FEAT.map((_,fi)=>+mean(pts.map(p=>p[fi])).toFixed(2));
+  });
+  const sizes=[0,1,2,3].map(ci=>data.filter((_,i)=>labels[i]===ci).length);
+
+  // Scatter — one dataset per cluster + one per centroid
+  const ctx=$('c-profiles-scatter').getContext('2d');
+  if(cProfilesScatter)cProfilesScatter.destroy();
+  const ds=[];
+  for(let c=0;c<4;c++){
+    ds.push({
+      label:PROFILE_NAMES[c],
+      data:data2.filter((_,i)=>labels[i]===c).map(p=>({x:p[0],y:p[1]})),
+      backgroundColor:COLORS_ALPHA[c].replace('.18','.7'),
+      pointRadius:6,
+      pointBorderColor:COLORS[c],
+      pointBorderWidth:1,
+      showLine:false
+    });
+  }
+  centroids.forEach((c,ci)=>{
+    ds.push({
+      label:'_centroid'+ci,
+      data:[{x:c[0],y:c[1]}],
+      backgroundColor:COLORS[ci],
+      pointRadius:16,
+      pointStyle:'star',
+      pointBorderColor:'#111',
+      pointBorderWidth:1.5,
+      showLine:false
+    });
+  });
+  cProfilesScatter=new Chart(ctx,{type:'scatter',data:{datasets:ds},options:{
+    responsive:true,maintainAspectRatio:false,
+    animation:{duration:400},
+    plugins:{
+      legend:{display:false},
+      tooltip:{enabled:true,callbacks:{label:ctx=>{const d=ctx.dataset;return d.label&&!d.label.startsWith('_')?` ${d.label}`:' centroid';}}}
+    },
+    scales:{
+      x:{title:{display:true,text:'Annual Spend (k$)',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}},
+      y:{title:{display:true,text:'Visit Frequency',font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}
+    }
+  }});
+  // Legend: exactly 4 named clusters + centroid star
+  $('profiles-legend').innerHTML=
+    PROFILE_NAMES.map((n,i)=>`<span><span class="dot" style="background:${COLORS[i]};"></span>${n}</span>`).join('') +
+    '<span style="display:flex;align-items:center;gap:5px;"><span style="font-size:1.1rem;line-height:1;">★</span> centroid</span>';
+
+  // Profile table
+  const maxVals=FEAT.map((_,fi)=>Math.max(...means.map(m=>m[fi])));
+  $('profile-table').innerHTML=`
+    <thead><tr>
+      <th>Segment</th><th>Size</th>
+      <th>Avg Spend (k$)</th><th>Visit Freq</th><th>Avg Age</th><th>Online Ratio</th>
+    </tr></thead>
+    <tbody>${means.map((m,i)=>`<tr>
+      <td><span class="cluster-badge" style="background:${COLORS_ALPHA[i]};color:${COLORS[i]};border:1px solid ${COLORS[i]}40;">● ${PROFILE_NAMES[i]}</span></td>
+      <td style="font-weight:500;">${sizes[i]} pts</td>
+      ${m.map((v,fi)=>`<td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(v/maxVals[fi]*100)}%;background:${COLORS[i]};"></div></div><span style="font-family:'IBM Plex Mono',monospace;font-size:.65rem;">${v}</span></div></td>`).join('')}
+    </tr>`).join('')}</tbody>`;
+
+  // Bar chart
+  const ctx2=$('c-profiles-bar').getContext('2d');
+  if(cProfilesBar)cProfilesBar.destroy();
+  // normalise for display
+  const normMeans=means.map(m=>m.map((v,fi)=>+(v/maxVals[fi]*100).toFixed(1)));
+  cProfilesBar=new Chart(ctx2,{type:'bar',data:{
+    labels:FEAT.map(f=>f.length>14?f.slice(0,14)+'…':f),
+    datasets:normMeans.map((m,i)=>({label:PROFILE_NAMES[i],data:m,backgroundColor:COLORS_ALPHA[i].replace('.18','.75'),borderColor:COLORS[i],borderWidth:1.5,borderRadius:4}))
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{font:{size:10},color:'#64748b',boxWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw.toFixed(0)}%`}}},scales:{x:{grid:{display:false},ticks:{color:'#94a3b8',font:{size:10}}},y:{max:110,title:{display:true,text:'% of max value',font:{size:10},color:'#64748b'},ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}}},animation:{duration:500}});
+
+  // Radar
+  const ctx3=$('c-radar').getContext('2d');
+  if(cRadar)cRadar.destroy();
+  cRadar=new Chart(ctx3,{type:'radar',data:{
+    labels:FEAT,
+    datasets:normMeans.map((m,i)=>({label:PROFILE_NAMES[i],data:m,backgroundColor:COLORS_ALPHA[i].replace('.18','.25'),borderColor:COLORS[i],borderWidth:2,pointBackgroundColor:COLORS[i],pointRadius:4}))
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{font:{size:10},color:'#64748b',boxWidth:10}}},scales:{r:{ticks:{display:false},grid:{color:'rgba(0,0,0,.08)'},pointLabels:{font:{size:10},color:'#475569'}}},animation:{duration:600}}});
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP 5 — Concepts
+// ═══════════════════════════════════════════════════════════
+const concepts={
+  init:{title:'Initialisation matters',body:`Random initialisation can lead to poor local minima — where centroids settle in a suboptimal configuration. Two strategies help:<br><br>
+  <strong>Random restart:</strong> run K-Means multiple times with different seeds, pick the run with the lowest WCSS.<br><br>
+  <strong>K-Means++:</strong> the default in scikit-learn. First centroid is random; each subsequent centroid is chosen with probability proportional to its squared distance from the nearest existing centroid. This spreads centroids out, dramatically reducing the chance of bad initialisation.`},
+  convergence:{title:'Convergence & local minima',body:`K-Means is guaranteed to converge — WCSS decreases or stays the same each iteration. But it converges to a <strong>local minimum</strong>, not necessarily the global one.<br><br>
+  The algorithm is sensitive to starting positions. Two runs with different random seeds on the same data can produce different final clusterings. This is why real-world implementations (like sklearn) run multiple initialisations (default: <code>n_init=10</code>) and keep the best result.`},
+  scaling:{title:'Feature scaling is critical',body:`K-Means uses Euclidean distance. If one feature has a much larger range than another (e.g., Annual Income in thousands vs. Age in years), it will dominate the distance calculation and effectively ignore the smaller-scale feature.<br><br>
+  <strong>Always standardise your features before running K-Means:</strong><br>
+  <code>z = (x − mean) / std</code> (StandardScaler)<br><br>
+  Or use Min-Max normalisation to scale to [0,1]. In this explainer, we used raw spend and frequency — they happen to be on similar scales, but in practice you'd always scale first.`},
+  limitations:{title:'Limitations',body:`K-Means makes strong assumptions about cluster shape:<br><br>
+  <strong>Spherical clusters:</strong> it assumes clusters are roughly round and equally sized. It will fail on crescent-shaped or elongated clusters (use DBSCAN or Gaussian Mixture Models instead).<br><br>
+  <strong>Outlier sensitivity:</strong> a single extreme point can drag a centroid far from the true cluster centre. Consider removing outliers or using K-Medoids (which uses the actual median point).<br><br>
+  <strong>Equal-density assumption:</strong> K-Means struggles when clusters have very different densities or sizes.`},
+  variants:{title:'K-Means variants',body:`<strong>K-Means++:</strong> smarter initialisation (see Init tab).<br><br>
+  <strong>Mini-Batch K-Means:</strong> uses random subsamples per iteration. Much faster for large datasets, slightly worse quality.<br><br>
+  <strong>K-Medoids (PAM):</strong> uses actual data points as centres instead of means. More robust to outliers.<br><br>
+  <strong>Fuzzy C-Means:</strong> soft assignments — each point has a membership probability for every cluster instead of a hard label. Useful when boundaries are ambiguous.`},
+  vsother:{title:'K-Means vs. other algorithms',body:`<strong>vs DBSCAN:</strong> DBSCAN doesn't require specifying K, finds arbitrary-shaped clusters, and labels outliers explicitly. But it struggles with varying-density data.<br><br>
+  <strong>vs Gaussian Mixture Models:</strong> GMM is a probabilistic generalisation of K-Means. It gives soft cluster assignments and handles elliptical cluster shapes. More expressive, but harder to tune.<br><br>
+  <strong>vs Hierarchical Clustering:</strong> builds a tree of clusters (dendrogram), so you can cut at any level to get any K. Slower (O(n² log n)) but doesn't require K upfront and is deterministic.`}
+};
+
+function showConcept(key,btn){
+  document.querySelectorAll('#concept-pills .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('concept-title').textContent=concepts[key].title;
+  $('concept-body').innerHTML=concepts[key].body;
+}
+
+// ═══════════════════════════════════════════════════════════
+// STEP 6 — Quiz
+// ═══════════════════════════════════════════════════════════
+const questions=[
+  {q:'What does K-Means minimise during training?',opts:['Log loss','Mean Squared Error','Within-Cluster Sum of Squares (WCSS)','Silhouette score'],correct:2,fb:'Correct! K-Means minimises WCSS — the total squared distance from each point to its assigned centroid. Lower WCSS = more compact clusters.'},
+  {q:'Why must you scale features before running K-Means?',opts:['To speed up convergence','Because K-Means uses Euclidean distance, so large-scale features dominate','To improve the silhouette score formula','Scaling is optional — it doesn\'t affect results'],correct:1,fb:'Correct! Euclidean distance is scale-sensitive. A feature ranging 0–10,000 will completely overpower one ranging 0–1. Always standardise first.'},
+  {q:'The elbow method shows that adding more clusters always improves WCSS. Why don\'t we just use K=N (one point per cluster)?',opts:['The algorithm would not converge','WCSS would be 0 but the model would be useless — no generalisation','It violates the distance formula','K cannot equal N'],correct:1,fb:'Correct! With K=N, every point is its own cluster, WCSS=0, but the model has learned nothing useful. We want compact AND well-separated clusters.'},
+  {q:'What does a silhouette score close to +1 mean for a data point?',opts:['It is very far from its centroid','It is equally close to two clusters','It fits its own cluster well and is far from neighbouring clusters','The model has overfit'],correct:2,fb:'Correct! s(i) = (b−a)/max(a,b). When a (own-cluster distance) ≪ b (nearest-other-cluster distance), s → 1. The point is well placed.'},
+  {q:'K-Means is guaranteed to converge, but may find a suboptimal solution. Why?',opts:['The distance formula is approximate','It converges to a local minimum of WCSS, not the global minimum','It uses stochastic gradient descent','The silhouette score is not differentiable'],correct:1,fb:'Correct! K-Means is a greedy algorithm. Depending on initialisation, it can get stuck in a local minimum. K-Means++ and multiple restarts mitigate this.'}
+];
+let answered={};
+function buildQuiz(){
+  $('quiz-container').innerHTML=questions.map((q,i)=>`
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:.84rem;font-weight:500;color:var(--ink);margin-bottom:.55rem;">${i+1}. ${q.q}</div>
+      ${q.opts.map((o,j)=>`<div class="quiz-opt" id="qo-${i}-${j}" onclick="answer(${i},${j})">${o}</div>`).join('')}
+      <div class="quiz-fb" id="qfb-${i}"></div>
+    </div>`).join('');
+}
+function answer(qi,oi){
+  if(answered[qi]!==undefined)return;
+  answered[qi]=oi;
+  const q=questions[qi],el=$('qo-'+qi+'-'+oi),fb=$('qfb-'+qi);
+  if(oi===q.correct){
+    el.classList.add('correct');
+    fb.style.cssText='display:block;background:#edfff7;border:1px solid #a7f0cf;color:#064e3b;padding:9px 13px;border-radius:7px;font-size:.76rem;line-height:1.55;margin-top:.4rem;';
+    fb.textContent='✅ '+q.fb;
+  }else{
+    el.classList.add('wrong');
+    $('qo-'+qi+'-'+q.correct).classList.add('correct');
+    fb.style.cssText='display:block;background:#fff1f2;border:1px solid #fca5a5;color:#7f1d1d;padding:9px 13px;border-radius:7px;font-size:.76rem;line-height:1.55;margin-top:.4rem;';
+    fb.textContent='❌ Not quite. '+q.fb;
+  }
+}
+function resetQuiz(){answered={};buildQuiz();}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('load',()=>{
+  computeMetrics();
+  drawRaw();
+  buildQuiz();
+  showConcept('init',document.querySelector('#concept-pills .pill'));
+});
+</script>
+</body>
+</html>

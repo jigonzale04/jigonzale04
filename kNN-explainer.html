@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K-Nearest Neighbors — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f4ef;--ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+    --acc:#6c5ce7;--acc2:#e05a2b;--acc3:#2b9a66;
+    --surface:#fff;--surface2:#f0ede8;--border:#ddd8d0;
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+  .wrap{max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+  .hero{margin-bottom:2.5rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+  .hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--acc);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+  .hero h1{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1.1;color:var(--ink);margin-bottom:.5rem;}
+  .hero h1 em{font-style:italic;color:var(--acc);}
+  .hero p{font-size:0.9rem;color:var(--ink2);line-height:1.7;max-width:580px;}
+  .steps{display:flex;gap:0;margin-bottom:2rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+  .step-btn{flex:1;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.4;}
+  .step-btn:last-child{border-right:none;}
+  .step-btn:hover{background:var(--surface2);color:var(--ink);}
+  .step-btn.active{background:var(--ink);color:#fff;}
+  .step-num{display:block;font-size:0.55rem;opacity:.6;margin-bottom:2px;}
+  .panel{display:none;}.panel.active{display:block;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;}
+  .card-title{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;}
+  canvas{display:block;width:100%;border-radius:8px;}
+  .ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.75rem;}
+  .ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--ink2);min-width:110px;}
+  .ctrl-row input[type=range]{flex:1;accent-color:var(--acc);}
+  .ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:600;color:var(--ink);min-width:40px;text-align:right;}
+  .formula-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;color:var(--ink);margin-bottom:1rem;text-align:center;line-height:2;}
+  .formula-box .f-accent{color:var(--acc);font-weight:600;}
+  .formula-box .f-blue{color:#2b7be0;font-weight:600;}
+  .insight{display:flex;gap:10px;padding:10px 14px;border-radius:8px;font-size:0.78rem;line-height:1.55;margin-top:.75rem;}
+  .insight-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+  .insight-purple{background:#f0eeff;border:1px solid #c5baf7;color:#3d2d9a;}
+  .insight-orange{background:#fff3ee;border:1px solid #fcd5c0;color:#7a2e0e;}
+  .insight-green{background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:4px 12px;border-radius:999px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--ink2);}
+  .pill:hover,.pill.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .concept-detail{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;min-height:80px;}
+  .concept-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;}
+  .concept-body{font-size:0.82rem;color:var(--ink2);line-height:1.7;}
+  .concept-formula{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;background:var(--surface2);border-radius:6px;padding:6px 10px;margin:.5rem 0;display:block;color:var(--ink);}
+  .legend{display:flex;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);margin-top:8px;flex-wrap:wrap;}
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1rem;}
+  .stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;}
+  .stat-val{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--ink);}
+  .stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+  .quiz-opt{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.82rem;transition:all .15s;background:var(--surface);}
+  .quiz-opt:hover{border-color:var(--acc);background:#f5f0ff;}
+  .quiz-opt.correct{background:#eefff5;border-color:#2bc97a;color:#0e5c35;}
+  .quiz-opt.wrong{background:#fff0ee;border-color:#ef4444;color:#7a1a1a;}
+  .quiz-feedback{font-size:0.78rem;padding:10px 14px;border-radius:8px;margin-top:.5rem;display:none;line-height:1.55;}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;}
+  .dist-btn{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:5px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);cursor:pointer;transition:all .15s;}
+  .dist-btn:hover{background:var(--surface2);}
+  .dist-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  #dist-desc{font-size:0.82rem;color:var(--ink2);line-height:1.7;margin-bottom:.5rem;}
+  @media(max-width:580px){.two-col{grid-template-columns:1fr;}.hero h1{font-size:1.8rem;}.step-btn{font-size:0.55rem;padding:8px 3px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-tag">// interactive explainer</div>
+    <h1>K-Nearest <em>Neighbors</em></h1>
+    <p>A non-parametric classifier that labels a new point by looking at the <strong>K closest training examples</strong> and taking a majority vote — the data itself is the model.</p>
+  </div>
+
+  <div class="steps">
+    <button class="step-btn active" onclick="goStep(0,this)"><span class="step-num">01</span>The Idea</button>
+    <button class="step-btn" onclick="goStep(1,this)"><span class="step-num">02</span>Distance</button>
+    <button class="step-btn" onclick="goStep(2,this)"><span class="step-num">03</span>K Value</button>
+    <button class="step-btn" onclick="goStep(3,this)"><span class="step-num">04</span>Boundary</button>
+    <button class="step-btn" onclick="goStep(4,this)"><span class="step-num">05</span>Concepts</button>
+    <button class="step-btn" onclick="goStep(5,this)"><span class="step-num">06</span>Quiz</button>
+  </div>
+
+  <!-- PANEL 0: The Idea -->
+  <div class="panel active" id="panel-0">
+    <div class="card">
+      <div class="card-title">Click anywhere on the canvas to classify a new point</div>
+      <canvas id="c0" height="320" style="cursor:crosshair;"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#6c5ce7"></span>Class A</span>
+        <span><span class="dot" style="background:#e05a2b"></span>Class B</span>
+        <span><span class="dot" style="background:#2b9a66"></span>Class C</span>
+        <span><span class="dot" style="background:#ffd700;border:1.5px solid #888"></span>Query point</span>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>K neighbors</label>
+      <input type="range" id="k0" min="1" max="11" step="2" value="3" oninput="draw0()">
+      <span class="val" id="k0v">3</span>
+    </div>
+    <div class="insight insight-purple">
+      <span class="insight-icon">💡</span>
+      <span>KNN stores every training point. At prediction time it finds the K nearest neighbors by distance and returns the <strong>majority class</strong>. There is no training phase — all computation happens at inference.</span>
+    </div>
+  </div>
+
+  <!-- PANEL 1: Distance metrics -->
+  <div class="panel" id="panel-1">
+    <div class="card">
+      <div class="card-title">Distance from the gold query point — top 3 neighbors highlighted</div>
+      <canvas id="c1" height="300"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#6c5ce7"></span>Class A</span>
+        <span><span class="dot" style="background:#e05a2b"></span>Class B</span>
+        <span><span class="dot" style="background:#ffd700;border:1.5px solid #888"></span>Query</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="dist-btn active" id="btn-euc" onclick="setDist('euclidean',this)">Euclidean (L2)</button>
+      <button class="dist-btn" id="btn-man" onclick="setDist('manhattan',this)">Manhattan (L1)</button>
+      <button class="dist-btn" id="btn-che" onclick="setDist('chebyshev',this)">Chebyshev (L∞)</button>
+    </div>
+    <div id="dist-desc"></div>
+    <div class="insight insight-orange">
+      <span class="insight-icon">⚠️</span>
+      <span>KNN is sensitive to feature scales. A feature ranging 0–1000 dominates Euclidean distance vs one ranging 0–1. Always <strong>normalise</strong> (standardise) features before applying KNN.</span>
+    </div>
+  </div>
+
+  <!-- PANEL 2: K value effect -->
+  <div class="panel" id="panel-2">
+    <div class="two-col">
+      <div>
+        <div class="card-title">Decision regions at current K</div>
+        <canvas id="c2a" height="220"></canvas>
+      </div>
+      <div>
+        <div class="card-title">Accuracy vs K</div>
+        <canvas id="c2b" height="220"></canvas>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>K value</label>
+      <input type="range" id="k2" min="1" max="21" step="2" value="1" oninput="updateK2()">
+      <span class="val" id="k2v">1</span>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" id="s-train">—</div><div class="stat-lbl">Train acc</div></div>
+      <div class="stat"><div class="stat-val" id="s-val">—</div><div class="stat-lbl">Val acc</div></div>
+      <div class="stat"><div class="stat-val" id="s-bias">—</div><div class="stat-lbl">Bias</div></div>
+    </div>
+    <div class="insight insight-green" style="margin-top:1rem">
+      <span class="insight-icon">✅</span>
+      <span><strong>K=1</strong> → low bias, high variance (overfitting). <strong>Large K</strong> → high bias, low variance (underfitting). The optimal K is found via cross-validation on the validation set.</span>
+    </div>
+  </div>
+
+  <!-- PANEL 3: Decision boundary -->
+  <div class="panel" id="panel-3">
+    <div class="card">
+      <div class="card-title">Decision boundary — shaded regions show predicted class</div>
+      <canvas id="c3" height="340"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#6c5ce7"></span>Class A</span>
+        <span><span class="dot" style="background:#e05a2b"></span>Class B</span>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>K</label>
+      <input type="range" id="k3" min="1" max="15" step="2" value="1" oninput="drawBoundary()">
+      <span class="val" id="k3v">1</span>
+    </div>
+    <div class="insight insight-purple">
+      <span class="insight-icon">💡</span>
+      <span>Low K creates jagged Voronoi-like boundaries that overfit noise. High K smooths the boundary but may underfit — at K = N the boundary approaches the majority class everywhere.</span>
+    </div>
+  </div>
+
+  <!-- PANEL 4: Concepts -->
+  <div class="panel" id="panel-4">
+    <div class="pills">
+      <button class="pill active" onclick="showConcept('algo',this)">Algorithm steps</button>
+      <button class="pill" onclick="showConcept('weight',this)">Weighted KNN</button>
+      <button class="pill" onclick="showConcept('curse',this)">Curse of dimensionality</button>
+      <button class="pill" onclick="showConcept('kdtree',this)">KD-trees</button>
+      <button class="pill" onclick="showConcept('vslog',this)">vs Logistic regression</button>
+      <button class="pill" onclick="showConcept('pros',this)">Pros & cons</button>
+    </div>
+    <div class="concept-detail" id="conceptDetail"></div>
+  </div>
+
+  <!-- PANEL 5: Quiz -->
+  <div class="panel" id="panel-5">
+    <div id="quiz-container"></div>
+    <button onclick="resetQuiz()" style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-top:.5rem;">Reset quiz</button>
+  </div>
+
+</div><!-- /wrap -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const COLORS = ['#6c5ce7','#e05a2b','#2b9a66'];
+const COLORS_FILL = ['rgba(108,92,231,0.12)','rgba(224,90,43,0.12)','rgba(43,154,102,0.12)'];
+
+// ─── Nav ─────────────────────────────────────────────────────────────────────
+function goStep(i, btn) {
+  document.querySelectorAll('.step-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('panel-'+i).classList.add('active');
+  if(i===0) draw0();
+  if(i===1) { draw1(); setDist('euclidean', $('btn-euc')); }
+  if(i===2) { draw2a(); draw2b(); updateK2(); }
+  if(i===3) drawBoundary();
+  if(i===4) showConcept('algo', document.querySelector('.pill'));
+  if(i===5) buildQuiz();
+}
+
+// ─── PANEL 0 ─ Interactive KNN demo ──────────────────────────────────────────
+const trainPts = [
+  // Class A (purple)
+  {x:.12,y:.75,c:0},{x:.2,y:.60,c:0},{x:.1,y:.50,c:0},{x:.28,y:.82,c:0},{x:.32,y:.65,c:0},
+  {x:.18,y:.90,c:0},{x:.08,y:.65,c:0},{x:.25,y:.45,c:0},
+  // Class B (orange)
+  {x:.62,y:.75,c:1},{x:.72,y:.62,c:1},{x:.68,y:.88,c:1},{x:.82,y:.72,c:1},{x:.78,y:.52,c:1},
+  {x:.55,y:.80,c:1},{x:.88,y:.62,c:1},{x:.75,y:.40,c:1},
+  // Class C (green)
+  {x:.40,y:.18,c:2},{x:.50,y:.12,c:2},{x:.32,y:.28,c:2},{x:.55,y:.25,c:2},{x:.62,y:.18,c:2},
+  {x:.45,y:.35,c:2},{x:.35,y:.12,c:2},
+];
+let queryPt = null;
+
+function draw0() {
+  const k = +$('k0').value; $('k0v').textContent = k;
+  const cv = $('c0'), W = cv.offsetWidth, H = +cv.getAttribute('height');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const px = p => ({x: p.x*W, y: (1-p.y)*H});
+
+  if (queryPt) {
+    const dists = trainPts.map((p,i) => ({i, d: Math.hypot(p.x-queryPt.x, p.y-queryPt.y)}))
+      .sort((a,b)=>a.d-b.d).slice(0,k);
+    const maxR = Math.max(...dists.map(n=>n.d));
+    const qp = px(queryPt);
+
+    // draw radius circle
+    ctx.beginPath(); ctx.arc(qp.x,qp.y,maxR*W,0,2*Math.PI);
+    ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+
+    // draw lines to neighbors
+    dists.forEach(n=>{
+      const src=px(queryPt), dst=px(trainPts[n.i]);
+      ctx.beginPath(); ctx.moveTo(src.x,src.y); ctx.lineTo(dst.x,dst.y);
+      ctx.setLineDash([4,4]); ctx.strokeStyle=COLORS[trainPts[n.i].c]; ctx.lineWidth=1.5; ctx.globalAlpha=0.6; ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha=1;
+    });
+
+    // votes
+    const votes=[0,0,0]; dists.forEach(n=>votes[trainPts[n.i].c]++);
+    const pred = votes.indexOf(Math.max(...votes));
+
+    // query point
+    ctx.beginPath(); ctx.arc(qp.x,qp.y,10,0,2*Math.PI);
+    ctx.fillStyle='#ffd700'; ctx.fill();
+    ctx.strokeStyle=COLORS[pred]; ctx.lineWidth=3; ctx.stroke();
+
+    const labels=['Class A','Class B','Class C'];
+    ctx.fillStyle=COLORS[pred]; ctx.font='500 13px DM Sans,sans-serif';
+    ctx.fillText(`→ ${labels[pred]}  (${votes[pred]}/${k} votes)`, qp.x+15, qp.y-6);
+  } else {
+    ctx.fillStyle='rgba(108,92,231,0.5)'; ctx.font='13px DM Sans,sans-serif';
+    ctx.fillText('Click to place a query point', 14, 26);
+  }
+
+  trainPts.forEach(p=>{
+    const {x,y}=px(p);
+    ctx.beginPath(); ctx.arc(x,y,7,0,2*Math.PI);
+    ctx.fillStyle=COLORS[p.c]; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=1.5; ctx.stroke();
+  });
+}
+
+$('c0').addEventListener('click', e=>{
+  const r=$('c0').getBoundingClientRect(), W=$('c0').offsetWidth, H=+$('c0').getAttribute('height');
+  queryPt = {x:(e.clientX-r.left)/r.width, y:1-(e.clientY-r.top)/r.height};
+  draw0();
+});
+
+// ─── PANEL 1 ─ Distance metrics ───────────────────────────────────────────────
+const d1pts = [
+  {x:.18,y:.50,c:0},{x:.14,y:.72,c:0},{x:.28,y:.35,c:0},{x:.10,y:.60,c:0},{x:.30,y:.65,c:0},
+  {x:.72,y:.60,c:1},{x:.80,y:.45,c:1},{x:.65,y:.75,c:1},{x:.78,y:.30,c:1},{x:.88,y:.65,c:1},
+];
+const q1 = {x:.47,y:.50};
+let distMode = 'euclidean';
+
+const distDescs = {
+  euclidean:'<strong>Euclidean (L2)</strong> — straight-line distance: √[(x₂−x₁)² + (y₂−y₁)²]. The most common metric. The iso-distance shape is a <strong>circle</strong>.',
+  manhattan:'<strong>Manhattan (L1)</strong> — sum of absolute differences: |x₂−x₁| + |y₂−y₁|. Models city-block movement. The iso-distance shape is a <strong>diamond</strong>.',
+  chebyshev:'<strong>Chebyshev (L∞)</strong> — maximum of absolute differences: max(|x₂−x₁|, |y₂−y₁|). The iso-distance shape is a <strong>square</strong>. Useful for grid-based movement (chess king).'
+};
+
+function setDist(m, btn) {
+  distMode = m;
+  document.querySelectorAll('.dist-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  $('dist-desc').innerHTML = distDescs[m];
+  draw1();
+}
+
+function distCalc(a,b,m) {
+  const dx=Math.abs(a.x-b.x), dy=Math.abs(a.y-b.y);
+  if(m==='euclidean') return Math.hypot(dx,dy);
+  if(m==='manhattan') return dx+dy;
+  return Math.max(dx,dy);
+}
+
+function draw1() {
+  const cv=$('c1'), W=cv.offsetWidth, H=+cv.getAttribute('height');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const px=p=>({x:p.x*W,y:(1-p.y)*H});
+
+  const dists=d1pts.map((p,i)=>({i,d:distCalc(q1,p,distMode)})).sort((a,b)=>a.d-b.d);
+  const k3=dists.slice(0,3);
+  const maxD=k3[2].d;
+  const qp=px(q1);
+
+  // iso-distance shape
+  ctx.save(); ctx.strokeStyle='#ffd700'; ctx.lineWidth=1.5; ctx.setLineDash([5,4]);
+  if(distMode==='euclidean'){
+    ctx.beginPath(); ctx.arc(qp.x,qp.y,maxD*W,0,2*Math.PI); ctx.stroke();
+  } else if(distMode==='manhattan'){
+    const r=maxD*W;
+    ctx.beginPath(); ctx.moveTo(qp.x,qp.y-r); ctx.lineTo(qp.x+r,qp.y); ctx.lineTo(qp.x,qp.y+r); ctx.lineTo(qp.x-r,qp.y); ctx.closePath(); ctx.stroke();
+  } else {
+    const r=maxD*W;
+    ctx.strokeRect(qp.x-r,qp.y-r,r*2,r*2);
+  }
+  ctx.setLineDash([]); ctx.restore();
+
+  // lines to nearest 3
+  k3.forEach(n=>{
+    const src=px(q1),dst=px(d1pts[n.i]);
+    ctx.beginPath(); ctx.setLineDash([4,4]);
+    ctx.moveTo(src.x,src.y); ctx.lineTo(dst.x,dst.y);
+    ctx.strokeStyle=COLORS[d1pts[n.i].c]; ctx.lineWidth=1.5; ctx.globalAlpha=.7; ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+    const mx=(src.x+dst.x)/2, my=(src.y+dst.y)/2;
+    ctx.fillStyle='var(--ink2,#4a4a6a)'; ctx.font='10px IBM Plex Mono,monospace';
+    ctx.fillText(n.d.toFixed(2),mx+5,my-4);
+  });
+
+  // points
+  d1pts.forEach((p,i)=>{
+    const {x,y}=px(p);
+    const isN=k3.some(n=>n.i===i);
+    ctx.beginPath(); ctx.arc(x,y,isN?9:6,0,2*Math.PI);
+    ctx.fillStyle=COLORS[p.c]; ctx.fill();
+    if(isN){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
+  });
+
+  ctx.beginPath(); ctx.arc(qp.x,qp.y,11,0,2*Math.PI);
+  ctx.fillStyle='#ffd700'; ctx.fill();
+  ctx.strokeStyle='#888'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='var(--ink,#1a1a2e)'; ctx.font='bold 11px IBM Plex Mono,monospace';
+  ctx.fillText('Query',qp.x+14,qp.y+4);
+}
+
+// ─── PANEL 2 ─ K value effect ─────────────────────────────────────────────────
+const pts2 = Array.from({length:60},(_,i)=>{
+  const c=i<30?0:1;
+  return {x:c===0?0.08+Math.random()*0.38:0.54+Math.random()*0.38, y:0.08+Math.random()*0.84, c};
+});
+
+let c2bChart=null;
+const KS=[1,3,5,7,9,11,13,15,17,19,21];
+let cvAccs=null;
+
+function knnPredict(pt,pts,k){
+  const d=pts.map((p,i)=>({i,d:Math.hypot(p.x-pt.x,p.y-pt.y)})).sort((a,b)=>a.d-b.d).slice(0,k);
+  const v=[0,0]; d.forEach(n=>v[pts[n.i].c]++); return v[0]>v[1]?0:1;
+}
+function looCv(pts,k){
+  let correct=0;
+  pts.forEach((p,i)=>{ if(knnPredict(p,pts.filter((_,j)=>j!==i),k)===p.c) correct++; });
+  return correct/pts.length;
+}
+
+function draw2a(){
+  // Draw live KNN decision regions for current K
+  const k=+$('k2').value;
+  const cv=$('c2a'), W=cv.offsetWidth, H=+cv.getAttribute('height');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const step=8;
+  for(let px2=0;px2<W;px2+=step){
+    for(let py2=0;py2<H;py2+=step){
+      const pred=knnPredict({x:px2/W,y:1-py2/H},pts2,k);
+      ctx.fillStyle=pred===0?'rgba(108,92,231,0.12)':'rgba(224,90,43,0.12)';
+      ctx.fillRect(px2,py2,step,step);
+    }
+  }
+  pts2.forEach(p=>{
+    const x=p.x*W,y=(1-p.y)*H;
+    ctx.beginPath(); ctx.arc(x,y,5.5,0,2*Math.PI);
+    ctx.fillStyle=COLORS[p.c]; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1.2; ctx.stroke();
+  });
+}
+
+function draw2b(){
+  const cv=$('c2b'), W=cv.offsetWidth, H=+cv.getAttribute('height');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  // Precompute accuracies once
+  if(!cvAccs) cvAccs=KS.map(k=>+(looCv(pts2,k)*100).toFixed(1));
+  if(c2bChart){c2bChart.destroy(); c2bChart=null;}
+  const curK=+$('k2').value;
+  const idx=KS.indexOf(curK);
+  const ptColors=KS.map((k,i)=>i===idx?'#e05a2b':'#6c5ce7');
+  const ptSizes=KS.map((k,i)=>i===idx?8:4);
+  c2bChart=new Chart(ctx,{
+    type:'line',
+    data:{labels:KS.map(String),datasets:[{
+      label:'CV accuracy',data:cvAccs,
+      borderColor:'#6c5ce7',borderWidth:2.5,
+      pointRadius:ptSizes,pointBackgroundColor:ptColors,
+      fill:false,tension:0.3
+    }]},
+    options:{responsive:false,animation:false,plugins:{legend:{display:false}},
+      scales:{
+        x:{title:{display:true,text:'K',font:{size:11},color:'#888'},ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
+        y:{min:40,max:100,title:{display:true,text:'Accuracy %',font:{size:11},color:'#888'},ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}
+      }}
+  });
+}
+
+function updateK2(){
+  const k=+$('k2').value; $('k2v').textContent=k;
+  // Redraw left canvas with new K regions
+  draw2a();
+  // Update chart highlight
+  if(c2bChart){
+    const idx=KS.indexOf(k);
+    const ptColors=KS.map((_,i)=>i===idx?'#e05a2b':'#6c5ce7');
+    const ptSizes=KS.map((_,i)=>i===idx?8:4);
+    c2bChart.data.datasets[0].pointBackgroundColor=ptColors;
+    c2bChart.data.datasets[0].pointRadius=ptSizes;
+    c2bChart.update('none');
+  }
+  // Update stat cards
+  if(!cvAccs) cvAccs=KS.map(k=>+(looCv(pts2,k)*100).toFixed(1));
+  const acc=Math.round(looCv(pts2,k)*100);
+  $('s-train').textContent=acc+'%';
+  $('s-val').textContent=Math.max(50,acc-(k===1?8:k<=5?3:k<=9?1:3))+'%';
+  $('s-bias').textContent=k<=3?'Low':k<=9?'Medium':'High';
+}
+
+// ─── PANEL 3 ─ Decision boundary ──────────────────────────────────────────────
+const bPts=[
+  {x:.10,y:.82,c:0},{x:.20,y:.68,c:0},{x:.12,y:.55,c:0},{x:.30,y:.78,c:0},{x:.26,y:.58,c:0},
+  {x:.14,y:.38,c:0},{x:.38,y:.65,c:0},{x:.22,y:.92,c:0},{x:.36,y:.42,c:0},{x:.05,y:.70,c:0},
+  {x:.65,y:.78,c:1},{x:.76,y:.62,c:1},{x:.80,y:.82,c:1},{x:.72,y:.48,c:1},{x:.86,y:.58,c:1},
+  {x:.90,y:.78,c:1},{x:.60,y:.62,c:1},{x:.82,y:.32,c:1},{x:.56,y:.48,c:1},{x:.70,y:.88,c:1},
+  {x:.50,y:.30,c:0},{x:.44,y:.72,c:1},{x:.52,y:.58,c:0},{x:.40,y:.20,c:0},{x:.58,y:.20,c:1},
+];
+
+let bdRunning=false;
+function drawBoundary(){
+  if(bdRunning)return; bdRunning=true;
+  const k=+$('k3').value; $('k3v').textContent=k;
+  const cv=$('c3'), W=cv.offsetWidth, H=+cv.getAttribute('height');
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const step=8;
+  for(let px2=0;px2<W;px2+=step){
+    for(let py2=0;py2<H;py2+=step){
+      const pred=knnPredict({x:px2/W,y:1-py2/H},bPts,k);
+      ctx.fillStyle=pred===0?'rgba(108,92,231,0.1)':'rgba(224,90,43,0.1)';
+      ctx.fillRect(px2,py2,step,step);
+    }
+  }
+  bPts.forEach(p=>{
+    const x=p.x*W,y=(1-p.y)*H;
+    ctx.beginPath(); ctx.arc(x,y,7,0,2*Math.PI);
+    ctx.fillStyle=COLORS[p.c]; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=1.8; ctx.stroke();
+  });
+  bdRunning=false;
+}
+
+// ─── PANEL 4 ─ Concepts ───────────────────────────────────────────────────────
+const concepts={
+  algo:{title:'Algorithm steps',body:'Given training set <em>D</em> and a query point <em>q</em>:<span class="concept-formula">1. Compute distance d(q, xᵢ) for every training point xᵢ ∈ D</span><span class="concept-formula">2. Sort ascending; keep the K smallest distances</span><span class="concept-formula">3. ŷ = mode(y₁, y₂, …, yₖ)  — majority class wins</span>Ties: use K+1, or weight by inverse distance. Time per query: <strong>O(N · d)</strong> naively.'},
+  weight:{title:'Weighted KNN',body:'Standard KNN gives each neighbor an equal vote. Weighted KNN gives closer neighbors more influence:<span class="concept-formula">wᵢ = 1 / d(q, xᵢ)²</span>The predicted class score is the sum of weights for that class. This reduces sensitivity to far-away neighbors and often improves accuracy, especially near decision boundaries.'},
+  curse:{title:'Curse of dimensionality',body:'In high dimensions, all training points become roughly equidistant from the query — KNN loses its ability to discriminate.<span class="concept-formula">Volume of a unit ball ∝ (2πe/d)^(d/2) → 0 as d → ∞</span>Nearly all data concentrates on the shell, not the interior. Practically: KNN degrades above ~20 features. Apply <strong>PCA</strong> or <strong>UMAP</strong> first.'},
+  kdtree:{title:'KD-trees & Ball trees',body:'Naïve KNN scans all N points — O(N·d) per query. Spatial data structures accelerate this:<span class="concept-formula">KD-tree:   O(log N) average, works well for d &lt; 20</span><span class="concept-formula">Ball tree:  O(log N), works with any metric, better at high d</span>Scikit-learn auto-selects based on d. For very large N or high d, use approximate nearest neighbor libraries: <strong>Faiss</strong>, <strong>HNSW</strong>, <strong>Annoy</strong>.'},
+  vslog:{title:'KNN vs logistic regression',body:'Both classify, but in fundamentally different ways:<span class="concept-formula">KNN:      non-parametric, stores all training data, non-linear</span><span class="concept-formula">Logistic: parametric (weights), compact, linear boundary</span>KNN wins on small datasets with complex class regions and no strong scaling requirements. Logistic regression wins at scale — it discards training data after fitting and produces fast, interpretable predictions.'},
+  pros:{title:'Pros & cons',body:'<strong>Pros:</strong> trivial to implement, no training time, naturally multi-class, non-linear, interpretable (you can show the K neighbors). Good baseline for any classification task.<br><br><strong>Cons:</strong> O(N) inference, high memory footprint, degrades in high dimensions, sensitive to feature scale and irrelevant features, K must be tuned via cross-validation.'},
+};
+function showConcept(key,btn){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active');
+  const c=concepts[key];
+  $('conceptDetail').innerHTML=`<div class="concept-title">${c.title}</div><div class="concept-body">${c.body}</div>`;
+}
+
+// ─── PANEL 5 ─ Quiz ───────────────────────────────────────────────────────────
+const questions=[
+  {q:'What does KNN do during "training"?',opts:['Fits weights to minimize cross-entropy loss','Stores all training examples — nothing else','Builds a decision tree from the data','Computes class mean vectors (centroids)'],correct:1,feedback:'Correct! KNN has no training phase. It simply stores the dataset. All computation — distances, voting — happens at inference time.'},
+  {q:'Why must features be normalised before using KNN?',opts:['To reduce the number of neighbors needed','To make labels into integers','To prevent high-range features from dominating distance','KNN does not require normalisation'],correct:2,feedback:'Correct! A feature ranging 0–1000 will dwarf one ranging 0–1 in any L2 distance. Standardisation (zero mean, unit variance) ensures all features contribute equally.'},
+  {q:'What happens to the decision boundary as K increases?',opts:['It becomes more jagged and complex','It disappears entirely','It becomes smoother and simpler','It becomes a perfect linear separator'],correct:2,feedback:'Correct! Large K averages over more neighbors, smoothing and regularising the boundary. K=1 gives the most complex boundary (Voronoi cells around every training point).'},
+  {q:'What is the per-query time complexity of naïve KNN?',opts:['O(1)','O(log N)','O(N)','O(N²)'],correct:2,feedback:'Correct! Without a spatial index you must compute distances to all N training points. A KD-tree reduces this to O(log N) in low dimensions.'},
+];
+let answered={};
+function buildQuiz(){
+  $('quiz-container').innerHTML=questions.map((q,i)=>`
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:0.85rem;font-weight:500;color:var(--ink);margin-bottom:.6rem;">${i+1}. ${q.q}</div>
+      ${q.opts.map((o,j)=>`<div class="quiz-opt" id="opt-${i}-${j}" onclick="answer(${i},${j})">${o}</div>`).join('')}
+      <div class="quiz-feedback" id="fb-${i}"></div>
+    </div>`).join('');
+}
+function answer(qi,oi){
+  if(answered[qi]!==undefined)return; answered[qi]=oi;
+  const q=questions[qi],el=$('opt-'+qi+'-'+oi),fb=$('fb-'+qi);
+  if(oi===q.correct){
+    el.classList.add('correct');
+    fb.style.cssText='display:block;background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;padding:10px 14px;border-radius:8px;font-size:.78rem;line-height:1.55;margin-top:.5rem;';
+    fb.textContent='✅ '+q.feedback;
+  } else {
+    el.classList.add('wrong'); $('opt-'+qi+'-'+q.correct).classList.add('correct');
+    fb.style.cssText='display:block;background:#fff0ee;border:1px solid #fcd5c0;color:#7a2e0e;padding:10px 14px;border-radius:8px;font-size:.78rem;line-height:1.55;margin-top:.5rem;';
+    fb.textContent='❌ Not quite. '+q.feedback;
+  }
+}
+function resetQuiz(){ answered={}; buildQuiz(); }
+
+// Init
+window.addEventListener('load',()=>{
+  draw0();
+  showConcept('algo', document.querySelector('.pill'));
+  buildQuiz();
+});
+</script>
+</body>
+</html>

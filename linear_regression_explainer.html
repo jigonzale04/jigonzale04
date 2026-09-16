@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linear Regression — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f0f4f8;--ink:#0f172a;--ink2:#334155;--ink3:#94a3b8;
+  --accent:#0369a1;--accent2:#7c3aed;--accent3:#10b981;--accent4:#f59e0b;
+  --surface:#fff;--surface2:#e8edf5;--border:#cbd5e1;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+.hero{margin-bottom:2rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+.hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+.hero h1{font-family:'DM Serif Display',serif;font-size:2.3rem;line-height:1.1;color:var(--ink);margin-bottom:.5rem;}
+.hero h1 em{font-style:italic;color:var(--accent);}
+.hero p{font-size:0.88rem;color:var(--ink2);line-height:1.75;max-width:640px;}
+.steps{display:flex;gap:0;margin-bottom:2rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+.step-btn{flex:1;padding:10px 6px;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.4;}
+.step-btn:last-child{border-right:none;}
+.step-btn:hover{background:var(--surface2);color:var(--ink);}
+.step-btn.active{background:var(--ink);color:#fff;}
+.step-num{display:block;font-size:0.5rem;opacity:.55;margin-bottom:2px;}
+.panel{display:none;}.panel.active{display:block;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.2rem;}
+.card-title{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.9rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;}
+canvas{display:block;width:100%;}
+.formula-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.9rem 1.1rem;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--ink);margin-bottom:1rem;text-align:center;line-height:2.3;}
+.f-blue{color:var(--accent);font-weight:600;}
+.f-purple{color:var(--accent2);font-weight:600;}
+.f-green{color:var(--accent3);font-weight:600;}
+.f-amber{color:var(--accent4);font-weight:600;}
+.f-red{color:#ef4444;font-weight:600;}
+.insight{display:flex;gap:10px;padding:10px 13px;border-radius:8px;font-size:0.77rem;line-height:1.6;margin-top:.75rem;}
+.insight-icon{font-size:.95rem;flex-shrink:0;margin-top:1px;}
+.ins-blue{background:#eef8ff;border:1px solid #b3dcf7;color:#0c4a6e;}
+.ins-purple{background:#f5f0ff;border:1px solid #d4b8fb;color:#4a1d96;}
+.ins-green{background:#edfff7;border:1px solid #a7f0cf;color:#064e3b;}
+.ins-amber{background:#fffbeb;border:1px solid #fcd34d;color:#78350f;}
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.75rem;}
+.ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);min-width:150px;}
+.ctrl-row input[type=range]{flex:1;accent-color:var(--accent);}
+.ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:600;color:var(--ink);min-width:52px;text-align:right;}
+.btn{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:8px 16px;border-radius:6px;cursor:pointer;transition:all .15s;border:1px solid var(--border);}
+.btn-outline{background:var(--surface);color:var(--ink2);}
+.btn-outline:hover{background:var(--surface2);}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);}
+.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:1rem;}
+.stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;flex:1;min-width:90px;}
+.stat-val{font-family:'DM Serif Display',serif;font-size:1.35rem;color:var(--ink);}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.52rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink2);margin-top:8px;}
+.legend span{display:flex;align-items:center;gap:5px;}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.lline{width:22px;height:3px;display:inline-block;border-radius:2px;flex-shrink:0;}
+.pill-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1.2rem;}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;padding:6px 13px;border-radius:999px;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--ink2);transition:all .2s;}
+.pill:hover{border-color:var(--accent);color:var(--accent);}
+.pill.active{border-color:var(--accent);background:var(--accent);color:#fff;}
+
+/* Predict panel */
+.pred-form{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:1rem;}
+.pred-input-wrap label{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:5px;}
+.pred-input-wrap input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;color:var(--ink);background:var(--surface);outline:none;}
+.pred-input-wrap input[type=number]:focus{border-color:var(--accent);}
+.pred-result-box{background:var(--ink);color:#fff;border-radius:12px;padding:20px;margin-top:1.2rem;text-align:center;}
+.pred-result-box .prl{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;opacity:.55;letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;}
+.pred-result-box .prv{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1;}
+/* Coefficient waterfall */
+.waterfall{margin-top:1.2rem;}
+.wf-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.wf-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);min-width:110px;flex-shrink:0;}
+.wf-bar-wrap{flex:1;height:28px;background:var(--surface2);border-radius:6px;overflow:hidden;position:relative;}
+.wf-bar{height:100%;border-radius:6px;display:flex;align-items:center;padding:0 8px;font-family:'IBM Plex Mono',monospace;font-size:0.62rem;font-weight:600;color:#fff;transition:width .4s ease,background .4s ease;white-space:nowrap;position:relative;}
+.wf-val{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:600;min-width:64px;text-align:right;flex-shrink:0;}
+.wf-total{border-top:2px solid var(--border);padding-top:10px;margin-top:4px;}
+.wf-total .wf-label{color:var(--ink);font-weight:600;}
+.wf-total .wf-val{color:var(--ink);font-size:.78rem;}
+/* Comparison table */
+.cmp-table{width:100%;border-collapse:collapse;font-size:0.8rem;margin-top:.75rem;}
+.cmp-table th{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink3);border-bottom:1px solid var(--border);padding:8px 10px;text-align:left;}
+.cmp-table td{padding:10px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);}
+.cmp-table tr:last-child td{border-bottom:none;font-weight:600;color:var(--ink);}
+.cmp-table .pos{color:#10b981;font-weight:600;}
+.cmp-table .neg{color:#ef4444;font-weight:600;}
+
+/* Quiz */
+.quiz-opt{padding:10px 13px;border:1px solid var(--border);border-radius:8px;margin-bottom:7px;cursor:pointer;font-size:0.8rem;transition:all .15s;background:var(--surface);}
+.quiz-opt:hover{border-color:var(--accent);background:#eef8ff;}
+.quiz-opt.correct{background:#edfff7;border-color:#10b981;color:#064e3b;}
+.quiz-opt.wrong{background:#fff1f2;border-color:#ef4444;color:#7f1d1d;}
+.quiz-fb{font-size:0.75rem;padding:9px 13px;border-radius:7px;margin-top:.4rem;display:none;line-height:1.55;}
+
+@media(max-width:600px){
+  .two-col{grid-template-columns:1fr;}
+  .hero h1{font-size:1.75rem;}
+  .step-btn{font-size:0.52rem;padding:8px 3px;}
+  .pred-form{grid-template-columns:1fr;}
+  .wf-label{min-width:80px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="hero-tag">// interactive explainer</div>
+  <h1>Linear <em>Regression</em></h1>
+  <p>A supervised algorithm that models the relationship between a <strong>continuous target</strong> and one or more predictors — by fitting the line (or hyperplane) that minimises prediction error. Start simple, then go multiple.</p>
+</div>
+
+<div class="steps">
+  <button class="step-btn active" onclick="goStep(0,this)"><span class="step-num">01</span>The Idea</button>
+  <button class="step-btn" onclick="goStep(1,this)"><span class="step-num">02</span>Simple LR</button>
+  <button class="step-btn" onclick="goStep(2,this)"><span class="step-num">03</span>Fit the Line</button>
+  <button class="step-btn" onclick="goStep(3,this)"><span class="step-num">04</span>Multiple LR</button>
+  <button class="step-btn" onclick="goStep(4,this)"><span class="step-num">05</span>Predict</button>
+  <button class="step-btn" onclick="goStep(5,this)"><span class="step-num">06</span>Concepts</button>
+  <button class="step-btn" onclick="goStep(6,this)"><span class="step-num">07</span>Quiz</button>
+</div>
+
+<!-- ══ PANEL 0 — The Idea ══════════════════════════════ -->
+<div class="panel active" id="panel-0">
+  <div class="card">
+    <div class="card-title">// the dataset — 120 fictional houses, 4 features</div>
+    <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">
+      We have <strong>120 fictional houses</strong> described by <em>Size (m²)</em>, <em>Bedrooms</em>, <em>Distance to city (km)</em> and <em>Age (years)</em>. We want to predict the <strong>Sale Price (k€)</strong>. This is a <em>supervised regression</em> problem — we have labelled examples to learn from.
+    </p>
+    <div style="position:relative;height:300px;"><canvas id="c-raw"></canvas></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#0369a1;opacity:.7;"></span>house (size vs price)</span>
+    </div>
+    <div class="insight ins-blue" style="margin-top:1rem;">
+      <span class="insight-icon">📐</span>
+      <div>Larger houses clearly cost more — there's a linear trend. Regression will quantify this with a precise equation, then extend it to all four features simultaneously.</div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">// what regression does</div>
+      <div style="font-size:.81rem;color:var(--ink2);line-height:1.9;">
+        ✦ Predicts a <strong>continuous</strong> numeric output<br>
+        ✦ Fits a line (or hyperplane) to data<br>
+        ✦ Learns from labelled examples<br>
+        ✦ Quantifies each feature's impact<br>
+        ✦ Produces interpretable coefficients
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">// real world uses</div>
+      <div style="font-size:.81rem;color:var(--ink2);line-height:1.9;">
+        🏠 House price prediction<br>
+        📈 Sales / stock forecasting<br>
+        ⚕️ Patient outcome estimation<br>
+        🌡 Climate modelling<br>
+        💰 Salary &amp; demand prediction
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 1 — Simple LR ═══════════════════════════ -->
+<div class="panel" id="panel-1">
+  <div class="card">
+    <div class="card-title">// simple linear regression — one predictor (size → price)</div>
+    <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">
+      Start simple: predict <strong>Price</strong> from <strong>Size alone</strong>. We fit a straight line. Each dot is a house; the red line is the model's prediction. The grey segments are <em>residuals</em> — the errors.
+    </p>
+    <div class="formula-box">
+      <span class="f-blue">Price</span> = <span class="f-purple">β₀</span> + <span class="f-green">β₁</span> × <span class="f-amber">Size</span><br>
+      <span style="font-size:.63rem;color:var(--ink3);">β₀ = intercept &nbsp;|&nbsp; β₁ = slope (k€ per extra m²)</span>
+    </div>
+    <div style="position:relative;height:300px;"><canvas id="c-simple"></canvas></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#0369a1;opacity:.7;"></span>house</span>
+      <span><span class="lline" style="background:#ef4444;"></span>fitted line</span>
+      <span><span class="lline" style="background:#94a3b8;opacity:.5;"></span>residual</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="s-b0">—</div><div class="stat-lbl">β₀ intercept (k€)</div></div>
+      <div class="stat"><div class="stat-val" id="s-b1">—</div><div class="stat-lbl">β₁ per m² (k€)</div></div>
+      <div class="stat"><div class="stat-val" id="s-r2">—</div><div class="stat-lbl">R² score</div></div>
+    </div>
+    <div class="insight ins-purple" style="margin-top:1rem;">
+      <span class="insight-icon">💡</span>
+      <div>The <strong>slope β₁</strong> means: each extra m² adds that many k€ to the predicted price. The <strong>intercept β₀</strong> is the predicted price at 0 m² — mathematically required but not physically meaningful here.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">// residuals — what the model gets wrong</div>
+    <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:.8rem;">
+      A <strong>residual</strong> is the vertical gap between the actual price and the predicted price. OLS finds the β values that minimise the total squared residuals (SSR).
+    </p>
+    <div class="formula-box" style="font-size:.7rem;">
+      SSR = Σᵢ ( <span class="f-blue">yᵢ</span> − <span class="f-amber">ŷᵢ</span> )²&nbsp;&nbsp;→&nbsp;&nbsp;minimise over <span class="f-purple">β₀</span>, <span class="f-green">β₁</span>
+    </div>
+    <div style="position:relative;height:210px;"><canvas id="c-resid"></canvas></div>
+    <div class="insight ins-green">
+      <span class="insight-icon">✅</span>
+      <div>Residuals should scatter <strong>randomly around zero</strong> — no pattern. A funnel shape (heteroscedasticity) or a curve (non-linearity) would signal a problem with model assumptions.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 2 — Fit the Line ═════════════════════════ -->
+<div class="panel" id="panel-2">
+  <div class="card">
+    <div class="card-title">// drag the sliders — find the best fit yourself</div>
+    <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">
+      This is what OLS does automatically. Try moving <strong>intercept</strong> and <strong>slope</strong> to minimise SSR. The faint dashed red line shows the true OLS optimum.
+    </p>
+    <div class="ctrl-row">
+      <label>β₀ — intercept (k€)</label>
+      <input type="range" id="sl-b0" min="-60" max="160" value="50" step="1" oninput="updateManual()">
+      <span class="val" id="v-b0">50</span>
+    </div>
+    <div class="ctrl-row">
+      <label>β₁ — slope (k€ / m²)</label>
+      <input type="range" id="sl-b1" min="0" max="5" value="1.5" step="0.05" oninput="updateManual()">
+      <span class="val" id="v-b1">1.50</span>
+    </div>
+    <div style="position:relative;height:280px;margin-bottom:.9rem;"><canvas id="c-manual"></canvas></div>
+    <div class="stat-row" style="margin-bottom:.9rem;">
+      <div class="stat"><div class="stat-val" id="m-ssr">—</div><div class="stat-lbl">Your SSR</div></div>
+      <div class="stat"><div class="stat-val" id="m-opt">—</div><div class="stat-lbl">Optimal SSR</div></div>
+      <div class="stat"><div class="stat-val" id="m-r2">—</div><div class="stat-lbl">Your R²</div></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-accent" onclick="applyOLS()">⚡ Apply OLS (Best Fit)</button>
+      <button class="btn btn-outline" onclick="resetManual()">↺ Reset</button>
+    </div>
+    <div class="insight ins-amber" style="margin-top:.9rem;" id="manual-msg">
+      <span class="insight-icon">🎯</span>
+      <div>Adjust the sliders and watch SSR change. Hit <strong>Apply OLS</strong> to snap to the mathematically optimal solution.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 3 — Multiple LR ══════════════════════════ -->
+<div class="panel" id="panel-3">
+  <div class="card">
+    <div class="card-title">// multiple linear regression — four predictors</div>
+    <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">
+      Now use <strong>all four features at once</strong>. The model becomes a <em>hyperplane</em> in 5D space — impossible to draw, but the mathematics is identical to the simple case. Each feature gets its own coefficient.
+    </p>
+    <div class="formula-box" style="font-size:.68rem;line-height:2.6;">
+      <span class="f-blue">Price</span> = <span class="f-purple">β₀</span>
+      + <span class="f-green">β₁</span>×<span class="f-amber">Size</span>
+      + <span class="f-green">β₂</span>×<span class="f-amber">Bedrooms</span>
+      + <span class="f-red">β₃</span>×<span class="f-amber">Distance</span>
+      + <span class="f-red">β₄</span>×<span class="f-amber">Age</span><br>
+      <span style="font-size:.62rem;color:var(--ink3);">β₃ and β₄ expected negative — farther away and older = cheaper</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-val" id="m-b0">—</div><div class="stat-lbl">β₀ intercept</div></div>
+      <div class="stat"><div class="stat-val" id="m-b1">—</div><div class="stat-lbl">β₁ size</div></div>
+      <div class="stat"><div class="stat-val" id="m-b2">—</div><div class="stat-lbl">β₂ beds</div></div>
+      <div class="stat"><div class="stat-val" id="m-b3">—</div><div class="stat-lbl">β₃ dist</div></div>
+      <div class="stat"><div class="stat-val" id="m-b4">—</div><div class="stat-lbl">β₄ age</div></div>
+      <div class="stat"><div class="stat-val" id="m-r2m">—</div><div class="stat-lbl">R² multiple</div></div>
+    </div>
+    <div class="insight ins-blue" style="margin-top:1rem;">
+      <span class="insight-icon">📈</span>
+      <div>The multiple R² is <strong>higher</strong> than the simple model's — adding more features explains more variance. Distance and Age carry <em>negative</em> coefficients: farther or older means a lower predicted price.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">// standardised coefficients — which feature matters most?</div>
+    <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:.9rem;">
+      Raw coefficients use different units (m², km, years) and can't be directly compared. <strong>Standardised coefficients</strong> — fitted on z-scored features — reveal relative importance.
+    </p>
+    <div style="position:relative;height:220px;"><canvas id="c-coef"></canvas></div>
+    <div class="insight ins-purple" style="margin-top:.9rem;">
+      <span class="insight-icon">⚖️</span>
+      <div><strong>Size</strong> is the dominant positive driver. <strong>Distance</strong> has a strong negative effect. Age depreciates the property. Bedrooms contribute but less than raw size.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">// actual vs predicted — how well does the model fit?</div>
+    <div style="position:relative;height:260px;"><canvas id="c-avp"></canvas></div>
+    <div class="legend">
+      <span><span class="dot" style="background:#0369a1;opacity:.7;"></span>house (multiple model)</span>
+      <span><span class="lline" style="background:#ef4444;"></span>perfect fit (y = ŷ)</span>
+    </div>
+    <div class="insight ins-green" style="margin-top:.9rem;">
+      <span class="insight-icon">✅</span>
+      <div>Points clustering tightly around the diagonal = good fit. The multiple model hugs the line more closely than the simple model, confirming the higher R².</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 4 — Predict ══════════════════════════════ -->
+<div class="panel" id="panel-4">
+  <div class="card">
+    <div class="card-title">// enter house details — instant prediction</div>
+    <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:.5rem;">
+      Use the fitted <strong>multiple regression model</strong> to estimate a custom house price. Change any input — the full coefficient-by-coefficient breakdown updates instantly.
+    </p>
+    <div class="pred-form">
+      <div class="pred-input-wrap">
+        <label>Size (m²)</label>
+        <input type="number" id="p-size" value="80" min="20" max="200" oninput="predict()">
+      </div>
+      <div class="pred-input-wrap">
+        <label>Bedrooms</label>
+        <input type="number" id="p-beds" value="3" min="1" max="8" oninput="predict()">
+      </div>
+      <div class="pred-input-wrap">
+        <label>Distance to city (km)</label>
+        <input type="number" id="p-dist" value="8" min="1" max="30" step="0.5" oninput="predict()">
+      </div>
+      <div class="pred-input-wrap">
+        <label>Age of house (years)</label>
+        <input type="number" id="p-age" value="15" min="0" max="100" oninput="predict()">
+      </div>
+    </div>
+
+    <!-- Waterfall / breakdown -->
+    <div class="waterfall" id="waterfall"></div>
+
+    <div class="pred-result-box">
+      <div class="prl">Predicted Sale Price</div>
+      <div class="prv" id="pred-out">— k€</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">// simple vs multiple — same house, same size, two predictions</div>
+    <p style="font-size:.84rem;color:var(--ink2);line-height:1.7;margin-bottom:.75rem;">
+      The simple model uses <em>only size</em>. The multiple model accounts for all four features. See how the extra information shifts the estimate:
+    </p>
+    <table class="cmp-table" id="cmp-table">
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Simple model</th>
+          <th>Multiple model</th>
+          <th>Difference</th>
+        </tr>
+      </thead>
+      <tbody id="cmp-body"></tbody>
+    </table>
+    <div class="insight ins-amber" style="margin-top:1rem;">
+      <span class="insight-icon">⚡</span>
+      <div id="cmp-insight">When Distance or Age is extreme, the two models can diverge significantly — the simple model <em>cannot</em> account for location or property age.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 5 — Concepts ═════════════════════════════ -->
+<div class="panel" id="panel-5">
+  <div class="card">
+    <div class="card-title">// key concepts — click to explore</div>
+    <div class="pill-row" id="cpills">
+      <button class="pill active" onclick="showConcept('r2',this)">R² &amp; Adj. R²</button>
+      <button class="pill" onclick="showConcept('multi',this)">Multicollinearity</button>
+      <button class="pill" onclick="showConcept('assume',this)">OLS Assumptions</button>
+      <button class="pill" onclick="showConcept('overfit',this)">Overfitting</button>
+      <button class="pill" onclick="showConcept('reg',this)">Ridge &amp; Lasso</button>
+      <button class="pill" onclick="showConcept('vs',this)">vs. Other Models</button>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div style="font-family:'DM Serif Display',serif;font-size:1.25rem;margin-bottom:.75rem;" id="c-title">—</div>
+      <div style="font-size:.82rem;color:var(--ink2);line-height:1.85;" id="c-body"></div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">// strengths</div>
+      <div style="font-size:.8rem;color:var(--ink2);line-height:1.9;">
+        ✅ Highly interpretable coefficients<br>
+        ✅ Fast — closed-form solution exists<br>
+        ✅ Works well with limited data<br>
+        ✅ Confidence intervals on estimates<br>
+        ✅ Foundation for many other models
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">// weaknesses</div>
+      <div style="font-size:.8rem;color:var(--ink2);line-height:1.9;">
+        ❌ Assumes a linear relationship<br>
+        ❌ Sensitive to outliers<br>
+        ❌ Affected by multicollinearity<br>
+        ❌ Can't model interactions natively<br>
+        ❌ Needs scaling for coefficient comparison
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL 6 — Quiz ════════════════════════════════ -->
+<div class="panel" id="panel-6">
+  <div class="card">
+    <div class="card-title">// test your understanding</div>
+    <div id="quiz-box"></div>
+    <button onclick="resetQuiz()" class="btn btn-outline" style="margin-top:1rem;">↺ Reset Quiz</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ═══ DATA ════════════════════════════════════════════════
+// True model: price = 30 + 1.8*size + 8*beds - 3.5*dist - 0.4*age + noise
+var HOUSES = (function(){
+  var s = 77;
+  function rng(){ s = (s * 1664525 + 1013904223) | 0; return (s >>> 0) / 4294967295; }
+  function norm(){
+    var u, v;
+    do { u = rng(); } while (!u);
+    do { v = rng(); } while (!v);
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+  var pts = [];
+  for (var i = 0; i < 120; i++) {
+    var size  = Math.round(rng() * 140 + 30);
+    var beds  = Math.min(8, Math.max(1, Math.round(rng() * 4 + 1)));
+    var dist  = Math.round((rng() * 28 + 1) * 10) / 10;
+    var age   = Math.round(rng() * 60 + 1);
+    var noise = norm() * 15;
+    var price = Math.round((30 + 1.8*size + 8*beds - 3.5*dist - 0.4*age + noise) * 10) / 10;
+    pts.push({ size:size, beds:beds, dist:dist, age:age, price:price });
+  }
+  return pts;
+})();
+
+var XS = HOUSES.map(function(h){ return h.size; });
+var YS = HOUSES.map(function(h){ return h.price; });
+
+// ═══ MATH ════════════════════════════════════════════════
+function arrMean(arr){ return arr.reduce(function(a,b){return a+b;},0)/arr.length; }
+
+function olsSimple(xs, ys){
+  var n=xs.length, mx=arrMean(xs), my=arrMean(ys), sxy=0, sxx=0;
+  for(var i=0;i<n;i++){ sxy+=(xs[i]-mx)*(ys[i]-my); sxx+=(xs[i]-mx)*(xs[i]-mx); }
+  var b1=sxy/sxx, b0=my-b1*mx;
+  return {b0:b0, b1:b1};
+}
+
+function olsMultiple(data){
+  var n=data.length, p=5, i, j, k, r;
+  var X=data.map(function(h){return [1,h.size,h.beds,h.dist,h.age];});
+  var y=data.map(function(h){return h.price;});
+  var XtX=[],Xty=[];
+  for(j=0;j<p;j++){XtX.push([]);Xty.push(0);for(k=0;k<p;k++)XtX[j].push(0);}
+  for(i=0;i<n;i++){
+    for(j=0;j<p;j++){
+      Xty[j]+=X[i][j]*y[i];
+      for(k=0;k<p;k++) XtX[j][k]+=X[i][j]*X[i][k];
+    }
+  }
+  var A=XtX.map(function(row,idx){var rr=row.slice();rr.push(Xty[idx]);return rr;});
+  for(var col=0;col<p;col++){
+    var pivot=col;
+    for(r=col+1;r<p;r++) if(Math.abs(A[r][col])>Math.abs(A[pivot][col])) pivot=r;
+    var tmp=A[col];A[col]=A[pivot];A[pivot]=tmp;
+    var d=A[col][col];
+    for(k=col;k<=p;k++) A[col][k]/=d;
+    for(r=0;r<p;r++){
+      if(r===col) continue;
+      var f=A[r][col];
+      for(k=col;k<=p;k++) A[r][k]-=f*A[col][k];
+    }
+  }
+  return A.map(function(row){return row[p];});
+}
+
+function r2score(actual,pred){
+  var mn=arrMean(actual);
+  var tot=actual.reduce(function(s,v){return s+(v-mn)*(v-mn);},0);
+  var res=actual.reduce(function(s,v,i){return s+(v-pred[i])*(v-pred[i]);},0);
+  return 1-res/tot;
+}
+function calcSSR(actual,pred){
+  return actual.reduce(function(s,v,i){return s+(v-pred[i])*(v-pred[i]);},0);
+}
+
+// ═══ PRE-COMPUTE ═════════════════════════════════════════
+var simple = olsSimple(XS, YS);
+var SB0=simple.b0, SB1=simple.b1;
+var YPRED_S = XS.map(function(x){return SB0+SB1*x;});
+var R2_S = r2score(YS, YPRED_S);
+var SSR_OPT = calcSSR(YS, YPRED_S);
+
+var BETA = olsMultiple(HOUSES);
+var YPRED_M = HOUSES.map(function(h){return BETA[0]+BETA[1]*h.size+BETA[2]*h.beds+BETA[3]*h.dist+BETA[4]*h.age;});
+var R2_M = r2score(YS, YPRED_M);
+
+var STD_COEFS = (function(){
+  function sd(arr){var m=arrMean(arr);return Math.sqrt(arr.reduce(function(s,v){return s+(v-m)*(v-m);},0)/arr.length)||1;}
+  var sdY=sd(YS);
+  return ['size','beds','dist','age'].map(function(k,i){
+    return BETA[i+1]*sd(HOUSES.map(function(h){return h[k];}))/sdY;
+  });
+})();
+
+// ═══ HELPERS ═════════════════════════════════════════════
+function el(id){return document.getElementById(id);}
+function sgn(v){return (v>=0?'+':'')+v.toFixed(1);}
+
+var CHARTS={};
+function killChart(k){if(CHARTS[k]){CHARTS[k].destroy();CHARTS[k]=null;}}
+
+// ═══ STEP NAV ════════════════════════════════════════════
+function goStep(i,btn){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.step-btn').forEach(function(b){b.classList.remove('active');});
+  el('panel-'+i).classList.add('active');
+  btn.classList.add('active');
+  setTimeout(function(){
+    if(i===0) drawRaw();
+    if(i===1){drawSimple();drawResid();}
+    if(i===2) initManual();
+    if(i===3) drawMultiple();
+    if(i===4) predict();
+    if(i===5) showConcept('r2',document.querySelector('#cpills .pill'));
+    if(i===6) buildQuiz();
+  },80);
+}
+
+// ═══ SHARED SCALE OPTIONS ════════════════════════════════
+function scatterOpts(xLabel, yLabel){
+  return {
+    responsive:true, maintainAspectRatio:false,
+    animation:{duration:300},
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{
+      x:{type:'linear',title:{display:true,text:xLabel,font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}},
+      y:{type:'linear',title:{display:true,text:yLabel,font:{size:11},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}
+    }
+  };
+}
+
+// ═══ PANEL 0 — Raw scatter ═══════════════════════════════
+function drawRaw(){
+  killChart('raw');
+  CHARTS['raw']=new Chart(el('c-raw').getContext('2d'),{
+    type:'scatter',
+    data:{datasets:[{data:HOUSES.map(function(h){return{x:h.size,y:h.price};}),backgroundColor:'rgba(3,105,161,0.55)',pointRadius:5}]},
+    options:scatterOpts('Size (m²)','Price (k€)')
+  });
+}
+
+// ═══ PANEL 1 — Simple LR ═════════════════════════════════
+function drawSimple(){
+  el('s-b0').textContent=SB0.toFixed(1);
+  el('s-b1').textContent=SB1.toFixed(2);
+  el('s-r2').textContent=R2_S.toFixed(3);
+  killChart('simple');
+
+  var minX=Math.min.apply(null,XS)-5, maxX=Math.max.apply(null,XS)+5;
+
+  // Build residual segments as scatter datasets (pairs of points at same x)
+  // We use a line dataset per residual — but must set x-axis type:linear explicitly
+  var datasets=[];
+
+  // Residual lines
+  HOUSES.forEach(function(h,i){
+    datasets.push({
+      type:'line',
+      data:[{x:h.size,y:h.price},{x:h.size,y:YPRED_S[i]}],
+      borderColor:'rgba(148,163,184,0.45)',
+      borderWidth:1,
+      pointRadius:0,
+      fill:false,
+      tension:0,
+      showLine:true
+    });
+  });
+
+  // Points
+  datasets.push({
+    type:'scatter',
+    data:HOUSES.map(function(h){return{x:h.size,y:h.price};}),
+    backgroundColor:'rgba(3,105,161,0.65)',
+    pointRadius:5
+  });
+
+  // Regression line
+  datasets.push({
+    type:'line',
+    data:[{x:minX,y:SB0+SB1*minX},{x:maxX,y:SB0+SB1*maxX}],
+    borderColor:'#ef4444',
+    borderWidth:2.5,
+    pointRadius:0,
+    fill:false,
+    tension:0
+  });
+
+  var opts=scatterOpts('Size (m²)','Price (k€)');
+  opts.animation={duration:300};
+  CHARTS['simple']=new Chart(el('c-simple').getContext('2d'),{
+    type:'scatter',
+    data:{datasets:datasets},
+    options:opts
+  });
+}
+
+function drawResid(){
+  killChart('resid');
+  var residuals=YS.map(function(y,i){return y-YPRED_S[i];});
+  var minF=Math.min.apply(null,YPRED_S)-10, maxF=Math.max.apply(null,YPRED_S)+10;
+  var opts=scatterOpts('Fitted values ŷ (k€)','Residual (y − ŷ)');
+  CHARTS['resid']=new Chart(el('c-resid').getContext('2d'),{
+    type:'scatter',
+    data:{datasets:[
+      {data:YPRED_S.map(function(p,i){return{x:p,y:residuals[i]};}),backgroundColor:'rgba(3,105,161,0.55)',pointRadius:5},
+      {type:'line',data:[{x:minF,y:0},{x:maxF,y:0}],borderColor:'#ef4444',borderWidth:1.5,pointRadius:0,fill:false,tension:0}
+    ]},
+    options:opts
+  });
+}
+
+// ═══ PANEL 2 — Manual fit ════════════════════════════════
+function initManual(){el('sl-b0').value=50;el('sl-b1').value=1.5;updateManual();}
+function resetManual(){initManual();}
+function applyOLS(){el('sl-b0').value=Math.round(SB0);el('sl-b1').value=SB1.toFixed(2);updateManual();}
+
+function updateManual(){
+  var b0=parseFloat(el('sl-b0').value), b1=parseFloat(el('sl-b1').value);
+  el('v-b0').textContent=b0.toFixed(0);
+  el('v-b1').textContent=b1.toFixed(2);
+  var pred=XS.map(function(x){return b0+b1*x;});
+  var mySsr=calcSSR(YS,pred), myR2=r2score(YS,pred);
+  el('m-ssr').textContent=Math.round(mySsr).toLocaleString();
+  el('m-opt').textContent=Math.round(SSR_OPT).toLocaleString();
+  el('m-r2').textContent=isNaN(myR2)?'—':myR2.toFixed(3);
+
+  var minX=Math.min.apply(null,XS)-5, maxX=Math.max.apply(null,XS)+5;
+  killChart('manual');
+  var opts=scatterOpts('Size (m²)','Price (k€)');
+  opts.animation={duration:0};
+  opts.plugins={
+    legend:{display:true,position:'top',labels:{font:{size:10},color:'#64748b',boxWidth:12}},
+    tooltip:{enabled:false}
+  };
+  CHARTS['manual']=new Chart(el('c-manual').getContext('2d'),{
+    type:'scatter',
+    data:{datasets:[
+      {data:HOUSES.map(function(h){return{x:h.size,y:h.price};}),backgroundColor:'rgba(3,105,161,0.5)',pointRadius:4,label:'Houses'},
+      {type:'line',data:[{x:minX,y:b0+b1*minX},{x:maxX,y:b0+b1*maxX}],borderColor:'#7c3aed',borderWidth:2.5,pointRadius:0,fill:false,tension:0,label:'Yours'},
+      {type:'line',data:[{x:minX,y:SB0+SB1*minX},{x:maxX,y:SB0+SB1*maxX}],borderColor:'rgba(239,68,68,0.35)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,fill:false,tension:0,label:'OLS (optimal)'}
+    ]},
+    options:opts
+  });
+
+  var pct=(mySsr-SSR_OPT)/SSR_OPT*100;
+  var box=el('manual-msg');
+  if(mySsr<=SSR_OPT*1.02){
+    box.innerHTML='<span class="insight-icon">🎉</span><div><strong>Excellent!</strong> Your line is essentially at the OLS optimum — the best possible straight-line fit for this data.</div>';
+    box.className='insight ins-green';
+  } else {
+    box.innerHTML='<span class="insight-icon">🎯</span><div>Your SSR is <strong>'+pct.toFixed(0)+'% above</strong> the optimal. Keep adjusting, then hit Apply OLS to see the best solution.</div>';
+    box.className='insight ins-amber';
+  }
+}
+
+// ═══ PANEL 3 — Multiple LR ═══════════════════════════════
+function drawMultiple(){
+  el('m-b0').textContent=BETA[0].toFixed(1);
+  el('m-b1').textContent=BETA[1].toFixed(2);
+  el('m-b2').textContent=BETA[2].toFixed(1);
+  el('m-b3').textContent=BETA[3].toFixed(1);
+  el('m-b4').textContent=BETA[4].toFixed(2);
+  el('m-r2m').textContent=R2_M.toFixed(3);
+
+  killChart('coef');
+  CHARTS['coef']=new Chart(el('c-coef').getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:['Size','Bedrooms','Distance','Age'],
+      datasets:[{data:STD_COEFS,
+        backgroundColor:['rgba(3,105,161,.75)','rgba(16,185,129,.75)','rgba(239,68,68,.75)','rgba(245,158,11,.75)'],
+        borderColor:['#0369a1','#10b981','#ef4444','#f59e0b'],
+        borderWidth:1.5,borderRadius:5
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:600},
+      plugins:{legend:{display:false},tooltip:{enabled:true,callbacks:{label:function(c){return 'Std. coef: '+c.raw.toFixed(3);}}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#64748b',font:{size:11}}},
+        y:{title:{display:true,text:'Standardised coefficient',font:{size:10},color:'#64748b'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#94a3b8',font:{size:10}}}
+      }
+    }
+  });
+
+  killChart('avp');
+  var allVals=YS.concat(YPRED_M);
+  var minV=Math.min.apply(null,allVals)-10, maxV=Math.max.apply(null,allVals)+10;
+  var opts=scatterOpts('Predicted price (k€)','Actual price (k€)');
+  opts.plugins={legend:{display:false},tooltip:{enabled:true,callbacks:{label:function(c){return 'Actual: '+c.raw.y.toFixed(1)+' | Pred: '+c.raw.x.toFixed(1);}}}};
+  CHARTS['avp']=new Chart(el('c-avp').getContext('2d'),{
+    type:'scatter',
+    data:{datasets:[
+      {data:YS.map(function(y,i){return{x:YPRED_M[i],y:y};}),backgroundColor:'rgba(3,105,161,0.55)',pointRadius:4},
+      {type:'line',data:[{x:minV,y:minV},{x:maxV,y:maxV}],borderColor:'#ef4444',borderWidth:1.5,pointRadius:0,fill:false,tension:0}
+    ]},
+    options:opts
+  });
+}
+
+// ═══ PANEL 4 — Predict (no chart — waterfall + table) ════
+var FEAT_COLORS=['#0369a1','#10b981','#ef4444','#f59e0b'];
+
+function predict(){
+  var size=parseFloat(el('p-size').value)||80;
+  var beds=parseFloat(el('p-beds').value)||3;
+  var dist=parseFloat(el('p-dist').value)||8;
+  var age =parseFloat(el('p-age').value)||15;
+
+  var pm=BETA[0]+BETA[1]*size+BETA[2]*beds+BETA[3]*dist+BETA[4]*age;
+  var ps=SB0+SB1*size;
+  el('pred-out').textContent=pm.toFixed(1)+' k€';
+
+  // Waterfall breakdown
+  var parts=[
+    {label:'β₀ — Base',   value:BETA[0],          color:'#64748b',  note:'constant intercept'},
+    {label:'β₁ × Size',   value:BETA[1]*size,      color:FEAT_COLORS[0], note:BETA[1].toFixed(2)+' × '+size+' m²'},
+    {label:'β₂ × Beds',   value:BETA[2]*beds,      color:FEAT_COLORS[1], note:BETA[2].toFixed(1)+' × '+beds+' beds'},
+    {label:'β₃ × Dist',   value:BETA[3]*dist,      color:FEAT_COLORS[2], note:BETA[3].toFixed(1)+' × '+dist+' km'},
+    {label:'β₄ × Age',    value:BETA[4]*age,       color:FEAT_COLORS[3], note:BETA[4].toFixed(2)+' × '+age+' yrs'}
+  ];
+
+  var absMax=Math.max.apply(null,parts.map(function(p){return Math.abs(p.value);}));
+  var html='';
+  parts.forEach(function(p){
+    var pct=Math.round(Math.abs(p.value)/absMax*92)+8;
+    var col=p.value<0?'rgba(239,68,68,0.85)':p.value===BETA[0]?'rgba(100,116,139,0.7)':p.color+'cc';
+    html+='<div class="wf-row">';
+    html+='<div class="wf-label">'+p.label+'</div>';
+    html+='<div class="wf-bar-wrap"><div class="wf-bar" style="width:'+pct+'%;background:'+col+';">'+p.note+'</div></div>';
+    html+='<div class="wf-val" style="color:'+(p.value<0?'#ef4444':p.value===BETA[0]?'#64748b':'#10b981')+';">'+(p.value>=0?'+':'')+p.value.toFixed(1)+'</div>';
+    html+='</div>';
+  });
+  html+='<div class="wf-row wf-total"><div class="wf-label">= Predicted Price</div><div style="flex:1;"></div><div class="wf-val">'+pm.toFixed(1)+' k€</div></div>';
+  el('waterfall').innerHTML=html;
+
+  // Comparison table
+  var diff=pm-ps;
+  var rows=[
+    {c:'Size component',   s:'+'+( SB1*size).toFixed(1)+' k€',   m:'+'+(BETA[1]*size).toFixed(1)+' k€',   d:'—'},
+    {c:'Bedrooms',         s:'not used',                          m:(BETA[2]*beds>=0?'+':'')+(BETA[2]*beds).toFixed(1)+' k€', d:'—'},
+    {c:'Distance',         s:'not used',                          m:(BETA[3]*dist).toFixed(1)+' k€',        d:'—'},
+    {c:'Age',              s:'not used',                          m:(BETA[4]*age).toFixed(1)+' k€',         d:'—'},
+    {c:'Intercept (β₀)',   s:SB0.toFixed(1)+' k€',               m:BETA[0].toFixed(1)+' k€',               d:'—'},
+    {c:'<strong>Total prediction</strong>', s:'<strong>'+ps.toFixed(1)+' k€</strong>', m:'<strong>'+pm.toFixed(1)+' k€</strong>', d:'<strong>'+(diff>=0?'+':'')+diff.toFixed(1)+' k€</strong>'}
+  ];
+  var tbody='';
+  rows.forEach(function(r){
+    var dc=r.d.indexOf('+')>-1?'pos':r.d.indexOf('-')>-1&&r.d!=='—'?'neg':'';
+    tbody+='<tr><td>'+r.c+'</td><td>'+r.s+'</td><td>'+r.m+'</td><td class="'+dc+'">'+r.d+'</td></tr>';
+  });
+  el('cmp-body').innerHTML=tbody;
+
+  var absDiff=Math.abs(diff);
+  el('cmp-insight').textContent=absDiff<5
+    ?'Both models give very similar estimates here — Distance and Age are close to average values.'
+    :'The multiple model predicts '+absDiff.toFixed(1)+' k€ '+(diff>0?'more':'less')+' than the simple model, because it accounts for Distance and Age effects that the simple model ignores.';
+}
+
+// ═══ PANEL 5 — Concepts ══════════════════════════════════
+var CONCEPTS={
+  r2:{title:'R² and Adjusted R²',body:'<strong>R²</strong> measures the share of variance in y explained by the model. R²=1 is perfect; R²=0 means the model is no better than predicting the mean.<br><br><code>R² = 1 − SSR / SS_total</code><br><br><strong>Problem:</strong> adding any predictor — even a random one — always increases R². Use <strong>Adjusted R²</strong> instead, which penalises extra predictors:<br><br><code>Adj. R² = 1 − (1−R²)×(n−1)/(n−p−1)</code><br><br>If Adjusted R² drops when you add a feature, that feature is not worth including.'},
+  multi:{title:'Multicollinearity',body:'Multicollinearity occurs when two or more predictors are highly correlated. If <em>size</em> and <em>bedrooms</em> move together almost perfectly, the model cannot tell which one is really driving price.<br><br><strong>Symptoms:</strong> unstable coefficients, inflated standard errors, signs may even flip.<br><br><strong>Detection:</strong> Variance Inflation Factor (VIF). VIF &gt; 5–10 signals a problem.<br><br><strong>Solutions:</strong> drop one correlated feature, combine them via PCA, or use Ridge Regression, which shrinks unstable coefficients toward zero.'},
+  assume:{title:'OLS Assumptions (LINE)',body:'OLS produces unbiased, minimum-variance estimates only when four assumptions hold:<br><br><strong>L — Linearity:</strong> the true relationship between X and y is linear. Check with a scatter or residuals-vs-fitted plot.<br><br><strong>I — Independence:</strong> observations are independent. Often violated in time-series data (autocorrelation).<br><br><strong>N — Normality:</strong> residuals are approximately normal. Check with a Q-Q plot. Less critical for large n.<br><br><strong>E — Equal variance (Homoscedasticity):</strong> residuals have constant variance across all fitted values. A funnel-shaped residual plot signals heteroscedasticity.'},
+  overfit:{title:'Overfitting in Regression',body:'With linear regression, overfitting is less dramatic than in complex models, but it still occurs — especially with many features relative to observations.<br><br><strong>Rule of thumb:</strong> aim for at least 10–20 observations per predictor. With 120 houses and 4 predictors we are comfortably safe.<br><br><strong>Detection:</strong> compare training R² with cross-validated (test) R². A large gap signals overfitting.<br><br><strong>Solutions:</strong> regularisation (Ridge, Lasso), feature selection, or more data. Adding polynomial or interaction terms dramatically raises overfitting risk.'},
+  reg:{title:'Ridge & Lasso Regression',body:'Both add a <strong>penalty term</strong> to the OLS loss to prevent coefficients from growing too large.<br><br><strong>Ridge (L2):</strong> adds λ × Σβᵢ² to the loss. Coefficients shrink toward zero but never reach it. Good when all features matter.<br><br><strong>Lasso (L1):</strong> adds λ × Σ|βᵢ|. Some coefficients shrink to exactly zero — automatic feature selection. Preferred when many features are likely irrelevant.<br><br><strong>Elastic Net:</strong> combines L1 and L2. Best of both worlds for high-dimensional data.<br><br>λ is tuned via cross-validation. Larger λ = more shrinkage = simpler model.'},
+  vs:{title:'Linear Regression vs. Other Models',body:'<strong>vs Polynomial Regression:</strong> add x², x³ terms to model curves. Same OLS math but fits non-linear shapes. Overfitting risk rises quickly with degree.<br><br><strong>vs Decision Trees / Random Forests:</strong> trees capture non-linear interactions automatically but lose interpretability. Prefer regression when explaining the model matters.<br><br><strong>vs Logistic Regression:</strong> predicts a probability (0–1) for classification using a sigmoid link function instead of identity.<br><br><strong>vs Neural Networks:</strong> nets approximate any function but need far more data and are black boxes. For tabular data with few features, linear models often compete well.'}
+};
+function showConcept(key,btn){
+  document.querySelectorAll('#cpills .pill').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');
+  el('c-title').textContent=CONCEPTS[key].title;
+  el('c-body').innerHTML=CONCEPTS[key].body;
+}
+
+// ═══ PANEL 6 — Quiz ══════════════════════════════════════
+var QUESTIONS=[
+  {q:'What does OLS (Ordinary Least Squares) minimise?',
+   opts:['Mean absolute error','Sum of squared residuals (SSR)','R² score','Log-likelihood'],
+   correct:1,
+   fb:'Correct! OLS finds the β values that minimise Σ(yᵢ − ŷᵢ)² — the sum of squared vertical distances between each data point and the fitted line.'},
+  {q:'In a multiple regression model, β₃ = −3.5 for Distance means:',
+   opts:['Distance is negatively correlated with size','For each extra km from the city, predicted price falls by 3.5 k€ — holding all other features constant','The model has a negative R²','Distance should be removed'],
+   correct:1,
+   fb:'Correct! Each coefficient represents the isolated effect of that feature — all others held fixed. This "all else equal" interpretation is the key strength of multiple regression.'},
+  {q:'Adding a random noise feature to a multiple regression will:',
+   opts:['Always decrease R²','Not change R² at all','Increase R² slightly even though the feature is useless','Only increase R² if it correlates with y'],
+   correct:2,
+   fb:'Correct! R² always increases (or stays flat) when you add any variable. This is why Adjusted R² penalises extra predictors and is the safer metric for model comparison.'},
+  {q:'An R² of 0.85 means:',
+   opts:['85% of predictions are within 0.85 k€ of the truth','The model is 85% accurate','85% of the variance in house prices is explained by the model','The slope coefficient is 0.85'],
+   correct:2,
+   fb:'Correct! R² = 1 − SSR/SS_total. An R² of 0.85 means the model captures 85% of the variability in the target. The remaining 15% is unexplained noise.'},
+  {q:'When should you prefer Lasso over Ridge regularisation?',
+   opts:['When you want all features to keep a small non-zero weight','When you suspect many predictors are irrelevant and want automatic feature selection','When the data is perfectly linear','When you have very many observations'],
+   correct:1,
+   fb:'Correct! Lasso (L1) can shrink coefficients to exactly zero, removing irrelevant features. Ridge (L2) only shrinks toward — but never to — zero.'}
+];
+var ANSWERED={};
+function buildQuiz(){
+  el('quiz-box').innerHTML=QUESTIONS.map(function(q,i){
+    return '<div style="margin-bottom:1.5rem;">'+
+      '<div style="font-size:.84rem;font-weight:500;color:var(--ink);margin-bottom:.55rem;">'+(i+1)+'. '+q.q+'</div>'+
+      q.opts.map(function(o,j){return '<div class="quiz-opt" id="qo-'+i+'-'+j+'" onclick="answer('+i+','+j+')">'+o+'</div>';}).join('')+
+      '<div class="quiz-fb" id="qfb-'+i+'"></div>'+
+    '</div>';
+  }).join('');
+}
+function answer(qi,oi){
+  if(ANSWERED[qi]!==undefined) return;
+  ANSWERED[qi]=oi;
+  var q=QUESTIONS[qi], box=el('qfb-'+qi);
+  if(oi===q.correct){
+    el('qo-'+qi+'-'+oi).classList.add('correct');
+    box.style.cssText='display:block;background:#edfff7;border:1px solid #a7f0cf;color:#064e3b;padding:9px 13px;border-radius:7px;font-size:.76rem;line-height:1.55;margin-top:.4rem;';
+    box.textContent='✅ '+q.fb;
+  } else {
+    el('qo-'+qi+'-'+oi).classList.add('wrong');
+    el('qo-'+qi+'-'+q.correct).classList.add('correct');
+    box.style.cssText='display:block;background:#fff1f2;border:1px solid #fca5a5;color:#7f1d1d;padding:9px 13px;border-radius:7px;font-size:.76rem;line-height:1.55;margin-top:.4rem;';
+    box.textContent='❌ Not quite. '+q.fb;
+  }
+}
+function resetQuiz(){ANSWERED={};buildQuiz();}
+
+// ═══ INIT ════════════════════════════════════════════════
+window.addEventListener('load',function(){
+  drawRaw();
+  buildQuiz();
+  showConcept('r2',document.querySelector('#cpills .pill'));
+});
+</script>
+</body>
+</html>

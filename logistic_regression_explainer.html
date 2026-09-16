@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logistic Regression — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f4ef;--ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+    --accent:#e05a2b;--accent2:#2b7be0;--accent3:#2bc97a;
+    --surface:#fff;--surface2:#f0ede8;--border:#ddd8d0;
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+  .wrap{max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+  .hero{margin-bottom:2.5rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+  .hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--accent);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+  .hero h1{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1.1;color:var(--ink);margin-bottom:.5rem;}
+  .hero h1 em{font-style:italic;color:var(--accent);}
+  .hero p{font-size:0.9rem;color:var(--ink2);line-height:1.7;max-width:560px;}
+  .steps{display:flex;gap:0;margin-bottom:2rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+  .step-btn{flex:1;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.4;}
+  .step-btn:last-child{border-right:none;}
+  .step-btn:hover{background:var(--surface2);color:var(--ink);}
+  .step-btn.active{background:var(--ink);color:#fff;}
+  .step-num{display:block;font-size:0.55rem;opacity:.6;margin-bottom:2px;}
+  .panel{display:none;}.panel.active{display:block;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;}
+  .card-title{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;}
+  canvas{display:block;width:100%;border-radius:8px;}
+  .ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.75rem;}
+  .ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--ink2);min-width:110px;}
+  .ctrl-row input[type=range]{flex:1;accent-color:var(--accent);}
+  .ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:600;color:var(--ink);min-width:40px;text-align:right;}
+  .formula-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;color:var(--ink);margin-bottom:1rem;text-align:center;line-height:2;}
+  .formula-box .f-accent{color:var(--accent);font-weight:600;}
+  .formula-box .f-blue{color:var(--accent2);font-weight:600;}
+  .insight{display:flex;gap:10px;padding:10px 14px;border-radius:8px;font-size:0.78rem;line-height:1.55;margin-top:.75rem;}
+  .insight-icon{font-size:1rem;flex-shrink:0;margin-top:1px;}
+  .insight-orange{background:#fff3ee;border:1px solid #fcd5c0;color:#7a2e0e;}
+  .insight-blue{background:#eef3ff;border:1px solid #bdd0f7;color:#1a3a7a;}
+  .insight-green{background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:4px 12px;border-radius:999px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--ink2);}
+  .pill:hover,.pill.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .concept-detail{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;min-height:80px;}
+  .concept-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;}
+  .concept-body{font-size:0.82rem;color:var(--ink2);line-height:1.7;}
+  .concept-formula{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;background:var(--surface2);border-radius:6px;padding:6px 10px;margin:.5rem 0;display:block;color:var(--ink);}
+  .legend{display:flex;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);margin-top:8px;flex-wrap:wrap;}
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1rem;}
+  .stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;}
+  .stat-val{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--ink);}
+  .stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+  .quiz-opt{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.82rem;transition:all .15s;background:var(--surface);}
+  .quiz-opt:hover{border-color:var(--accent);background:#fff8f5;}
+  .quiz-opt.correct{background:#eefff5;border-color:#2bc97a;color:#0e5c35;}
+  .quiz-opt.wrong{background:#fff0ee;border-color:#ef4444;color:#7a1a1a;}
+  .quiz-feedback{font-size:0.78rem;padding:10px 14px;border-radius:8px;margin-top:.5rem;display:none;line-height:1.55;}
+  @media(max-width:580px){.two-col{grid-template-columns:1fr;}.hero h1{font-size:1.8rem;}.step-btn{font-size:0.55rem;padding:8px 3px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-tag">// interactive explainer</div>
+    <h1>Logistic <em>Regression</em></h1>
+    <p>A classification algorithm that estimates the <strong>probability</strong> an input belongs to a class — using the S-shaped sigmoid function to squeeze any number into a 0–1 range.</p>
+  </div>
+
+  <div class="steps">
+    <button class="step-btn active" onclick="goStep(0,this)"><span class="step-num">01</span>The Problem</button>
+    <button class="step-btn" onclick="goStep(1,this)"><span class="step-num">02</span>Sigmoid</button>
+    <button class="step-btn" onclick="goStep(2,this)"><span class="step-num">03</span>Decision</button>
+    <button class="step-btn" onclick="goStep(3,this)"><span class="step-num">04</span>Training</button>
+    <button class="step-btn" onclick="goStep(4,this)"><span class="step-num">05</span>Concepts</button>
+    <button class="step-btn" onclick="goStep(5,this)"><span class="step-num">06</span>Quiz</button>
+  </div>
+
+  <!-- STEP 0 -->
+  <div class="panel active" id="panel-0">
+    <div class="card">
+      <div class="card-title">// why not linear regression?</div>
+      <p style="font-size:0.85rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">We want to predict a <strong>binary outcome</strong> — spam or not spam, tumor or not tumor, fraud or not fraud. Linear regression predicts continuous values and can output nonsense like −0.3 or 1.7 as a "probability". We need something bounded between 0 and 1.</p>
+      <div style="position:relative;height:220px;"><canvas id="c-linear"></canvas></div>
+      <div class="legend">
+        <span><span class="dot" style="background:#2b7be0;"></span>not spam (0)</span>
+        <span><span class="dot" style="background:#e05a2b;"></span>spam (1)</span>
+        <span><span class="dot" style="background:#888;width:20px;height:2px;border-radius:2px;"></span>linear fit (broken)</span>
+      </div>
+      <div class="insight insight-orange" style="margin-top:1rem;">
+        <span class="insight-icon">⚠️</span>
+        <div>Linear regression predicts values <strong>outside [0,1]</strong> — meaningless as probabilities. We need a function that always outputs between 0 and 1, no matter the inputs.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div class="panel" id="panel-1">
+    <div class="card">
+      <div class="card-title">// the sigmoid function — squashing everything to [0,1]</div>
+      <div class="formula-box">σ(z) = <span class="f-accent">1</span> / (1 + e<sup>−<span class="f-blue">z</span></sup>) &nbsp;&nbsp;where&nbsp;&nbsp; <span class="f-blue">z</span> = β₀ + β₁x</div>
+      <div style="position:relative;height:240px;"><canvas id="c-sigmoid"></canvas></div>
+      <div class="legend"><span><span class="dot" style="background:#e05a2b;"></span>sigmoid curve σ(z)</span><span><span class="dot" style="background:#2b7be0;width:20px;height:2px;border-radius:2px;"></span>threshold = 0.5</span></div>
+      <div class="insight insight-orange" style="margin-top:1rem;"><span class="insight-icon">📐</span><div>As z → +∞, σ(z) → 1. As z → −∞, σ(z) → 0. At z = 0, σ(z) = exactly 0.5. Always between 0 and 1 — perfect for probabilities.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">// explore z — play with the input</div>
+      <div class="ctrl-row"><label>z value</label><input type="range" id="z-val" min="-6" max="6" step="0.1" value="0" oninput="updateSigmoidLive()"><span class="val" id="z-out">0.0</span></div>
+      <div style="display:flex;gap:1.5rem;margin-top:.5rem;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;">
+        <div>σ(z) = <span id="sigma-out" style="font-size:1.2rem;font-weight:600;color:var(--accent);">0.500</span></div>
+        <div style="color:var(--ink2);">→ prediction: <span id="pred-out" style="font-weight:600;color:var(--accent2);">NOT SPAM</span></div>
+      </div>
+      <div id="sigma-bar-wrap" style="height:8px;background:var(--surface2);border-radius:99px;margin-top:10px;overflow:hidden;">
+        <div id="sigma-bar" style="height:100%;width:50%;background:var(--accent);border-radius:99px;transition:width .2s,background .2s;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="panel" id="panel-2">
+    <div class="card">
+      <div class="card-title">// decision boundary — where the model draws the line</div>
+      <p style="font-size:0.85rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">When σ(z) ≥ 0.5, we predict class 1. This happens when z ≥ 0, i.e. when <strong>β₀ + β₁x ≥ 0</strong>. That boundary is a line (in 2D: a hyperplane) separating the two classes.</p>
+      <div style="position:relative;height:280px;"><canvas id="c-boundary"></canvas></div>
+      <div class="legend"><span><span class="dot" style="background:#2b7be0;"></span>class 0</span><span><span class="dot" style="background:#e05a2b;"></span>class 1</span><span><span class="dot" style="background:#2bc97a;width:20px;height:2px;border-radius:2px;"></span>decision boundary</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title">// move the boundary — adjust β₀ and β₁</div>
+      <div class="ctrl-row"><label>β₀ (bias)</label><input type="range" id="b0" min="-4" max="4" step="0.1" value="0" oninput="updateBoundary()"><span class="val" id="b0-out">0.0</span></div>
+      <div class="ctrl-row"><label>β₁ (weight)</label><input type="range" id="b1" min="0.5" max="5" step="0.1" value="1.5" oninput="updateBoundary()"><span class="val" id="b1-out">1.5</span></div>
+      <div class="insight insight-blue"><span class="insight-icon">💡</span><div><strong>β₀</strong> shifts the boundary left/right. <strong>β₁</strong> controls the steepness of the sigmoid — larger β₁ makes the model more confident.</div></div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="panel" id="panel-3">
+    <div class="card">
+      <div class="card-title">// how does the model learn? — log loss & gradient descent</div>
+      <p style="font-size:0.85rem;color:var(--ink2);line-height:1.7;margin-bottom:1rem;">Logistic regression learns by minimizing the <strong>log loss</strong> (binary cross-entropy). For each sample, if the true label is y and the model output is ŷ:</p>
+      <div class="formula-box">Loss = −[<span class="f-accent">y</span> · log(<span class="f-blue">ŷ</span>) + (1 − <span class="f-accent">y</span>) · log(1 − <span class="f-blue">ŷ</span>)]</div>
+      <div style="position:relative;height:220px;"><canvas id="c-loss"></canvas></div>
+      <div class="legend"><span><span class="dot" style="background:#e05a2b;"></span>loss when y=1</span><span><span class="dot" style="background:#2b7be0;"></span>loss when y=0</span></div>
+      <div class="insight insight-green" style="margin-top:1rem;"><span class="insight-icon">🎯</span><div>When y=1 and ŷ→0 (wrong answer), loss → ∞. When y=1 and ŷ→1 (right answer), loss → 0. This heavily penalizes confident wrong predictions.</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">// gradient descent — walking down the loss hill</div>
+      <p style="font-size:0.85rem;color:var(--ink2);line-height:1.7;margin-bottom:.75rem;">The model updates its weights by taking small steps in the direction that reduces loss. Click to run training steps:</p>
+      <button onclick="trainStep()" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;padding:8px 18px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:6px;cursor:pointer;margin-bottom:1rem;">▶ run training step</button>
+      <div style="position:relative;height:180px;"><canvas id="c-train"></canvas></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-val" id="t-epoch">0</div><div class="stat-lbl">Epoch</div></div>
+        <div class="stat"><div class="stat-val" id="t-loss">—</div><div class="stat-lbl">Loss</div></div>
+        <div class="stat"><div class="stat-val" id="t-acc">—</div><div class="stat-lbl">Accuracy</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="panel" id="panel-4">
+    <div class="card">
+      <div class="card-title">// key concepts — click to explore</div>
+      <div class="pills">
+        <button class="pill active" onclick="showConcept('odds',this)">log-odds</button>
+        <button class="pill" onclick="showConcept('coef',this)">coefficients</button>
+        <button class="pill" onclick="showConcept('multiclass',this)">multiclass</button>
+        <button class="pill" onclick="showConcept('regularization',this)">regularization</button>
+        <button class="pill" onclick="showConcept('vslinear',this)">vs linear regression</button>
+        <button class="pill" onclick="showConcept('assumptions',this)">assumptions</button>
+      </div>
+      <div class="concept-detail" id="conceptDetail">
+        <div class="concept-title">Log-odds (logit)</div>
+        <div class="concept-body">Logistic regression models the <strong>log-odds</strong> as a linear function of inputs:<span class="concept-formula">log(p / (1−p)) = β₀ + β₁x₁ + β₂x₂ + …</span>The logit ranges from −∞ to +∞ — perfect for a linear model. Applying sigmoid gives us back the probability. This is why logistic regression is <strong>linear in log-odds space</strong> even though it produces a nonlinear probability curve.</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">// where it shines</div>
+        <div style="font-size:0.8rem;color:var(--ink2);line-height:1.9;">✅ Binary classification<br>✅ Interpretable coefficients<br>✅ Calibrated probabilities<br>✅ Fast to train, low memory<br>✅ Linearly separable data<br>✅ Great baseline classifier</div>
+      </div>
+      <div class="card">
+        <div class="card-title">// where it struggles</div>
+        <div style="font-size:0.8rem;color:var(--ink2);line-height:1.9;">❌ Non-linear boundaries<br>❌ Complex feature interactions<br>❌ High-dimensional sparse data<br>❌ Sensitive to outliers<br>❌ Requires feature scaling<br>❌ Assumes no multicollinearity</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="panel" id="panel-5">
+    <div class="card">
+      <div class="card-title">// test your understanding</div>
+      <div id="quiz-container"></div>
+      <button onclick="resetQuiz()" style="font-family:'IBM Plex Mono',monospace;font-size:0.68rem;padding:7px 16px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);border-radius:6px;cursor:pointer;margin-top:1rem;">↺ reset quiz</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const sigmoid=z=>1/(1+Math.exp(-z));
+const $=id=>document.getElementById(id);
+const CD={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:0}};
+
+function goStep(i,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.step-btn').forEach(b=>b.classList.remove('active'));
+  $('panel-'+i).classList.add('active');btn.classList.add('active');
+  setTimeout(()=>{if(i===0)drawLinear();if(i===1){drawSigmoid();updateSigmoidLive();}if(i===2){drawBoundaryData();updateBoundary();}if(i===3){drawLoss();resetTrain();}},50);
+}
+
+let cLinear;
+function drawLinear(){
+  const ctx=$('c-linear').getContext('2d');if(cLinear)cLinear.destroy();
+  const pts0=[1,1.5,2,2.2,2.8,3,3.2,3.5].map(x=>({x,y:0}));
+  const pts1=[4.5,5,5.2,5.8,6,6.5,7,7.5].map(x=>({x,y:1}));
+  const lx=[0,9],ly=lx.map(x=>-0.25+0.18*x);
+  cLinear=new Chart(ctx,{type:'scatter',data:{datasets:[
+    {data:pts0,backgroundColor:'#2b7be0',pointRadius:6},
+    {data:pts1,backgroundColor:'#e05a2b',pointRadius:6},
+    {type:'line',data:lx.map((x,i)=>({x,y:ly[i]})),borderColor:'#aaa',borderWidth:2,pointRadius:0,borderDash:[4,3]}
+  ]},options:{...CD,scales:{x:{min:0,max:9,title:{display:true,text:'feature (e.g. spam word count)',font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#aaa',font:{size:10}}},y:{min:-0.4,max:1.5,title:{display:true,text:'label',font:{size:11},color:'#888'},ticks:{color:'#aaa',font:{size:10},callback:v=>v===0?'0 (ham)':v===1?'1 (spam)':v.toFixed(1)},grid:{color:'rgba(0,0,0,.05)'}}}}});
+}
+
+let cSig;
+function drawSigmoid(){
+  const ctx=$('c-sigmoid').getContext('2d');if(cSig)cSig.destroy();
+  const zs=[],ys=[];for(let z=-6;z<=6;z+=0.1){zs.push(+z.toFixed(1));ys.push(+sigmoid(z).toFixed(4));}
+  cSig=new Chart(ctx,{type:'line',data:{labels:zs,datasets:[
+    {data:ys,borderColor:'#e05a2b',borderWidth:2.5,pointRadius:0,fill:false,tension:0.4},
+    {data:zs.map(()=>0.5),borderColor:'#2b7be0',borderWidth:1.5,borderDash:[5,4],pointRadius:0}
+  ]},options:{...CD,scales:{x:{title:{display:true,text:'z',font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#aaa',font:{size:10},maxTicksLimit:7}},y:{min:0,max:1,title:{display:true,text:'σ(z)',font:{size:11},color:'#888'},ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}}}});
+}
+
+function updateSigmoidLive(){
+  const z=+$('z-val').value,s=sigmoid(z);
+  $('z-out').textContent=z.toFixed(1);$('sigma-out').textContent=s.toFixed(3);
+  $('pred-out').textContent=s>=0.5?'SPAM':'NOT SPAM';$('pred-out').style.color=s>=0.5?'#e05a2b':'#2b7be0';
+  $('sigma-bar').style.width=(s*100)+'%';$('sigma-bar').style.background=s>=0.5?'#e05a2b':'#2b7be0';
+}
+
+let cBound;
+function drawBoundaryData(){
+  const ctx=$('c-boundary').getContext('2d');if(cBound)cBound.destroy();
+  const pts0=[[1.2,2.1],[1.8,1.4],[2.1,2.8],[2.5,1.0],[0.8,3.1],[1.5,3.5],[2.8,0.5],[0.5,1.8]].map(([x,y])=>({x,y}));
+  const pts1=[[5.5,6.2],[6.1,5.8],[5.8,7.1],[6.8,6.5],[7.2,5.2],[5.2,5.5],[6.5,7.5],[7.8,6.0]].map(([x,y])=>({x,y}));
+  const b0=+$('b0').value,b1=+$('b1').value,bx=[0,9],by=bx.map(x=>-b0/1.2-(b1/1.2)*x+4.5);
+  cBound=new Chart(ctx,{type:'scatter',data:{datasets:[
+    {data:pts0,backgroundColor:'rgba(43,123,224,0.7)',pointRadius:7},
+    {data:pts1,backgroundColor:'rgba(224,90,43,0.7)',pointRadius:7},
+    {type:'line',data:bx.map((x,i)=>({x,y:by[i]})),borderColor:'#2bc97a',borderWidth:2.5,pointRadius:0,fill:false}
+  ]},options:{...CD,scales:{x:{min:0,max:9,title:{display:true,text:'feature 1',font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#aaa',font:{size:10}}},y:{min:0,max:9,title:{display:true,text:'feature 2',font:{size:11},color:'#888'},ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}}}});
+}
+
+function updateBoundary(){
+  const b0=+$('b0').value,b1=+$('b1').value;
+  $('b0-out').textContent=b0.toFixed(1);$('b1-out').textContent=b1.toFixed(1);
+  if(!cBound)return;
+  const bx=[0,9],by=bx.map(x=>-b0/1.2-(b1/1.2)*x+4.5);
+  cBound.data.datasets[2].data=bx.map((x,i)=>({x,y:by[i]}));cBound.update('none');
+}
+
+let cLoss;
+function drawLoss(){
+  const ctx=$('c-loss').getContext('2d');if(cLoss)cLoss.destroy();
+  const ys=[],l1=[],l0=[];
+  for(let p=0.01;p<=0.99;p+=0.01){ys.push(+p.toFixed(2));l1.push(+(-Math.log(p)).toFixed(3));l0.push(+(-Math.log(1-p)).toFixed(3));}
+  cLoss=new Chart(ctx,{type:'line',data:{labels:ys,datasets:[
+    {data:l1,borderColor:'#e05a2b',borderWidth:2.5,pointRadius:0,fill:false,tension:0.3},
+    {data:l0,borderColor:'#2b7be0',borderWidth:2.5,pointRadius:0,fill:false,tension:0.3}
+  ]},options:{...CD,scales:{x:{title:{display:true,text:'predicted probability ŷ',font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#aaa',font:{size:10},maxTicksLimit:6}},y:{min:0,max:5,title:{display:true,text:'loss',font:{size:11},color:'#888'},ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}}}});
+}
+
+let cTrain,trainW=[0,0.1],trainEpoch=0,trainData;
+function resetTrain(){
+  trainW=[0,0.1];trainEpoch=0;
+  trainData=[{x:1,y:0},{x:1.5,y:0},{x:2,y:0},{x:2.5,y:0},{x:3,y:0},{x:3.5,y:0},{x:5,y:1},{x:5.5,y:1},{x:6,y:1},{x:6.5,y:1},{x:7,y:1},{x:7.5,y:1}];
+  $('t-epoch').textContent='0';$('t-loss').textContent='—';$('t-acc').textContent='—';
+  drawTrainChart();
+}
+function drawTrainChart(){
+  const ctx=$('c-train').getContext('2d');if(cTrain)cTrain.destroy();
+  const xs=Array.from({length:80},(_,i)=>+(1+i*0.08).toFixed(2));
+  const curve=xs.map(x=>+sigmoid(trainW[0]+trainW[1]*x).toFixed(4));
+  cTrain=new Chart(ctx,{type:'scatter',data:{datasets:[
+    {data:trainData.filter(d=>d.y===0).map(d=>({x:d.x,y:d.y})),backgroundColor:'rgba(43,123,224,0.7)',pointRadius:6},
+    {data:trainData.filter(d=>d.y===1).map(d=>({x:d.x,y:d.y})),backgroundColor:'rgba(224,90,43,0.7)',pointRadius:6},
+    {type:'line',data:xs.map((x,i)=>({x,y:curve[i]})),borderColor:'#2bc97a',borderWidth:2,pointRadius:0,fill:false}
+  ]},options:{...CD,scales:{x:{min:0,max:9,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#aaa',font:{size:10}}},y:{min:-0.1,max:1.1,grid:{color:'rgba(0,0,0,.05)'},ticks:{color:'#aaa',font:{size:10}}}}}});
+}
+function trainStep(){
+  const lr=0.15;
+  for(let it=0;it<5;it++){let dw0=0,dw1=0;trainData.forEach(({x,y})=>{const p=sigmoid(trainW[0]+trainW[1]*x),e=p-y;dw0+=e;dw1+=e*x;});trainW[0]-=lr*dw0/trainData.length;trainW[1]-=lr*dw1/trainData.length;}
+  trainEpoch+=5;let loss=0,correct=0;
+  trainData.forEach(({x,y})=>{const p=sigmoid(trainW[0]+trainW[1]*x);loss+=-(y*Math.log(p+1e-9)+(1-y)*Math.log(1-p+1e-9));if((p>=0.5?1:0)===y)correct++;});
+  loss/=trainData.length;
+  $('t-epoch').textContent=trainEpoch;$('t-loss').textContent=loss.toFixed(3);$('t-acc').textContent=Math.round(correct/trainData.length*100)+'%';
+  drawTrainChart();
+}
+
+const concepts={
+  odds:{title:'Log-odds (logit)',body:'Logistic regression models the <strong>log-odds</strong> as a linear function of inputs:<span class="concept-formula">log(p / (1−p)) = β₀ + β₁x₁ + β₂x₂ + …</span>The logit ranges from −∞ to +∞ — perfect for a linear model. Applying sigmoid gives back the probability. This is why logistic regression is <strong>linear in log-odds space</strong> even though it produces a nonlinear probability curve.'},
+  coef:{title:'Coefficients (β weights)',body:'Each coefficient β tells you how the log-odds change per unit increase in that feature:<span class="concept-formula">β₁ = 0.5 → one unit increase in x₁ multiplies the odds by e^0.5 ≈ 1.65</span><strong>Sign:</strong> positive β → more likely class 1. Negative β → more likely class 0. <strong>Magnitude:</strong> larger |β| = stronger effect on prediction.'},
+  multiclass:{title:'Multiclass extension',body:'For more than 2 classes, we use <strong>Softmax regression</strong>. Instead of one sigmoid, we compute a score for each class and normalize:<span class="concept-formula">P(y=k) = e^(β_k · x) / Σⱼ e^(β_j · x)</span>Outputs sum to 1, forming a proper probability distribution. Scikit-learn handles this automatically with <code>multi_class="multinomial"</code>.'},
+  regularization:{title:'Regularization (L1 & L2)',body:'To prevent overfitting, we add a penalty for large coefficients to the loss:<span class="concept-formula">L2 (Ridge): Loss + λ·Σβ² → shrinks coefficients toward 0</span><span class="concept-formula">L1 (Lasso): Loss + λ·Σ|β| → drives some coefficients to exactly 0</span><strong>L1</strong> = automatic feature selection. <strong>L2</strong> handles correlated features better. In sklearn, <code>C</code> is inverse regularization strength: smaller C = stronger penalty.'},
+  vslinear:{title:'vs Linear regression',body:'Both are linear models — but they model different things:<span class="concept-formula">Linear:   y = β₀ + β₁x  (predicts continuous values)</span><span class="concept-formula">Logistic: log(p/1-p) = β₀+β₁x  (predicts probabilities)</span>Linear minimizes MSE; logistic minimizes log loss. <strong>Despite the name, logistic regression is a classification algorithm, not a regression algorithm.</strong>'},
+  assumptions:{title:'Key assumptions',body:'Logistic regression assumes:<br><strong>1. Linear log-odds:</strong> the log-odds are linear functions of features.<br><strong>2. Independence:</strong> observations are independent of each other.<br><strong>3. No multicollinearity:</strong> features are not highly correlated.<br><strong>4. Large sample size:</strong> ~10–20 events per predictor.<br><strong>5. No extreme outliers:</strong> they can heavily distort the decision boundary.'}
+};
+function showConcept(key,btn){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));btn.classList.add('active');
+  const c=concepts[key];$('conceptDetail').innerHTML='<div class="concept-title">'+c.title+'</div><div class="concept-body">'+c.body+'</div>';
+}
+
+const questions=[
+  {q:"What does the sigmoid function output?",opts:["Any real number","A value between 0 and 1","Only 0 or 1","The log-odds"],correct:1,feedback:"Correct! σ(z) = 1/(1+e⁻ᶻ) always outputs a value in (0,1), making it interpretable as a probability."},
+  {q:"In logistic regression, what does a larger β₁ coefficient mean?",opts:["Weaker effect of feature x₁","The model is overfitting","Stronger effect of x₁ on log-odds","The threshold changes"],correct:2,feedback:"Correct! Larger |β₁| means x₁ has a bigger impact on the log-odds and therefore the predicted probability."},
+  {q:"What loss function does logistic regression minimize?",opts:["Mean Squared Error","Hinge loss","Log loss (binary cross-entropy)","Absolute error"],correct:2,feedback:"Correct! Logistic regression minimizes log loss = −[y·log(ŷ) + (1−y)·log(1−ŷ)], which heavily penalizes confident wrong predictions."},
+  {q:"Why can't we use linear regression for binary classification?",opts:["It's too slow to train","It can output values outside [0,1]","It doesn't use gradient descent","It requires more data"],correct:1,feedback:"Correct! Linear regression can predict values like −0.3 or 1.7, which are meaningless as probabilities. The sigmoid bounds output to (0,1)."}
+];
+let answered={};
+function buildQuiz(){
+  $('quiz-container').innerHTML=questions.map((q,i)=>`<div style="margin-bottom:1.5rem;"><div style="font-size:0.85rem;font-weight:500;color:var(--ink);margin-bottom:.6rem;">${i+1}. ${q.q}</div>${q.opts.map((o,j)=>`<div class="quiz-opt" id="opt-${i}-${j}" onclick="answer(${i},${j})">${o}</div>`).join('')}<div class="quiz-feedback" id="fb-${i}"></div></div>`).join('');
+}
+function answer(qi,oi){
+  if(answered[qi]!==undefined)return;answered[qi]=oi;
+  const q=questions[qi],el=$('opt-'+qi+'-'+oi),fb=$('fb-'+qi);
+  if(oi===q.correct){el.classList.add('correct');fb.style.display='block';fb.style.cssText='display:block;background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;padding:10px 14px;border-radius:8px;font-size:.78rem;line-height:1.55;margin-top:.5rem;';fb.textContent='✅ '+q.feedback;}
+  else{el.classList.add('wrong');$('opt-'+qi+'-'+q.correct).classList.add('correct');fb.style.cssText='display:block;background:#fff0ee;border:1px solid #fcd5c0;color:#7a2e0e;padding:10px 14px;border-radius:8px;font-size:.78rem;line-height:1.55;margin-top:.5rem;';fb.textContent='❌ Not quite. '+q.feedback;}
+}
+function resetQuiz(){answered={};buildQuiz();}
+
+window.addEventListener('load',()=>{drawLinear();buildQuiz();});
+</script>
+</body>
+</html>

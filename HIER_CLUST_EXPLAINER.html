@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hierarchical Clustering — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f4ef;--ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+  --acc:#2563a8;--approve:#2b9a66;--reject:#e05a2b;
+  --surface:#fff;--surface2:#f0ede8;--border:#ddd8d0;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+.hero{margin-bottom:2rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+.hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--acc);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+.hero h1{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1.1;margin-bottom:.5rem;}
+.hero h1 em{font-style:italic;color:var(--acc);}
+.hero p{font-size:0.9rem;color:var(--ink2);line-height:1.7;max-width:620px;}
+.tabs{display:flex;gap:0;margin-bottom:1.75rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+.tab{flex:1;padding:9px 4px;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.35;}
+.tab:last-child{border-right:none;}
+.tab:hover{background:var(--surface2);color:var(--ink);}
+.tab.active{background:var(--ink);color:#fff;}
+.tab-num{display:block;font-size:0.52rem;opacity:.6;margin-bottom:2px;}
+.panel{display:none;}.panel.active{display:block;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.1rem;}
+.card-title{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.9rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;}
+canvas{display:block;width:100%;border-radius:8px;}
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.7rem;}
+.ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:var(--ink2);min-width:150px;}
+.ctrl-row input[type=range]{flex:1;accent-color:var(--acc);}
+.ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:600;color:var(--ink);min-width:44px;text-align:right;}
+.insight{display:flex;gap:10px;padding:10px 14px;border-radius:8px;font-size:0.78rem;line-height:1.55;margin-top:.75rem;}
+.ins-blue{background:#eef3ff;border:1px solid #bdd0f7;color:#1a3a7a;}
+.ins-orange{background:#fff3ee;border:1px solid #fcd5c0;color:#7a2e0e;}
+.ins-green{background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;}
+.ins-purple{background:#f3f0ff;border:1px solid #c5baf7;color:#3d2d9a;}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.1rem;}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;padding:4px 12px;border-radius:999px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--ink2);}
+.pill:hover,.pill.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.concept-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;}
+.concept-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;}
+.concept-body{font-size:0.81rem;color:var(--ink2);line-height:1.75;}
+.cformula{font-family:'IBM Plex Mono',monospace;font-size:0.71rem;background:var(--surface2);border-radius:6px;padding:6px 10px;margin:.45rem 0;display:block;color:var(--ink);}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:.9rem;}
+.stat-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:.9rem;}
+.stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;}
+.stat-val{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.56rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.quiz-opt{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.81rem;transition:all .15s;background:var(--surface);}
+.quiz-opt:hover{border-color:var(--acc);background:#eef3ff;}
+.quiz-opt.correct{background:#eefff5;border-color:#2bc97a;color:#0e5c35;}
+.quiz-opt.wrong{background:#fff0ee;border-color:#ef4444;color:#7a1a1a;}
+.quiz-fb{font-size:0.77rem;padding:10px 14px;border-radius:8px;margin-top:.5rem;display:none;line-height:1.55;}
+.ens-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center;}
+.ens-title{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--ink);margin-bottom:.35rem;}
+.ens-sub{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink3);line-height:1.5;}
+.dendro-wrap{position:relative;width:100%;overflow-x:auto;}
+.dendro-wrap svg{display:block;min-width:680px;}
+.leaf-label{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:var(--ink2);}
+.note-box{font-size:0.8rem;color:var(--ink2);line-height:1.6;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:.9rem;}
+@media(max-width:600px){.two-col,.three-col{grid-template-columns:1fr;}.hero h1{font-size:1.8rem;}.tab{font-size:0.52rem;padding:7px 2px;}.stat-grid-4{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="hero-tag">// interactive explainer</div>
+  <h1>Hierarchical <em>Clustering</em></h1>
+  <p>Hierarchical clustering is an <strong>unsupervised</strong> technique that builds a tree of nested groupings instead of asking you to fix the number of clusters up front. This explainer focuses on the agglomerative ("bottom-up", AGNES) approach: how linkage methods measure cluster distance, how the dendrogram is built one merge at a time, and how to read the tree to decide on an optimal number of clusters.</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="goTab(0,this)"><span class="tab-num">01</span>What Is It</button>
+  <button class="tab" onclick="goTab(1,this)"><span class="tab-num">02</span>Linkage</button>
+  <button class="tab" onclick="goTab(2,this)"><span class="tab-num">03</span>Build Step-by-Step</button>
+  <button class="tab" onclick="goTab(3,this)"><span class="tab-num">04</span>Cut the Tree</button>
+  <button class="tab" onclick="goTab(4,this)"><span class="tab-num">05</span>Choosing K</button>
+  <button class="tab" onclick="goTab(5,this)"><span class="tab-num">06</span>Concepts</button>
+  <button class="tab" onclick="goTab(6,this)"><span class="tab-num">07</span>Quiz</button>
+</div>
+
+<!-- ══ PANEL 0: What Is It ════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-0">
+  <div class="three-col">
+    <div class="ens-card" style="border-color:#2563a8;">
+      <div class="ens-title" style="color:#2563a8;">AGNES</div>
+      <div style="position:relative;width:100%;height:110px;"><canvas id="c0-agnes"></canvas></div>
+      <div class="ens-sub" style="margin-top:.5rem;">Bottom-up. Every point starts as its<br>own cluster; nearest clusters merge.</div>
+    </div>
+    <div class="ens-card" style="border-color:#e05a2b;">
+      <div class="ens-title" style="color:#e05a2b;">DIANA</div>
+      <div style="position:relative;width:100%;height:110px;"><canvas id="c0-diana"></canvas></div>
+      <div class="ens-sub" style="margin-top:.5rem;">Top-down. Everything starts in one<br>cluster; it is split apart repeatedly.</div>
+    </div>
+    <div class="ens-card">
+      <div class="ens-title">Output</div>
+      <div style="position:relative;width:100%;height:110px;"><canvas id="c0-output"></canvas></div>
+      <div class="ens-sub" style="margin-top:.5rem;">Both produce a <strong>dendrogram</strong> —<br>a full hierarchy, not one fixed k.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Our working dataset — 14 customers by income & spending score</div>
+    <div style="position:relative;width:100%;height:260px;"><canvas id="c0-scatter"></canvas></div>
+  </div>
+  <div class="insight ins-blue">
+    <span>💡</span>
+    <span>Hierarchical clustering is <strong>unsupervised</strong>: there is no target label to predict, only a similarity measure (typically Euclidean distance on standardized variables) used to decide which observations belong together.</span>
+  </div>
+  <div class="insight ins-purple" style="margin-top:.5rem;">
+    <span>🌳</span>
+    <span>Unlike k-means, you don't choose <em>k</em> before running the algorithm. Agglomerative clustering builds the <strong>entire hierarchy</strong> — from 14 singleton clusters down to 1 root — and you decide afterward, by reading the tree, where to "cut" it.</span>
+  </div>
+  <div class="insight ins-green" style="margin-top:.5rem;">
+    <span>🎯</span>
+    <span>This explainer focuses on the more commonly used <strong>agglomerative</strong> approach (AGNES). The same data and tree-cutting logic can be adapted to divisive clustering (DIANA), which works in the opposite direction.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 1: Linkage ═══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-1">
+  <div class="pills" id="link-pills-1">
+    <button class="pill active" data-m="single" onclick="setGlobalLinkage('single',this,1)">Single</button>
+    <button class="pill" data-m="complete" onclick="setGlobalLinkage('complete',this,1)">Complete</button>
+    <button class="pill" data-m="average" onclick="setGlobalLinkage('average',this,1)">Average</button>
+    <button class="pill" data-m="centroid" onclick="setGlobalLinkage('centroid',this,1)">Centroid</button>
+    <button class="pill" data-m="ward" onclick="setGlobalLinkage('ward',this,1)">Ward's</button>
+  </div>
+  <div class="card">
+    <div class="card-title">How distance between two clusters is measured</div>
+    <div style="position:relative;width:100%;height:240px;"><canvas id="c1-link"></canvas></div>
+  </div>
+  <div id="link-explain" class="note-box"></div>
+  <div class="two-col">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title">Mini dendrogram with this linkage</div>
+      <div class="dendro-wrap" id="c1-mini-dendro" style="height:180px;"></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title">Resulting clusters at k = 3</div>
+      <div style="position:relative;width:100%;height:180px;"><canvas id="c1-mini-scatter"></canvas></div>
+    </div>
+  </div>
+  <div class="insight ins-orange" style="margin-top:.9rem;">
+    <span>⚠️</span>
+    <span><strong>Single linkage</strong> tends to "chain" — long, straggly clusters can form because only the single closest pair matters. <strong>Complete linkage</strong> over-corrects toward tight, compact, similarly-sized clusters. <strong>Average</strong> and <strong>Ward's</strong> usually sit in a practical middle ground, which is why Ward's method is a common default.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 2: Build Step-by-Step ════════════════════════════════════════ -->
+<div class="panel" id="panel-2">
+  <div class="pills" id="link-pills-2">
+    <button class="pill" data-m="single" onclick="setGlobalLinkage('single',this,2)">Single</button>
+    <button class="pill" data-m="complete" onclick="setGlobalLinkage('complete',this,2)">Complete</button>
+    <button class="pill active" data-m="average" onclick="setGlobalLinkage('average',this,2)">Average</button>
+    <button class="pill" data-m="centroid" onclick="setGlobalLinkage('centroid',this,2)">Centroid</button>
+    <button class="pill" data-m="ward" onclick="setGlobalLinkage('ward',this,2)">Ward's</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Drag through the 13 merges — the dendrogram grows one join at a time</div>
+    <div class="dendro-wrap" id="c2-dendro" style="height:260px;"></div>
+  </div>
+  <div class="ctrl-row">
+    <label>Merge step</label>
+    <input type="range" id="step-slider" min="0" max="13" step="1" value="0" oninput="drawStep()">
+    <span class="val" id="step-v">0</span>
+  </div>
+  <div id="step-detail" class="note-box"></div>
+  <div class="two-col">
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Clusters formed so far</div>
+      <div style="position:relative;width:100%;height:180px;"><canvas id="c2-scatter"></canvas></div>
+    </div>
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Merge height per step</div>
+      <div style="position:relative;width:100%;height:180px;"><canvas id="c2-heights"></canvas></div>
+    </div>
+  </div>
+  <div class="insight ins-blue">
+    <span>💡</span>
+    <span>At step 0 every one of the 14 points is its own cluster. Each step finds the <strong>two closest clusters</strong> under the chosen linkage and fuses them. After 13 merges, all points belong to one root cluster — that's the top of the dendrogram.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: Cut the Tree ══════════════════════════════════════════════ -->
+<div class="panel" id="panel-3">
+  <div class="pills" id="link-pills-3">
+    <button class="pill" data-m="single" onclick="setGlobalLinkage('single',this,3)">Single</button>
+    <button class="pill" data-m="complete" onclick="setGlobalLinkage('complete',this,3)">Complete</button>
+    <button class="pill active" data-m="average" onclick="setGlobalLinkage('average',this,3)">Average</button>
+    <button class="pill" data-m="centroid" onclick="setGlobalLinkage('centroid',this,3)">Centroid</button>
+    <button class="pill" data-m="ward" onclick="setGlobalLinkage('ward',this,3)">Ward's</button>
+  </div>
+  <div class="card">
+    <div class="card-title">Drag the red line up and down to "cut" the dendrogram at different heights</div>
+    <div class="dendro-wrap" id="c3-dendro" style="height:280px;"></div>
+  </div>
+  <div class="ctrl-row">
+    <label>Cut height</label>
+    <input type="range" id="cut-slider" min="0" max="1000" step="1" value="500" oninput="drawCut()">
+    <span class="val" id="cut-v">—</span>
+  </div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val" id="cut-k">—</div><div class="stat-lbl">Clusters at this cut</div></div>
+    <div class="stat"><div class="stat-val" id="cut-sil">—</div><div class="stat-lbl">Silhouette score</div></div>
+    <div class="stat"><div class="stat-val" id="cut-height">—</div><div class="stat-lbl">Cut height</div></div>
+  </div>
+  <div style="position:relative;width:100%;height:220px;margin-top:1rem;"><canvas id="c3-scatter"></canvas></div>
+  <div class="insight ins-green" style="margin-top:.75rem;">
+    <span>✂️</span>
+    <span>The height of a branch shows <strong>how dissimilar</strong> the two things it joins are. A tall vertical jump just below the cut line means you are separating clusters that are genuinely distinct — that's a good place to cut. A cut through short, densely-packed branches means you're splitting up observations that are still quite similar.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 4: Choosing K ════════════════════════════════════════════════ -->
+<div class="panel" id="panel-4">
+  <div class="pills" id="link-pills-4">
+    <button class="pill" data-m="single" onclick="setGlobalLinkage('single',this,4)">Single</button>
+    <button class="pill" data-m="complete" onclick="setGlobalLinkage('complete',this,4)">Complete</button>
+    <button class="pill active" data-m="average" onclick="setGlobalLinkage('average',this,4)">Average</button>
+    <button class="pill" data-m="centroid" onclick="setGlobalLinkage('centroid',this,4)">Centroid</button>
+    <button class="pill" data-m="ward" onclick="setGlobalLinkage('ward',this,4)">Ward's</button>
+  </div>
+  <div class="two-col">
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title">Silhouette score by number of clusters</div>
+      <div style="position:relative;width:100%;height:220px;"><canvas id="c4-sil"></canvas></div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-title">Merge height by step ("elbow")</div>
+      <div style="position:relative;width:100%;height:220px;"><canvas id="c4-elbow"></canvas></div>
+    </div>
+  </div>
+  <div id="k-recommend" class="insight ins-purple" style="margin-top:1rem;"></div>
+  <div class="card" style="margin-top:1rem;">
+    <div class="card-title">Two ways to pick k, side by side</div>
+    <table style="width:100%;border-collapse:collapse;font-size:0.79rem;">
+      <thead><tr>
+        <th style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;">Method</th>
+        <th style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;">How it works</th>
+        <th style="font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;">Watch out for</th>
+      </tr></thead>
+      <tbody>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Visual cut (dendrogram)</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Look for the tallest vertical gap and cut through it</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Subjective; ties between gaps</td></tr>
+        <tr><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Silhouette score</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Quantifies how well-separated clusters are (−1 to 1, higher is better)</td><td style="padding:7px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);">Can favor very few, very large clusters</td></tr>
+        <tr><td style="padding:7px 10px;color:var(--ink2);">Business / domain need</td><td style="padding:7px 10px;color:var(--ink2);">e.g. "we have 4 product lines to market" forces k = 4</td><td style="padding:7px 10px;color:var(--ink2);">May override what the data alone suggests</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="insight ins-orange" style="margin-top:.9rem;">
+    <span>⚠️</span>
+    <span>A statistically "cleanest" cluster split is not always the most useful one. If a business needs four customer segments to support four product lines, four clusters may be the right operational choice even if the silhouette score peaks at a different k.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 5: Concepts ══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-5">
+  <div class="pills" id="concept-pills">
+    <button class="pill active" onclick="showConcept('agnes',this)">AGNES vs DIANA</button>
+    <button class="pill" onclick="showConcept('linkages',this)">Linkage formulas</button>
+    <button class="pill" onclick="showConcept('ward',this)">Ward's ESS</button>
+    <button class="pill" onclick="showConcept('dendro',this)">Reading a dendrogram</button>
+    <button class="pill" onclick="showConcept('silhouette',this)">Silhouette score</button>
+    <button class="pill" onclick="showConcept('standardize',this)">Standardizing data</button>
+    <button class="pill" onclick="showConcept('pros',this)">Pros & cons</button>
+  </div>
+  <div class="concept-box" id="conceptDetail"></div>
+</div>
+
+<!-- ══ PANEL 6: Quiz ══════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-6">
+  <div id="quiz-container"></div>
+  <button onclick="resetQuiz()" style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-top:.75rem;">Reset quiz</button>
+</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+// ── Dataset: 14 customers, income vs spending score, 3 natural clusters ────
+const DATA = [
+  {id:1,  x:15, y:39}, {id:2,  x:16, y:35}, {id:3,  x:14, y:42}, {id:4, x:18, y:30}, {id:5, x:20, y:45},
+  {id:6,  x:15, y:81}, {id:7,  x:18, y:77}, {id:8,  x:20, y:88}, {id:9, x:16, y:90},
+  {id:10, x:70, y:75}, {id:11, x:75, y:80}, {id:12, x:72, y:68}, {id:13,x:78, y:85}, {id:14,x:74, y:72},
+];
+const N = DATA.length;
+const TRUE_GROUP = {1:0,2:0,3:0,4:0,5:0, 6:1,7:1,8:1,9:1, 10:2,11:2,12:2,13:2,14:2};
+const COLORS = ['#2563a8','#e05a2b','#2b9a66','#9a5fd6','#d4a017','#5f9ea0','#c75a8a'];
+const GREY = '#aaa6a0';
+
+function euclid(a,b){ return Math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2); }
+function centroidOf(pts){ const n=pts.length; return {x:pts.reduce((s,p)=>s+p.x,0)/n, y:pts.reduce((s,p)=>s+p.y,0)/n}; }
+
+function clusterDist(c1, c2, method){
+  if(method==='single'){
+    let m=Infinity; for(const a of c1) for(const b of c2) m=Math.min(m,euclid(a,b)); return m;
+  }
+  if(method==='complete'){
+    let m=0; for(const a of c1) for(const b of c2) m=Math.max(m,euclid(a,b)); return m;
+  }
+  if(method==='average'){
+    let s=0,n=0; for(const a of c1) for(const b of c2){s+=euclid(a,b);n++;} return s/n;
+  }
+  if(method==='centroid'){
+    return euclid(centroidOf(c1), centroidOf(c2));
+  }
+  if(method==='ward'){
+    const n1=c1.length, n2=c2.length;
+    const d = euclid(centroidOf(c1), centroidOf(c2));
+    return (n1*n2/(n1+n2)) * d * d;
+  }
+}
+
+// ── Build full agglomeration tree ───────────────────────────────────────
+function agglomerate(method){
+  let active = DATA.map(p => ({id:'L'+p.id, points:[p], height:0, left:null, right:null, isLeaf:true, leafId:p.id}));
+  const mergeHistory = [];
+  let nid = 0;
+  while(active.length > 1){
+    let bi=0, bj=1, best=Infinity;
+    for(let i=0;i<active.length;i++) for(let j=i+1;j<active.length;j++){
+      const d = clusterDist(active[i].points, active[j].points, method);
+      if(d < best){ best=d; bi=i; bj=j; }
+    }
+    const a = active[bi], b = active[bj];
+    const node = {id:'N'+(nid++), points:a.points.concat(b.points), height:best, left:a, right:b, isLeaf:false};
+    mergeHistory.push({left:a, right:b, height:best, node, ids:node.points.map(p=>p.id)});
+    active = active.filter((_,idx)=>idx!==bi && idx!==bj);
+    active.push(node);
+  }
+  return {root:active[0], mergeHistory};
+}
+
+function leafOrder(node){
+  if(node.isLeaf) return [node.leafId];
+  return [...leafOrder(node.left), ...leafOrder(node.right)];
+}
+
+// assign x to every node (leaves by order, internal = midpoint of children)
+function assignX(node, order){
+  if(node.isLeaf){ node._x = order.indexOf(node.leafId); return node._x; }
+  const lx = assignX(node.left, order), rx = assignX(node.right, order);
+  node._x = (lx+rx)/2; return node._x;
+}
+
+// ── Union-Find replay to get clusters for first `steps` merges ─────────
+function partialClusters(mergeHistory, steps){
+  const parent = {}; DATA.forEach(p=>parent[p.id]=p.id);
+  function find(x){ while(parent[x]!==x){ x=parent[x]; } return x; }
+  for(let i=0;i<steps;i++){
+    const m = mergeHistory[i];
+    const a = find(m.left.points[0].id), b = find(m.right.points[0].id);
+    if(a!==b) parent[b]=a;
+  }
+  const groups = {}; const order = [];
+  DATA.forEach(p=>{ const r=find(p.id); if(!(r in groups)){ groups[r]=order.length; order.push(r);} });
+  const assignment = {}; DATA.forEach(p=>assignment[p.id]=groups[find(p.id)]);
+  return assignment;
+}
+function clustersForK(mergeHistory, k){
+  // stop merging once cluster count hits k
+  const parent = {}; DATA.forEach(p=>parent[p.id]=p.id);
+  function find(x){ while(parent[x]!==x){ x=parent[x]; } return x; }
+  let count = N;
+  for(const m of mergeHistory){
+    if(count<=k) break;
+    const a = find(m.left.points[0].id), b = find(m.right.points[0].id);
+    if(a!==b){ parent[b]=a; count--; }
+  }
+  const groups = {}; const order=[];
+  DATA.forEach(p=>{ const r=find(p.id); if(!(r in groups)){ groups[r]=order.length; order.push(r);} });
+  const assignment = {}; DATA.forEach(p=>assignment[p.id]=groups[find(p.id)]);
+  return assignment;
+}
+function clustersAtHeight(root, h){
+  if(root.isLeaf || root.height<=h) return [root];
+  return [...clustersAtHeight(root.left,h), ...clustersAtHeight(root.right,h)];
+}
+function leafIdsOf(node){ return node.isLeaf ? [node.leafId] : [...leafIdsOf(node.left), ...leafIdsOf(node.right)]; }
+
+function silhouette(assignment){
+  const groups = {};
+  DATA.forEach(p=>{ const g=assignment[p.id]; (groups[g]=groups[g]||[]).push(p); });
+  const keys = Object.keys(groups);
+  if(keys.length<2) return 0;
+  let total=0;
+  DATA.forEach(p=>{
+    const own = groups[assignment[p.id]];
+    let a=0;
+    if(own.length>1){ a = own.filter(q=>q.id!==p.id).reduce((s,q)=>s+euclid(p,q),0)/(own.length-1); }
+    let b=Infinity;
+    for(const k of keys){ if(k===String(assignment[p.id])) continue;
+      const g=groups[k]; const avg=g.reduce((s,q)=>s+euclid(p,q),0)/g.length; b=Math.min(b,avg); }
+    const s = own.length>1 ? (b-a)/Math.max(a,b) : 0;
+    total += s;
+  });
+  return total/N;
+}
+
+// ── Global state ─────────────────────────────────────────────────────────
+let CL = {}; // current clustering build {root, mergeHistory, order, maxHeight}
+function rebuild(method){
+  const {root, mergeHistory} = agglomerate(method);
+  const order = leafOrder(root);
+  assignX(root, order);
+  CL = {method, root, mergeHistory, order, maxHeight: root.height};
+}
+rebuild('average');
+
+function setGlobalLinkage(method, btn, fromPanel){
+  document.querySelectorAll('.pills .pill[data-m]').forEach(p=>{
+    p.classList.toggle('active', p.dataset.m===method);
+  });
+  rebuild(method);
+  renderLinkagePanel();
+  renderStepPanel();
+  renderCutPanel();
+  renderKPanel();
+}
+
+// ══ SVG dendrogram drawing ═════════════════════════════════════════════
+function scaleYFactory(maxH, top, bottom){
+  return h => bottom - (h/maxH)*(bottom-top);
+}
+function renderDendroSVG(root, opts){
+  const {width=680, height=240, maxStep=13, currentStep=13, assignment=null, cutHeight=null} = opts;
+  const top=18, bottom=height-34, leftPad=28, rightPad=28;
+  const order = CL.order;
+  const n = order.length;
+  const xOf = id => leftPad + (order.indexOf(id)/(n-1))*(width-leftPad-rightPad);
+  const maxH = CL.maxHeight || 1;
+  const yOf = scaleYFactory(maxH, top, bottom);
+
+  let lines = '';
+  // recursive draw, tag merge order
+  CL.mergeHistory.forEach((m, idx)=>{
+    if(idx >= currentStep) return;
+    const node = m.node;
+    const lx = (node.left.isLeaf) ? xOf(node.left.leafId) : node.left._xpix;
+    const rx = (node.right.isLeaf) ? xOf(node.right.leafId) : node.right._xpix;
+    const ly = node.left.isLeaf ? bottom : yOf(node.left.height);
+    const ry = node.right.isLeaf ? bottom : yOf(node.right.height);
+    const ny = yOf(node.height);
+    const nx = (lx+rx)/2;
+    node._xpix = nx;
+    lines += `<path d="M${lx},${ly} V${ny} H${rx} V${ry}" fill="none" stroke="#9a96c0" stroke-width="1.6"/>`;
+  });
+
+  let leaves = '';
+  order.forEach(id=>{
+    const x = xOf(id);
+    const grp = assignment ? assignment[id] : null;
+    const col = grp!==null ? COLORS[grp % COLORS.length] : '#4a4a6a';
+    leaves += `<circle cx="${x}" cy="${bottom}" r="3.2" fill="${col}"/>`;
+    leaves += `<text x="${x}" y="${bottom+14}" text-anchor="middle" class="leaf-label">${id}</text>`;
+  });
+
+  let cutLine = '';
+  if(cutHeight!==null){
+    const cy = yOf(cutHeight);
+    cutLine = `<line x1="${leftPad-12}" y1="${cy}" x2="${width-rightPad+12}" y2="${cy}" stroke="#e05a2b" stroke-width="1.6" stroke-dasharray="5,4"/>`;
+  }
+
+  // y-axis ticks
+  let axis = `<line x1="${leftPad-12}" y1="${top-6}" x2="${leftPad-12}" y2="${bottom}" stroke="#ddd8d0"/>`;
+  for(let i=0;i<=4;i++){
+    const h = (maxH*i/4);
+    const yy = yOf(h);
+    axis += `<text x="${leftPad-16}" y="${yy+3}" text-anchor="end" class="leaf-label" style="font-size:8px;">${h.toFixed(0)}</text>`;
+    axis += `<line x1="${leftPad-14}" y1="${yy}" x2="${leftPad-12}" y2="${yy}" stroke="#ddd8d0"/>`;
+  }
+
+  return `<svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">${axis}${lines}${leaves}${cutLine}</svg>`;
+}
+
+// ══ PANEL 0: What Is It ════════════════════════════════════════════════
+let charts0 = {};
+function destroyChart(key, store){ if(store[key]){ store[key].destroy(); delete store[key]; } }
+function initOverview(){
+  ['agnes','diana','output'].forEach(k=>destroyChart('c0-'+k, charts0));
+  const mkMini = (id, title)=>{
+    const ctx = $(id).getContext('2d');
+    charts0[id] = new Chart(ctx, {type:'scatter',
+      data:{datasets:[{data:DATA.map(p=>({x:p.x,y:p.y})), backgroundColor: DATA.map(p=>COLORS[TRUE_GROUP[p.id]]), pointRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+        scales:{x:{display:false},y:{display:false}}}
+    });
+  };
+  mkMini('c0-agnes'); mkMini('c0-diana'); mkMini('c0-output');
+
+  destroyChart('c0-scatter', charts0);
+  const ctx = $('c0-scatter').getContext('2d');
+  charts0['c0-scatter'] = new Chart(ctx,{type:'scatter',
+    data:{datasets:[{label:'Customers', data:DATA.map(p=>({x:p.x,y:p.y,id:p.id})), backgroundColor:'#2563a8', pointRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`#${c.raw.id}: income ${c.raw.x}, spending ${c.raw.y}`}}},
+      scales:{x:{title:{display:true,text:'Income',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+               y:{title:{display:true,text:'Spending score',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+}
+
+// ══ PANEL 1: Linkage ═══════════════════════════════════════════════════
+let chart1Link=null, chart1Scatter=null;
+const LINK_EXPLAIN = {
+  single:'Single linkage uses the shortest distance between any point in cluster A and any point in cluster B — the closest pair decides. This makes it sensitive to chains of nearby points.',
+  complete:'Complete linkage uses the longest distance between any point in A and any point in B — the farthest pair decides. This favors compact, evenly-sized clusters.',
+  average:'Average linkage uses the mean distance across every pair of points between A and B. It balances the extremes of single and complete linkage.',
+  centroid:'Centroid linkage collapses each cluster to its mean point (centroid) and measures the distance between the two centroids directly.',
+  ward:"Ward's method merges whichever pair of clusters causes the smallest increase in total within-cluster variance (error sum of squares, ESS) — it directly optimizes cluster compactness at every step."
+};
+function renderLinkagePanel(){
+  $('link-explain').textContent = LINK_EXPLAIN[CL.method];
+  // illustrate two toy clusters A (3 pts) and B (3 pts)
+  const A=[{x:3,y:5},{x:4,y:4.2},{x:3.6,y:3.4}];
+  const B=[{x:9.8,y:1.9},{x:10.2,y:1.1},{x:11,y:1}];
+  destroyChart('c1-link', {['c1-link']:chart1Link});
+  const ctx = $('c1-link').getContext('2d');
+  let lineSegs = [];
+  if(CL.method==='single'){
+    let best=Infinity,bp=null; A.forEach(a=>B.forEach(b=>{const d=euclid(a,b); if(d<best){best=d;bp=[a,b];}}));
+    lineSegs.push({pts:bp, color:'#2563a8'});
+  } else if(CL.method==='complete'){
+    let worst=0,bp=null; A.forEach(a=>B.forEach(b=>{const d=euclid(a,b); if(d>worst){worst=d;bp=[a,b];}}));
+    lineSegs.push({pts:bp, color:'#e05a2b'});
+  } else if(CL.method==='centroid'){
+    const ca=centroidOf(A), cb=centroidOf(B);
+    lineSegs.push({pts:[ca,cb], color:'#e05a2b', dash:true});
+  } else if(CL.method==='average'){
+    A.forEach(a=>B.forEach(b=>lineSegs.push({pts:[a,b], color:'rgba(150,120,200,.45)'})));
+  } else if(CL.method==='ward'){
+    const ca=centroidOf(A), cb=centroidOf(B);
+    lineSegs.push({pts:[ca,cb], color:'#9a5fd6', dash:true});
+  }
+  chart1Link = new Chart(ctx,{type:'scatter',
+    data:{datasets:[
+      {label:'Cluster A', data:A, backgroundColor:'#2b9a66', pointRadius:6},
+      {label:'Cluster B', data:B, backgroundColor:'#e05a2b', pointRadius:6},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:9},color:'#4a4a6a',boxWidth:14}},
+        annotation:undefined},
+      scales:{x:{min:0,max:13,title:{display:true,text:'x',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+               y:{min:0,max:6,title:{display:true,text:'y',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+  // draw the linkage line(s) manually on top with a plugin-free approach: use a second transparent line dataset
+  lineSegs.forEach(seg=>{
+    chart1Link.data.datasets.push({type:'line', data:seg.pts, borderColor:seg.color, borderWidth:2, borderDash:seg.dash?[5,4]:[], pointRadius:0, fill:false});
+  });
+  chart1Link.update();
+
+  $('c1-mini-dendro').innerHTML = renderDendroSVG(CL.root, {width:300,height:170,currentStep:13});
+  const assignment3 = clustersForK(CL.mergeHistory, 3);
+  destroyChart('c1-mini-scatter', {['c1-mini-scatter']:chart1Scatter});
+  chart1Scatter = new Chart($('c1-mini-scatter').getContext('2d'), {type:'scatter',
+    data:{datasets:[{data:DATA.map(p=>({x:p.x,y:p.y})), backgroundColor:DATA.map(p=>COLORS[assignment3[p.id]%COLORS.length]), pointRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+      scales:{x:{display:false},y:{display:false}}}
+  });
+}
+
+// ══ PANEL 2: Build Step-by-Step ════════════════════════════════════════
+let chart2Scatter=null, chart2Heights=null;
+function renderStepPanel(){
+  $('step-slider').max = 13;
+  $('step-slider').value = $('step-slider').value || 0;
+  drawStep();
+}
+function drawStep(){
+  const step = parseInt($('step-slider').value);
+  $('step-v').textContent = step;
+  $('c2-dendro').innerHTML = renderDendroSVG(CL.root, {currentStep:step});
+  const assignment = partialClusters(CL.mergeHistory, step);
+  const nClusters = new Set(Object.values(assignment)).size;
+  if(step===0){
+    $('step-detail').textContent = `Step 0: all ${N} points are their own singleton cluster. No merges have happened yet.`;
+  } else {
+    const m = CL.mergeHistory[step-1];
+    const la = m.left.isLeaf ? `point #${m.left.leafId}` : `a cluster of ${leafIdsOf(m.left).length} points {${leafIdsOf(m.left).join(',')}}`;
+    const lb = m.right.isLeaf ? `point #${m.right.leafId}` : `a cluster of ${leafIdsOf(m.right).length} points {${leafIdsOf(m.right).join(',')}}`;
+    $('step-detail').innerHTML = `<strong>Step ${step}:</strong> merged ${la} with ${lb} at distance <strong>${m.height.toFixed(2)}</strong> (${CL.method} linkage). Clusters remaining: <strong>${nClusters}</strong>.`;
+  }
+  destroyChart('c2-scatter', {['c2-scatter']:chart2Scatter});
+  chart2Scatter = new Chart($('c2-scatter').getContext('2d'), {type:'scatter',
+    data:{datasets:[{data:DATA.map(p=>({x:p.x,y:p.y})), backgroundColor:DATA.map(p=>COLORS[assignment[p.id]%COLORS.length]), pointRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+      scales:{x:{display:false},y:{display:false}}}
+  });
+  const ptR = CL.mergeHistory.map((_,i)=> i===step-1 ? 6 : 2.5);
+  const ptC = CL.mergeHistory.map((_,i)=> i===step-1 ? '#e05a2b' : '#2563a8');
+  destroyChart('c2-heights', {['c2-heights']:chart2Heights});
+  chart2Heights = new Chart($('c2-heights').getContext('2d'), {type:'line',
+    data:{labels:CL.mergeHistory.map((_,i)=>i+1), datasets:[{data:CL.mergeHistory.map(m=>m.height), borderColor:'#2563a8', borderWidth:2, tension:.3, pointRadius:ptR, pointBackgroundColor:ptC}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+      scales:{x:{title:{display:true,text:'merge #',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+               y:{title:{display:true,text:'height',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+}
+
+// ══ PANEL 3: Cut the Tree ══════════════════════════════════════════════
+let chart3Scatter=null;
+function renderCutPanel(){
+  $('cut-slider').max = Math.round(CL.maxHeight*1.05);
+  if(parseInt($('cut-slider').value) > CL.maxHeight) $('cut-slider').value = Math.round(CL.maxHeight/2);
+  drawCut();
+}
+function drawCut(){
+  const h = parseFloat($('cut-slider').value);
+  $('cut-v').textContent = h.toFixed(0);
+  $('cut-height').textContent = h.toFixed(1);
+  const clusters = clustersAtHeight(CL.root, h);
+  $('cut-k').textContent = clusters.length;
+  const assignment = {};
+  clusters.forEach((c,idx)=> leafIdsOf(c).forEach(id=>assignment[id]=idx));
+  const sil = silhouette(assignment);
+  $('cut-sil').textContent = sil.toFixed(3);
+  $('c3-dendro').innerHTML = renderDendroSVG(CL.root, {currentStep:13, assignment, cutHeight:h});
+  destroyChart('c3-scatter', {['c3-scatter']:chart3Scatter});
+  chart3Scatter = new Chart($('c3-scatter').getContext('2d'), {type:'scatter',
+    data:{datasets:[{data:DATA.map(p=>({x:p.x,y:p.y,id:p.id})), backgroundColor:DATA.map(p=>COLORS[assignment[p.id]%COLORS.length]), pointRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>`#${c.raw.id}`}}},
+      scales:{x:{title:{display:true,text:'Income',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+               y:{title:{display:true,text:'Spending score',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+}
+
+// ══ PANEL 4: Choosing K ════════════════════════════════════════════════
+let chart4Sil=null, chart4Elbow=null;
+function renderKPanel(){
+  const ks = [2,3,4,5,6,7];
+  const sils = ks.map(k=>silhouette(clustersForK(CL.mergeHistory, k)));
+  const bestIdx = sils.indexOf(Math.max(...sils));
+  const bestK = ks[bestIdx];
+  destroyChart('c4-sil', {['c4-sil']:chart4Sil});
+  chart4Sil = new Chart($('c4-sil').getContext('2d'), {type:'bar',
+    data:{labels:ks.map(k=>'k='+k), datasets:[{data:sils, backgroundColor:ks.map((k,i)=> i===bestIdx ? '#2b9a66' : '#bdd0f7')}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:1,title:{display:true,text:'silhouette',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+               x:{ticks:{color:'#aaa',font:{size:9}},grid:{display:false}}}}
+  });
+  // elbow: heights of last few merges (descending order = clusters count decreasing)
+  const heights = CL.mergeHistory.map(m=>m.height);
+  const clustersRemaining = heights.map((_,i)=> N - (i+1));
+  destroyChart('c4-elbow', {['c4-elbow']:chart4Elbow});
+  chart4Elbow = new Chart($('c4-elbow').getContext('2d'), {type:'line',
+    data:{labels:clustersRemaining, datasets:[{data:heights, borderColor:'#e05a2b', borderWidth:2, tension:.25, pointRadius:3, pointBackgroundColor:'#e05a2b'}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+      scales:{x:{reverse:true,title:{display:true,text:'clusters remaining',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+               y:{title:{display:true,text:'merge height',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+  $('k-recommend').innerHTML = `<span>🎯</span><span>For <strong>${CL.method}</strong> linkage, the silhouette score peaks at <strong>k = ${bestK}</strong> (score ${sils[bestIdx].toFixed(3)}). The elbow chart shows the biggest jump in merge height happens going from a few clusters down to fewer still — both views point to roughly the same answer here because the three customer groups are well separated.</span>`;
+}
+
+// ══ PANEL 5: Concepts ══════════════════════════════════════════════════
+const CONCEPTS = {
+  agnes:{title:'AGNES vs DIANA', body:`Hierarchical clustering has two directions.<span class="cformula">AGNES (agglomerative) — bottom-up: start with N singleton clusters, repeatedly merge the closest pair</span><span class="cformula">DIANA (divisive) — top-down: start with one cluster containing everything, repeatedly split the most dissimilar group</span>AGNES is the more commonly implemented approach and is what most software (Analytic Solver, R's hclust, scikit-learn's AgglomerativeClustering) runs by default. Both produce a dendrogram; the logic for cutting the tree to pick k is identical either way.`},
+  linkages:{title:'Linkage formulas', body:`Linkage defines the distance between two clusters A and B made up of points a∈A, b∈B.<span class="cformula">Single:    d(A,B) = min { d(a,b) }</span><span class="cformula">Complete:  d(A,B) = max { d(a,b) }</span><span class="cformula">Average:   d(A,B) = mean { d(a,b) } over all pairs</span><span class="cformula">Centroid:  d(A,B) = d( mean(A), mean(B) )</span>Every linkage method needs a base distance — typically Euclidean or Manhattan distance on numerical variables, or matching/Jaccard coefficients for categorical variables.`},
+  ward:{title:"Ward's error sum of squares", body:`Ward's method does not use raw pairwise distances. Instead it asks: if we merged A and B, how much would total within-cluster variance increase?<span class="cformula">ESS = Σ (xᵢ − x̄_cluster)²  summed over all points and clusters</span><span class="cformula">Merge cost(A,B) = (|A|·|B| / (|A|+|B|)) · ‖centroid_A − centroid_B‖²</span>At every step, Ward's method merges whichever pair of clusters produces the smallest possible increase in ESS. Because it directly minimizes within-cluster spread, it tends to produce compact, similarly-sized clusters and is a common default choice.`},
+  dendro:{title:'Reading a dendrogram', body:`A dendrogram is a tree diagram: every leaf is one observation, every internal branch is a merge, and the height of a branch is the linkage distance at which that merge happened.<span class="cformula">Taller branch = more dissimilar groups being joined</span><span class="cformula">Shorter branch = nearly identical groups being joined</span>To "cut the tree," draw a horizontal line at some height h. Every vertical branch the line crosses becomes one cluster. Cutting higher up produces fewer, larger clusters; cutting lower produces more, smaller clusters. There is no single correct height — read the gaps between merge heights, check the resulting cluster profiles, and weigh any business requirements.`},
+  silhouette:{title:'Silhouette score', body:`The silhouette score measures, for each point i, how well it fits its assigned cluster versus the next-nearest cluster.<span class="cformula">a(i) = mean distance from i to other points in its own cluster</span><span class="cformula">b(i) = mean distance from i to points in the nearest other cluster</span><span class="cformula">s(i) = (b(i) − a(i)) / max(a(i), b(i))</span>s(i) ranges from −1 (likely misclassified) to +1 (well clustered); 0 means the point sits on a cluster boundary. Averaging s(i) over all points gives one score per candidate k — pick the k that maximizes it, but cross-check against the dendrogram and domain context rather than trusting the number alone.`},
+  standardize:{title:'Why standardize before clustering', body:`Distance-based clustering is scale-sensitive: a variable measured in the thousands (e.g. income) will dominate a variable measured in single digits (e.g. number of household members) purely because of units, not because it's more important.<span class="cformula">z = (x − mean) / standard deviation</span>Z-score standardization (or min-max normalization) puts every variable on a comparable scale before distances are computed, so each variable contributes proportionally to the clustering result rather than being an artifact of measurement units.`},
+  pros:{title:'Pros & cons of hierarchical clustering', body:`<strong>Pros:</strong> no need to pre-specify k, produces an interpretable full hierarchy, the dendrogram itself is a useful exploratory visualization, works with any distance/linkage definition (numerical, categorical, or mixed data).<br><br><strong>Cons:</strong> computationally expensive on large datasets (distance matrix grows with N²), sensitive to the choice of linkage and distance metric — different choices can produce noticeably different trees, early merges are permanent (a poor early merge can't be undone later, unlike k-means' iterative reassignment), single linkage is prone to chaining on noisy data.`},
+};
+function showConcept(key, btn){
+  document.querySelectorAll('#concept-pills .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  const c = CONCEPTS[key];
+  $('conceptDetail').innerHTML = `<div class="concept-title">${c.title}</div><div class="concept-body">${c.body}</div>`;
+}
+
+// ══ PANEL 6: Quiz ══════════════════════════════════════════════════════
+const QUESTIONS = [
+  {q:'What does AGNES (agglomerative clustering) do first?',
+   opts:['Splits all data into two clusters','Treats every observation as its own cluster, then merges the closest pairs','Randomly assigns points to k clusters','Computes a regression line through the data'],
+   correct:1, fb:'Correct! AGNES is bottom-up: every point starts as a singleton cluster, and the algorithm repeatedly merges whichever two clusters are closest under the chosen linkage, until only one cluster remains.'},
+  {q:'Which linkage method is most prone to "chaining" — forming long, straggly clusters?',
+   opts:['Complete linkage','Single linkage','Ward\'s method','Centroid linkage'],
+   correct:1, fb:'Correct! Single linkage only looks at the single closest pair of points between two clusters, so a chain of nearby points can link otherwise distant clusters together.'},
+  {q:'In a dendrogram, what does the height of a branch represent?',
+   opts:['The number of observations in the cluster','The distance at which two clusters were merged','The order in which the data was collected','The variance of the x-axis variable'],
+   correct:1, fb:'Correct! Branch height reflects how dissimilar the two clusters were when they merged — taller branches mean more dissimilar groups were joined together.'},
+  {q:'Ward\'s method chooses which pair of clusters to merge based on what?',
+   opts:['The pair with the smallest minimum distance','The pair whose merge causes the smallest increase in within-cluster error sum of squares (ESS)','The two largest clusters by size','A random selection at each step'],
+   correct:1, fb:'Correct! Ward\'s method merges whichever pair would increase total within-cluster variance (ESS) the least, which tends to produce compact, evenly-sized clusters.'},
+  {q:'Why is it important to standardize numerical variables before computing distances?',
+   opts:['Standardization always improves model accuracy','Variables on larger scales would otherwise dominate the distance calculation','It removes the need for a distance metric entirely','It converts the data into categorical variables'],
+   correct:1, fb:'Correct! Without standardizing (e.g. z-scores), a variable measured on a larger numeric scale would dominate the distance calculation simply due to units, distorting the clustering.'},
+  {q:'A silhouette score close to 0 for a point means…',
+   opts:['The point is perfectly clustered','The point sits roughly on the boundary between two clusters','The point is an extreme outlier','The clustering algorithm failed'],
+   correct:1, fb:'Correct! A silhouette near 0 means the point is about equally close to its own cluster and the next-nearest cluster — it sits near a boundary rather than being clearly inside one group.'},
+];
+let answered = {};
+function buildQuiz(){
+  $('quiz-container').innerHTML = QUESTIONS.map((q,i)=>`
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:0.84rem;font-weight:500;color:var(--ink);margin-bottom:.55rem;">${i+1}. ${q.q}</div>
+      ${q.opts.map((o,j)=>`<div class="quiz-opt" id="qopt-${i}-${j}" onclick="answerQ(${i},${j})">${o}</div>`).join('')}
+      <div class="quiz-fb" id="qfb-${i}"></div>
+    </div>`).join('');
+}
+function answerQ(qi, oi){
+  if(answered[qi]!==undefined) return; answered[qi]=oi;
+  const q=QUESTIONS[qi], el=$('qopt-'+qi+'-'+oi), fb=$('qfb-'+qi);
+  if(oi===q.correct){
+    el.classList.add('correct');
+    fb.style.cssText='display:block;background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;padding:10px 14px;border-radius:8px;font-size:.77rem;line-height:1.55;margin-top:.45rem;';
+    fb.textContent='✅ '+q.fb;
+  } else {
+    el.classList.add('wrong'); $('qopt-'+qi+'-'+q.correct).classList.add('correct');
+    fb.style.cssText='display:block;background:#fff0ee;border:1px solid #fcd5c0;color:#7a2e0e;padding:10px 14px;border-radius:8px;font-size:.77rem;line-height:1.55;margin-top:.45rem;';
+    fb.textContent='❌ Not quite. '+q.fb;
+  }
+}
+function resetQuiz(){ answered={}; buildQuiz(); }
+
+// ══ Tabs ═══════════════════════════════════════════════════════════════
+function goTab(i, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('panel-'+i).classList.add('active');
+  if(i===0) initOverview();
+  if(i===1) renderLinkagePanel();
+  if(i===2) renderStepPanel();
+  if(i===3) renderCutPanel();
+  if(i===4) renderKPanel();
+}
+
+window.addEventListener('load', ()=>{
+  requestAnimationFrame(()=>{
+    initOverview();
+    renderLinkagePanel();
+    showConcept('agnes', document.querySelector('#concept-pills .pill'));
+    buildQuiz();
+  });
+});
+</script>
+</body>
+</html>

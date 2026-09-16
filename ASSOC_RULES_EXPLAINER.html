@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Association Rule Analysis — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f4ef;--ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+  --acc:#2563a8;--approve:#2b9a66;--reject:#e05a2b;
+  --surface:#fff;--surface2:#f0ede8;--border:#ddd8d0;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+.wrap{max-width:920px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+.hero{margin-bottom:2rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+.hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--acc);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+.hero h1{font-family:'DM Serif Display',serif;font-size:2.3rem;line-height:1.1;margin-bottom:.5rem;}
+.hero h1 em{font-style:italic;color:var(--acc);}
+.hero p{font-size:0.9rem;color:var(--ink2);line-height:1.7;max-width:640px;}
+.tabs{display:flex;gap:0;margin-bottom:1.75rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+.tab{flex:1;padding:9px 4px;font-family:'IBM Plex Mono',monospace;font-size:0.58rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.35;}
+.tab:last-child{border-right:none;}
+.tab:hover{background:var(--surface2);color:var(--ink);}
+.tab.active{background:var(--ink);color:#fff;}
+.tab-num{display:block;font-size:0.5rem;opacity:.6;margin-bottom:2px;}
+.panel{display:none;}.panel.active{display:block;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.1rem;}
+.card-title{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.9rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;}
+canvas{display:block;width:100%;border-radius:8px;}
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.7rem;}
+.ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:var(--ink2);min-width:150px;}
+.ctrl-row input[type=range]{flex:1;accent-color:var(--acc);}
+.ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:600;color:var(--ink);min-width:50px;text-align:right;}
+.insight{display:flex;gap:10px;padding:10px 14px;border-radius:8px;font-size:0.78rem;line-height:1.55;margin-top:.75rem;}
+.ins-blue{background:#eef3ff;border:1px solid #bdd0f7;color:#1a3a7a;}
+.ins-orange{background:#fff3ee;border:1px solid #fcd5c0;color:#7a2e0e;}
+.ins-green{background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;}
+.ins-purple{background:#f3f0ff;border:1px solid #c5baf7;color:#3d2d9a;}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.1rem;}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;padding:4px 12px;border-radius:999px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--ink2);}
+.pill:hover,.pill.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.pill.disabled{opacity:.35;cursor:not-allowed;}
+.concept-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;}
+.concept-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;}
+.concept-body{font-size:0.81rem;color:var(--ink2);line-height:1.75;}
+.cformula{font-family:'IBM Plex Mono',monospace;font-size:0.71rem;background:var(--surface2);border-radius:6px;padding:6px 10px;margin:.45rem 0;display:block;color:var(--ink);}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:.9rem;}
+.stat-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:.9rem;}
+.stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;}
+.stat-val{font-family:'DM Serif Display',serif;font-size:1.35rem;color:var(--ink);}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.55rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.quiz-opt{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.81rem;transition:all .15s;background:var(--surface);}
+.quiz-opt:hover{border-color:var(--acc);background:#eef3ff;}
+.quiz-opt.correct{background:#eefff5;border-color:#2bc97a;color:#0e5c35;}
+.quiz-opt.wrong{background:#fff0ee;border-color:#ef4444;color:#7a1a1a;}
+.quiz-fb{font-size:0.77rem;padding:10px 14px;border-radius:8px;margin-top:.5rem;display:none;line-height:1.55;}
+.ens-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;text-align:center;}
+.ens-title{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--ink);margin-bottom:.35rem;}
+.ens-sub{font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink3);line-height:1.5;}
+.note-box{font-size:0.8rem;color:var(--ink2);line-height:1.6;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:.9rem;}
+table.data-tbl{width:100%;border-collapse:collapse;font-size:0.76rem;}
+table.data-tbl th{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;padding:6px 8px;border-bottom:1px solid var(--border);text-align:left;cursor:pointer;white-space:nowrap;}
+table.data-tbl td{padding:6px 8px;border-bottom:1px solid var(--surface2);color:var(--ink2);white-space:nowrap;}
+.basket-chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:0.66rem;background:var(--surface2);border-radius:5px;padding:2px 7px;margin:1px;}
+@media(max-width:600px){.two-col,.three-col{grid-template-columns:1fr;}.hero h1{font-size:1.7rem;}.tab{font-size:0.5rem;padding:7px 2px;}.stat-grid-4{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="hero-tag">// interactive explainer</div>
+  <h1>Association Rule <em>Analysis</em></h1>
+  <p>Also called affinity analysis or market basket analysis: a "what goes with what" technique that mines If-Then rules — like {diapers, beer} ⇒ {chips} — from transaction data. This explainer covers the Apriori algorithm's pruning logic, and how to compute and interpret support, confidence, and the lift ratio.</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="goTab(0,this)"><span class="tab-num">01</span>What Is It</button>
+  <button class="tab" onclick="goTab(1,this)"><span class="tab-num">02</span>Apriori</button>
+  <button class="tab" onclick="goTab(2,this)"><span class="tab-num">03</span>Sup/Conf/Lift</button>
+  <button class="tab" onclick="goTab(3,this)"><span class="tab-num">04</span>Mining Rules</button>
+  <button class="tab" onclick="goTab(4,this)"><span class="tab-num">05</span>Lift Trap</button>
+  <button class="tab" onclick="goTab(5,this)"><span class="tab-num">06</span>Concepts</button>
+  <button class="tab" onclick="goTab(6,this)"><span class="tab-num">07</span>Quiz</button>
+</div>
+
+<!-- ══ PANEL 0: What Is It ════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-0">
+  <div class="three-col">
+    <div class="ens-card" style="border-color:#2563a8;">
+      <div class="ens-title" style="color:#2563a8;">If</div>
+      <div class="ens-sub" style="margin-top:.4rem;font-size:0.7rem;">{Diapers, Beer}</div>
+      <div class="ens-sub" style="margin-top:.5rem;">The <strong>antecedent</strong> — items<br>already in the basket.</div>
+    </div>
+    <div class="ens-card" style="border-color:#e05a2b;">
+      <div class="ens-title" style="color:#e05a2b;">Then</div>
+      <div class="ens-sub" style="margin-top:.4rem;font-size:0.7rem;">{Chips}</div>
+      <div class="ens-sub" style="margin-top:.5rem;">The <strong>consequent</strong> — the item<br>likely to be added.</div>
+    </div>
+    <div class="ens-card">
+      <div class="ens-title">Used for</div>
+      <div class="ens-sub" style="margin-top:.4rem;font-size:0.7rem;">Shelf placement,<br>cross-sell, recommenders</div>
+      <div class="ens-sub" style="margin-top:.5rem;">Retail, streaming,<br>and even diagnosis.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Our working dataset — 16 grocery transactions across 6 items</div>
+    <div id="basket-table"></div>
+  </div>
+  <div class="insight ins-blue">
+    <span>💡</span>
+    <span>Association rule analysis is <strong>unsupervised</strong> — there's no target variable. It just counts how often items co-occur across transactions and turns frequent co-occurrences into If-Then rules.</span>
+  </div>
+  <div class="insight ins-purple" style="margin-top:.5rem;">
+    <span>🛒</span>
+    <span>Beyond retail: streaming services use the same logic to recommend shows based on co-viewing patterns, and in health care, association rules can surface symptoms that tend to occur together.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 1: Apriori ═══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-1">
+  <div class="card">
+    <div class="card-title">Combinatorial explosion — possible itemsets grow fast with n items</div>
+    <div style="position:relative;width:100%;height:220px;"><canvas id="c1-combo"></canvas></div>
+  </div>
+  <div class="ctrl-row">
+    <label>Number of items (n)</label>
+    <input type="range" id="combo-n" min="1" max="20" step="1" value="6" oninput="drawCombo()">
+    <span class="val" id="combo-n-v">6</span>
+  </div>
+  <div class="note-box" id="combo-note"></div>
+  <div class="insight ins-orange">
+    <span>⚠️</span>
+    <span>Number of possible If-Then combinations = 3<sup>n</sup> − 2<sup>(n+1)</sup> + 1. Even a modest 100-item convenience store implies about 5.15 × 10⁴⁷ combinations — far too many to brute-force.</span>
+  </div>
+  <div class="card" style="margin-top:1.1rem;">
+    <div class="card-title">Apriori pruning in action — drag the minimum support threshold</div>
+    <div class="ctrl-row">
+      <label>Min support</label>
+      <input type="range" id="minsup-slider" min="0" max="100" step="1" value="25" oninput="drawApriori()">
+      <span class="val" id="minsup-v">0.25</span>
+    </div>
+    <div id="apriori-levels"></div>
+  </div>
+  <div class="insight ins-green">
+    <span>✅</span>
+    <span>Apriori exploits one rule: <strong>if an itemset is infrequent, every larger itemset that contains it must also be infrequent.</strong> So it only builds bigger candidate itemsets out of the smaller itemsets that already survived the support cutoff — raising the threshold prunes the search tree dramatically.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 2: Support / Confidence / Lift ══════════════════════════════ -->
+<div class="panel" id="panel-2">
+  <div class="card">
+    <div class="card-title">Build a rule — pick antecedent item(s), then a consequent item</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">If (antecedent) — click 1 or 2 items</div>
+    <div class="pills" id="ant-pills"></div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Then (consequent) — click 1 item</div>
+    <div class="pills" id="cons-pills"></div>
+  </div>
+  <div class="card">
+    <div class="card-title" id="rule-readout">—</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" id="m-support">—</div><div class="stat-lbl">Support</div></div>
+      <div class="stat"><div class="stat-val" id="m-confidence">—</div><div class="stat-lbl">Confidence</div></div>
+      <div class="stat"><div class="stat-val" id="m-lift">—</div><div class="stat-lbl">Lift ratio</div></div>
+    </div>
+  </div>
+  <div id="calc-detail" class="note-box"></div>
+  <div class="insight ins-blue">
+    <span>💡</span>
+    <span><span class="cformula" style="margin:.2rem 0;">Support = transactions with antecedent ∪ consequent / total transactions</span><span class="cformula" style="margin:.2rem 0;">Confidence = transactions with antecedent ∪ consequent / transactions with antecedent</span><span class="cformula" style="margin:.2rem 0;">Lift = Confidence / Expected confidence, where Expected confidence = transactions with consequent / total</span></span>
+  </div>
+</div>
+
+<!-- ══ PANEL 3: Mining Rules ══════════════════════════════════════════════ -->
+<div class="panel" id="panel-3">
+  <div class="ctrl-row">
+    <label>Min support</label>
+    <input type="range" id="mr-minsup" min="0" max="100" step="1" value="15" oninput="renderRuleTable()">
+    <span class="val" id="mr-minsup-v">0.15</span>
+  </div>
+  <div class="ctrl-row">
+    <label>Min confidence</label>
+    <input type="range" id="mr-minconf" min="0" max="100" step="1" value="40" oninput="renderRuleTable()">
+    <span class="val" id="mr-minconf-v">0.40</span>
+  </div>
+  <div class="card">
+    <div class="card-title">All rules meeting the thresholds — sorted by lift ratio, descending</div>
+    <div id="rule-table-wrap" style="overflow-x:auto;"></div>
+  </div>
+  <div class="insight ins-purple">
+    <span>🎯</span>
+    <span>Common practice: generate every candidate rule that clears the support and confidence thresholds, then sort by <strong>lift ratio</strong> and focus on the strongest, non-obvious associations near the top.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 4: Lift Trap ═════════════════════════════════════════════════ -->
+<div class="panel" id="panel-4">
+  <div class="card">
+    <div class="card-title">The {broccoli} ⇒ {milk} trap — both items are just popular on their own</div>
+    <div style="position:relative;width:100%;height:200px;"><canvas id="c4-chart"></canvas></div>
+  </div>
+  <div class="ctrl-row">
+    <label>Popularity of broccoli</label>
+    <input type="range" id="trap-a" min="10" max="90" step="1" value="70" oninput="drawTrap()">
+    <span class="val" id="trap-a-v">70%</span>
+  </div>
+  <div class="ctrl-row">
+    <label>Popularity of milk</label>
+    <input type="range" id="trap-b" min="10" max="90" step="1" value="75" oninput="drawTrap()">
+    <span class="val" id="trap-b-v">75%</span>
+  </div>
+  <div class="ctrl-row">
+    <label>True association strength</label>
+    <input type="range" id="trap-assoc" min="-50" max="50" step="1" value="0" oninput="drawTrap()">
+    <span class="val" id="trap-assoc-v">0</span>
+  </div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val" id="trap-support">—</div><div class="stat-lbl">Support</div></div>
+    <div class="stat"><div class="stat-val" id="trap-confidence">—</div><div class="stat-lbl">Confidence</div></div>
+    <div class="stat"><div class="stat-val" id="trap-lift">—</div><div class="stat-lbl">Lift ratio</div></div>
+  </div>
+  <div id="trap-verdict" class="insight ins-orange" style="margin-top:.9rem;"></div>
+  <div class="insight ins-blue" style="margin-top:.5rem;">
+    <span>💡</span>
+    <span>Slide "true association strength" to 0 while keeping both popularity sliders high — notice support and confidence can both look strong even though lift sits right around 1, meaning the two items aren't actually related; they're just both popular.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 5: Concepts ══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-5">
+  <div class="pills" id="concept-pills">
+    <button class="pill active" onclick="showConcept('basics',this)">If-Then basics</button>
+    <button class="pill" onclick="showConcept('apriori',this)">Apriori algorithm</button>
+    <button class="pill" onclick="showConcept('support',this)">Support</button>
+    <button class="pill" onclick="showConcept('confidence',this)">Confidence</button>
+    <button class="pill" onclick="showConcept('lift',this)">Lift ratio</button>
+    <button class="pill" onclick="showConcept('uses',this)">Applications</button>
+  </div>
+  <div class="concept-box" id="conceptDetail"></div>
+</div>
+
+<!-- ══ PANEL 6: Quiz ══════════════════════════════════════════════════════ -->
+<div class="panel" id="panel-6">
+  <div id="quiz-container"></div>
+  <button onclick="resetQuiz()" style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-top:.75rem;">Reset quiz</button>
+</div>
+
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+// ── Transaction dataset ─────────────────────────────────────────────────
+const ITEMS = ['Bread','Milk','Eggs','Diapers','Beer','Cola'];
+const TRANSACTIONS = [
+  ['Bread','Milk'],
+  ['Bread','Diapers','Beer','Eggs'],
+  ['Milk','Diapers','Beer','Cola'],
+  ['Bread','Milk','Diapers','Beer'],
+  ['Bread','Milk','Diapers','Cola'],
+  ['Milk','Diapers','Beer'],
+  ['Bread','Milk','Diapers','Beer'],
+  ['Bread','Eggs'],
+  ['Milk','Eggs'],
+  ['Bread','Milk','Diapers','Eggs'],
+  ['Diapers','Beer'],
+  ['Bread','Milk','Cola'],
+  ['Bread','Diapers','Beer'],
+  ['Milk','Diapers','Beer','Cola'],
+  ['Bread','Milk','Diapers','Beer','Eggs'],
+  ['Bread','Cola'],
+];
+const NT = TRANSACTIONS.length;
+
+function countContaining(itemset){
+  return TRANSACTIONS.filter(t => itemset.every(i => t.includes(i))).length;
+}
+function support(itemset){ return countContaining(itemset)/NT; }
+
+// ── Panel 0: render transaction table ───────────────────────────────────
+function renderBasketTable(){
+  let html = '<table class="data-tbl"><thead><tr><th>#</th><th>Items in basket</th></tr></thead><tbody>';
+  TRANSACTIONS.forEach((t,i)=>{
+    html += `<tr><td>T${i+1}</td><td>${t.map(it=>`<span class="basket-chip">${it}</span>`).join('')}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  $('basket-table').innerHTML = html;
+}
+
+// ── Panel 1: combinatorics + apriori pruning ────────────────────────────
+let chartCombo=null;
+function comboCount(n){ return Math.pow(3,n) - 2*Math.pow(2,n) + 1; }
+function drawCombo(){
+  const n = parseInt($('combo-n').value);
+  $('combo-n-v').textContent = n;
+  const labels = Array.from({length:n},(_,i)=>i+1);
+  const data = labels.map(comboCount);
+  if(chartCombo) chartCombo.destroy();
+  chartCombo = new Chart($('c1-combo').getContext('2d'), {type:'bar',
+    data:{labels, datasets:[{data, backgroundColor:'#2563a8'}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+      scales:{y:{type:'logarithmic',title:{display:true,text:'possible rules (log scale)',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}}},
+               x:{title:{display:true,text:'number of items (n)',font:{size:9},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{display:false}}}}
+  });
+  $('combo-note').innerHTML = `With <strong>n = ${n}</strong> items, there are <strong>${Math.round(comboCount(n)).toLocaleString()}</strong> possible If-Then combinations to consider (3<sup>n</sup> − 2<sup>(n+1)</sup> + 1).`;
+}
+
+function subsets(arr, maxSize){
+  const out=[[]];
+  for(const item of arr){
+    const cur=out.slice();
+    for(const s of cur){ if(s.length<maxSize) out.push([...s,item]); }
+  }
+  return out.filter(s=>s.length>0);
+}
+function combos(arr, k){
+  if(k===0) return [[]];
+  if(arr.length<k) return [];
+  const [first,...rest]=arr;
+  const withFirst = combos(rest,k-1).map(c=>[first,...c]);
+  const withoutFirst = combos(rest,k);
+  return [...withFirst, ...withoutFirst];
+}
+
+function drawApriori(){
+  const minSup = parseInt($('minsup-slider').value)/100;
+  $('minsup-v').textContent = minSup.toFixed(2);
+
+  // level 1
+  let level1 = ITEMS.map(i=>({set:[i], sup:support([i])}));
+  let freq1 = level1.filter(x=>x.sup>=minSup);
+  const all1 = combos(ITEMS,1).length;
+
+  // level 2 candidates built only from frequent level-1 items
+  const cand2items = freq1.map(x=>x.set[0]);
+  let level2 = combos(cand2items,2).map(s=>({set:s, sup:support(s)}));
+  let freq2 = level2.filter(x=>x.sup>=minSup);
+  const all2 = combos(ITEMS,2).length;
+
+  // level 3 candidates built only from items appearing in frequent level-2 sets
+  const cand3itemsSet = new Set();
+  freq2.forEach(x=>x.set.forEach(i=>cand3itemsSet.add(i)));
+  const cand3items = Array.from(cand3itemsSet);
+  let level3 = combos(cand3items,3).map(s=>({set:s, sup:support(s)}));
+  let freq3 = level3.filter(x=>x.sup>=minSup);
+  const all3 = combos(ITEMS,3).length;
+
+  function rowsHTML(levelLabel, candidates, frequent, allCount){
+    let html = `<div style="margin-top:.9rem;"><div class="card-title" style="margin-bottom:.5rem;">${levelLabel} — ${frequent.length} frequent of ${candidates.length} candidates examined (vs. ${allCount} possible without pruning)</div>`;
+    html += '<table class="data-tbl"><thead><tr><th>Itemset</th><th>Support</th><th>Kept?</th></tr></thead><tbody>';
+    candidates.slice(0,12).forEach(c=>{
+      const kept = c.sup>=minSup;
+      html += `<tr><td>{${c.set.join(', ')}}</td><td>${c.sup.toFixed(3)}</td><td style="color:${kept?'#2b9a66':'#e05a2b'};font-weight:600;">${kept?'✓ kept':'✗ pruned'}</td></tr>`;
+    });
+    html += '</tbody></table></div>';
+    return html;
+  }
+  $('apriori-levels').innerHTML =
+    rowsHTML('1-itemsets', level1, freq1, all1) +
+    rowsHTML('2-itemsets (built only from frequent 1-itemsets)', level2, freq2, all2) +
+    rowsHTML('3-itemsets (built only from frequent 2-itemsets)', level3, freq3, all3);
+}
+
+// ── Panel 2: support/confidence/lift calculator ─────────────────────────
+let antSel = ['Diapers'];
+let consSel = 'Beer';
+function renderCalcPills(){
+  $('ant-pills').innerHTML = ITEMS.map(it=>{
+    const disabled = it===consSel;
+    const active = antSel.includes(it);
+    return `<button class="pill ${active?'active':''} ${disabled?'disabled':''}" onclick="${disabled?'':'toggleAnt(\''+it+'\')'}">${it}</button>`;
+  }).join('');
+  $('cons-pills').innerHTML = ITEMS.map(it=>{
+    const disabled = antSel.includes(it);
+    const active = consSel===it;
+    return `<button class="pill ${active?'active':''} ${disabled?'disabled':''}" onclick="${disabled?'':'setCons(\''+it+'\')'}">${it}</button>`;
+  }).join('');
+}
+function toggleAnt(item){
+  if(antSel.includes(item)){ antSel = antSel.filter(i=>i!==item); }
+  else { if(antSel.length>=2) antSel.shift(); antSel.push(item); }
+  if(antSel.length===0) antSel=[ITEMS.find(i=>i!==consSel)];
+  renderCalcPills(); updateCalc();
+}
+function setCons(item){ consSel = item; antSel = antSel.filter(i=>i!==item); if(antSel.length===0) antSel=[ITEMS.find(i=>i!==consSel)]; renderCalcPills(); updateCalc(); }
+function updateCalc(){
+  const ruleSet = [...antSel, consSel];
+  const supBoth = countContaining(ruleSet);
+  const supAnt = countContaining(antSel);
+  const supCons = countContaining([consSel]);
+  const sup = supBoth/NT;
+  const conf = supAnt>0 ? supBoth/supAnt : 0;
+  const expConf = supCons/NT;
+  const lift = expConf>0 ? conf/expConf : 0;
+  $('rule-readout').textContent = `{${antSel.join(', ')}} ⇒ {${consSel}}`;
+  $('m-support').textContent = sup.toFixed(3);
+  $('m-confidence').textContent = conf.toFixed(3);
+  $('m-lift').textContent = lift.toFixed(2);
+  $('calc-detail').innerHTML = `Of the ${NT} transactions, <strong>${supAnt}</strong> include {${antSel.join(', ')}}; of those, <strong>${supBoth}</strong> also include ${consSel} → confidence = ${supBoth}/${supAnt} = ${conf.toFixed(3)}. Overall, <strong>${supCons}</strong> of ${NT} transactions include ${consSel} on its own (expected confidence = ${expConf.toFixed(3)}). Lift = ${conf.toFixed(3)} / ${expConf.toFixed(3)} = <strong>${lift.toFixed(2)}</strong> — ${lift>1.15?'a positive association, stronger than chance.':lift<0.87?'a negative association, weaker than chance.':'roughly what you\'d expect by chance alone.'}`;
+}
+
+// ── Panel 3: rule mining table ───────────────────────────────────────────
+function allRules(){
+  const itemsetSizes = [2,3];
+  let rules = [];
+  itemsetSizes.forEach(k=>{
+    combos(ITEMS,k).forEach(set=>{
+      const setSup = support(set);
+      if(setSup===0) return;
+      // every non-empty proper subset as antecedent
+      const subs = subsets(set, set.length-1).filter(s=>s.length>0 && s.length<set.length);
+      subs.forEach(ant=>{
+        const cons = set.filter(i=>!ant.includes(i));
+        const supAnt = support(ant);
+        const supCons = support(cons);
+        const conf = supAnt>0 ? setSup/supAnt : 0;
+        const lift = supCons>0 ? conf/supCons : 0;
+        rules.push({ant, cons, support:setSup, confidence:conf, lift});
+      });
+    });
+  });
+  // dedupe identical ant=>cons (can repeat across set sizes for size2 only once anyway)
+  const seen = new Set(); const out=[];
+  rules.forEach(r=>{
+    const key = r.ant.slice().sort().join(',')+'=>'+r.cons.slice().sort().join(',');
+    if(!seen.has(key)){ seen.add(key); out.push(r); }
+  });
+  return out;
+}
+function renderRuleTable(){
+  const minSup = parseInt($('mr-minsup').value)/100;
+  const minConf = parseInt($('mr-minconf').value)/100;
+  $('mr-minsup-v').textContent = minSup.toFixed(2);
+  $('mr-minconf-v').textContent = minConf.toFixed(2);
+  const rules = allRules().filter(r=>r.support>=minSup && r.confidence>=minConf).sort((a,b)=>b.lift-a.lift);
+  let html = '<table class="data-tbl"><thead><tr><th>Rule</th><th>Support</th><th>Confidence</th><th>Lift</th></tr></thead><tbody>';
+  if(rules.length===0){ html += '<tr><td colspan="4" style="color:var(--ink3);">No rules meet these thresholds — try lowering them.</td></tr>'; }
+  rules.forEach(r=>{
+    const col = r.lift>1.1 ? '#2b9a66' : (r.lift<0.9 ? '#e05a2b' : 'var(--ink2)');
+    html += `<tr><td>{${r.ant.join(', ')}} ⇒ {${r.cons.join(', ')}}</td><td>${r.support.toFixed(3)}</td><td>${r.confidence.toFixed(3)}</td><td style="color:${col};font-weight:600;">${r.lift.toFixed(2)}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  $('rule-table-wrap').innerHTML = html;
+}
+
+// ── Panel 4: lift trap simulator ────────────────────────────────────────
+let chart4=null;
+function drawTrap(){
+  const popA = parseInt($('trap-a').value)/100;
+  const popB = parseInt($('trap-b').value)/100;
+  const assoc = parseInt($('trap-assoc').value);
+  $('trap-a-v').textContent = Math.round(popA*100)+'%';
+  $('trap-b-v').textContent = Math.round(popB*100)+'%';
+  $('trap-assoc-v').textContent = assoc;
+  // simulate: P(B|A) = popB + assoc-driven shift, clipped to [0.02,0.98]
+  const shift = (assoc/50) * Math.min(popB, 1-popB) * 0.9;
+  const condBgivenA = Math.min(0.98, Math.max(0.02, popB + shift));
+  const support = popA * condBgivenA; // P(A and B)
+  const confidence = condBgivenA; // P(B|A)
+  const expectedConfidence = popB;
+  const lift = confidence/expectedConfidence;
+  $('trap-support').textContent = support.toFixed(3);
+  $('trap-confidence').textContent = confidence.toFixed(3);
+  $('trap-lift').textContent = lift.toFixed(2);
+  if(chart4) chart4.destroy();
+  chart4 = new Chart($('c4-chart').getContext('2d'), {type:'bar',
+    data:{labels:['P(broccoli)','P(milk)','P(both)','Confidence','Expected conf.'],
+      datasets:[{data:[popA,popB,support,confidence,expectedConfidence], backgroundColor:['#9a96c0','#9a96c0','#2563a8','#2b9a66','#e05a2b']}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},
+      scales:{y:{min:0,max:1,ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+               x:{ticks:{color:'#aaa',font:{size:8}},grid:{display:false}}}}
+  });
+  const verdict = lift>1.15 ? `Lift = ${lift.toFixed(2)} > 1: there's a genuine positive association beyond what popularity alone explains.`
+    : lift<0.87 ? `Lift = ${lift.toFixed(2)} < 1: a negative association — buying broccoli makes milk slightly less likely.`
+    : `Lift = ${lift.toFixed(2)} ≈ 1: support and confidence may look strong, but the lift ratio reveals broccoli and milk are essentially independent — both items are just individually popular, so they co-occur by chance, not because of a real relationship. This is exactly the trap the textbook warns about.`;
+  $('trap-verdict').innerHTML = `<span>⚠️</span><span>${verdict}</span>`;
+}
+
+// ── Panel 5: Concepts ════════════════════════════════════════════════════
+const CONCEPTS = {
+  basics:{title:'If-Then basics', body:`Association rule analysis expresses patterns as If-Then statements.<span class="cformula">{antecedent} ⇒ {consequent}</span>The <strong>antecedent</strong> (the "If" side) and <strong>consequent</strong> (the "Then" side) can each be a single item or a combination of items, together called an item set. {smartwatch, LED lightbulb} ⇒ {meditation book} reads: "if a transaction includes a smartwatch and an LED lightbulb, a meditation book is also likely to be purchased."`},
+  apriori:{title:'The Apriori algorithm', body:`Searching every possible item combination is computationally infeasible — the number of combinations grows as 3ⁿ − 2⁽ⁿ⁺¹⁾ + 1 for n items.<span class="cformula">Apriori principle: if an itemset is infrequent, every superset of it must also be infrequent</span>Apriori exploits this by only building larger candidate itemsets out of smaller itemsets that already cleared a minimum support threshold, eliminating huge swaths of the search space before they're even examined.`},
+  support:{title:'Support', body:`Support measures how often an item or rule appears across all transactions — essentially its frequency.<span class="cformula">Support(rule) = transactions containing both antecedent & consequent / total transactions</span>Values closer to 1 mean the pattern occurs very often; values closer to 0 mean it's rare. Apriori uses item/itemset support as the basis for pruning the search.`},
+  confidence:{title:'Confidence', body:`Confidence is the conditional probability that the consequent occurs, given that the antecedent occurred.<span class="cformula">Confidence(rule) = transactions containing both antecedent & consequent / transactions containing antecedent</span>High confidence means that whenever a customer buys the antecedent item(s), they very often also buy the consequent — but high confidence alone can still be misleading (see the Lift Trap tab).`},
+  lift:{title:'Lift ratio', body:`Lift compares a rule's confidence to what we'd expect just from how popular the consequent already is.<span class="cformula">Lift = Confidence / Expected confidence</span><span class="cformula">Expected confidence = transactions containing consequent / total transactions</span>Lift = 1 means the antecedent has no effect on the odds of the consequent. Lift > 1 indicates a genuine positive association; lift between 0 and 1 indicates a negative association. In practice, rules are often sorted by lift, descending, to surface the strongest non-obvious patterns first.`},
+  uses:{title:'Real-world applications', body:`<strong>Retail:</strong> shelf placement and cross-sell/up-sell promotions based on frequently co-purchased items.<br><br><strong>E-commerce:</strong> "customers who bought this also bought…" recommendations right after checkout.<br><br><strong>Streaming:</strong> recommending shows/movies based on what similar viewers watched together.<br><br><strong>Health care:</strong> identifying symptoms that tend to co-occur, supporting diagnosis.`},
+};
+function showConcept(key, btn){
+  document.querySelectorAll('#concept-pills .pill').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  const c = CONCEPTS[key];
+  $('conceptDetail').innerHTML = `<div class="concept-title">${c.title}</div><div class="concept-body">${c.body}</div>`;
+}
+
+// ── Panel 6: Quiz ═════════════════════════════════════════════════════════
+const QUESTIONS = [
+  {q:'In the rule {smartwatch, LED lightbulb} ⇒ {meditation book}, what is the antecedent?',
+   opts:['{meditation book}','{smartwatch, LED lightbulb}','All three items together','None — there is no antecedent'],
+   correct:1, fb:'Correct! The antecedent is the "If" portion — the item(s) already present in the basket.'},
+  {q:'What does the Apriori algorithm primarily do?',
+   opts:['Randomly samples transactions to speed up analysis','Prunes itemsets that fall below a minimum support threshold before building larger candidates','Always returns exactly 10 rules','Replaces support and confidence with a single score'],
+   correct:1, fb:'Correct! Apriori relies on the fact that any superset of an infrequent itemset is also infrequent, so it only expands itemsets that already cleared the support threshold.'},
+  {q:'A rule has support 0.05 and confidence 0.80. What does the confidence of 0.80 tell you?',
+   opts:['80% of all transactions contain the rule','Given the antecedent occurred, the consequent occurred 80% of the time','The rule occurs in 80% of all possible item combinations','80% of customers are loyal to the store'],
+   correct:1, fb:'Correct! Confidence is a conditional probability: P(consequent | antecedent).'},
+  {q:'A rule has a lift ratio of exactly 1. What does this mean?',
+   opts:['The antecedent strongly causes the consequent','The rule has perfect support','The antecedent and consequent are essentially unrelated — no better than chance','The rule should always be discarded as an error'],
+   correct:2, fb:'Correct! Lift = 1 means the consequent is just as likely whether or not the antecedent occurs — i.e., no real association beyond chance.'},
+  {q:'High support and confidence for {broccoli} ⇒ {milk}, but a lift ratio near 1, most likely means…',
+   opts:['Broccoli causes people to buy milk','Both items are simply popular on their own, and co-occur by chance rather than real association','The data must be wrong','Lift should be ignored in favor of support'],
+   correct:1, fb:"Correct! This is the textbook's broccoli-and-milk trap: two individually popular items can show high support/confidence purely because each is bought often, not because buying one influences buying the other."},
+  {q:'Which measure is most appropriate for ranking rules to avoid the "two popular items" trap?',
+   opts:['Support only', 'Confidence only', 'Lift ratio', 'Total transaction count'],
+   correct:2, fb:'Correct! Lift explicitly compares confidence to the consequent\'s overall (unconditional) popularity, exposing rules that are only strong because both items are individually common.'},
+];
+let answered = {};
+function buildQuiz(){
+  $('quiz-container').innerHTML = QUESTIONS.map((q,i)=>`
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:0.84rem;font-weight:500;color:var(--ink);margin-bottom:.55rem;">${i+1}. ${q.q}</div>
+      ${q.opts.map((o,j)=>`<div class="quiz-opt" id="qopt-${i}-${j}" onclick="answerQ(${i},${j})">${o}</div>`).join('')}
+      <div class="quiz-fb" id="qfb-${i}"></div>
+    </div>`).join('');
+}
+function answerQ(qi, oi){
+  if(answered[qi]!==undefined) return; answered[qi]=oi;
+  const q=QUESTIONS[qi], el=$('qopt-'+qi+'-'+oi), fb=$('qfb-'+qi);
+  if(oi===q.correct){
+    el.classList.add('correct');
+    fb.style.cssText='display:block;background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;padding:10px 14px;border-radius:8px;font-size:.77rem;line-height:1.55;margin-top:.45rem;';
+    fb.textContent='✅ '+q.fb;
+  } else {
+    el.classList.add('wrong'); $('qopt-'+qi+'-'+q.correct).classList.add('correct');
+    fb.style.cssText='display:block;background:#fff0ee;border:1px solid #fcd5c0;color:#7a2e0e;padding:10px 14px;border-radius:8px;font-size:.77rem;line-height:1.55;margin-top:.45rem;';
+    fb.textContent='❌ Not quite. '+q.fb;
+  }
+}
+function resetQuiz(){ answered={}; buildQuiz(); }
+
+// ── Tabs ═════════════════════════════════════════════════════════════════
+function goTab(i, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('panel-'+i).classList.add('active');
+  if(i===1){ drawCombo(); drawApriori(); }
+  if(i===2){ renderCalcPills(); updateCalc(); }
+  if(i===3) renderRuleTable();
+  if(i===4) drawTrap();
+}
+
+window.addEventListener('load', ()=>{
+  requestAnimationFrame(()=>{
+    renderBasketTable();
+    drawCombo();
+    drawApriori();
+    renderCalcPills();
+    updateCalc();
+    renderRuleTable();
+    drawTrap();
+    showConcept('basics', document.querySelector('#concept-pills .pill'));
+    buildQuiz();
+  });
+});
+</script>
+</body>
+</html>

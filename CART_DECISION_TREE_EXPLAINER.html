@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CART Decision Tree — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f7f4ef;--ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+  --acc:#1a7f4b;--acc2:#e05a2b;--acc3:#2b7be0;
+  --surface:#fff;--surface2:#f0ede8;--border:#ddd8d0;
+  --approve:#2b9a66;--reject:#e05a2b;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+.hero{margin-bottom:2rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+.hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--acc);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+.hero h1{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1.1;margin-bottom:.5rem;}
+.hero h1 em{font-style:italic;color:var(--acc);}
+.hero p{font-size:0.9rem;color:var(--ink2);line-height:1.7;max-width:600px;}
+.tabs{display:flex;gap:0;margin-bottom:1.75rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+.tab{flex:1;padding:9px 4px;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.35;}
+.tab:last-child{border-right:none;}
+.tab:hover{background:var(--surface2);color:var(--ink);}
+.tab.active{background:var(--ink);color:#fff;}
+.tab-num{display:block;font-size:0.52rem;opacity:.6;margin-bottom:2px;}
+.panel{display:none;}.panel.active{display:block;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.4rem;margin-bottom:1.1rem;}
+.card-title{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.9rem;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;}
+canvas{display:block;width:100%;border-radius:8px;}
+.ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.7rem;}
+.ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;color:var(--ink2);min-width:140px;}
+.ctrl-row input[type=range]{flex:1;accent-color:var(--acc);}
+.ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:600;color:var(--ink);min-width:44px;text-align:right;}
+.insight{display:flex;gap:10px;padding:10px 14px;border-radius:8px;font-size:0.78rem;line-height:1.55;margin-top:.75rem;}
+.ins-green{background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;}
+.ins-orange{background:#fff3ee;border:1px solid #fcd5c0;color:#7a2e0e;}
+.ins-blue{background:#eef3ff;border:1px solid #bdd0f7;color:#1a3a7a;}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.1rem;}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;padding:4px 12px;border-radius:999px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--ink2);}
+.pill:hover,.pill.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+.concept-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;}
+.concept-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;}
+.concept-body{font-size:0.81rem;color:var(--ink2);line-height:1.75;}
+.cformula{font-family:'IBM Plex Mono',monospace;font-size:0.71rem;background:var(--surface2);border-radius:6px;padding:6px 10px;margin:.45rem 0;display:block;color:var(--ink);}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:.9rem;}
+.stat-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:.9rem;}
+.stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;}
+.stat-val{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.56rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+.quiz-opt{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.81rem;transition:all .15s;background:var(--surface);}
+.quiz-opt:hover{border-color:var(--acc);background:#eefff5;}
+.quiz-opt.correct{background:#eefff5;border-color:#2bc97a;color:#0e5c35;}
+.quiz-opt.wrong{background:#fff0ee;border-color:#ef4444;color:#7a1a1a;}
+.quiz-fb{font-size:0.77rem;padding:10px 14px;border-radius:8px;margin-top:.5rem;display:none;line-height:1.55;}
+/* Rule box */
+.rule-box{background:var(--surface2);border-left:3px solid var(--acc);border-radius:0 8px 8px 0;padding:.7rem 1rem;font-family:'IBM Plex Mono',monospace;font-size:0.71rem;color:var(--ink);margin:.4rem 0;line-height:1.7;}
+.rule-box.reject{border-color:var(--reject);}
+/* Table */
+.data-table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+.data-table th{font-family:'IBM Plex Mono',monospace;font-size:0.6rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;}
+.data-table td{padding:6px 10px;border-bottom:1px solid var(--surface2);color:var(--ink2);}
+.data-table tr:last-child td{border-bottom:none;}
+.badge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:0.6rem;padding:2px 8px;border-radius:999px;}
+.badge-approve{background:#eefff5;color:#0e5c35;border:1px solid #b5f0d0;}
+.badge-reject{background:#fff0ee;color:#7a1a1a;border:1px solid #fcd5c0;}
+@media(max-width:600px){.two-col,.three-col{grid-template-columns:1fr;}.hero h1{font-size:1.8rem;}.tab{font-size:0.52rem;padding:7px 2px;}.stat-grid-4{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="hero-tag">// interactive explainer</div>
+  <h1>CART <em>Decision Tree</em></h1>
+  <p>Classification and Regression Trees (CART) learn a sequence of binary yes/no questions that partition data into pure groups. Applied here to <strong>loan approval</strong> — predicting Approved vs Rejected from applicant features.</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="goTab(0,this)"><span class="tab-num">01</span>The Data</button>
+  <button class="tab" onclick="goTab(1,this)"><span class="tab-num">02</span>Gini Split</button>
+  <button class="tab" onclick="goTab(2,this)"><span class="tab-num">03</span>Build Tree</button>
+  <button class="tab" onclick="goTab(3,this)"><span class="tab-num">04</span>Tree Visual</button>
+  <button class="tab" onclick="goTab(4,this)"><span class="tab-num">05</span>Pruning</button>
+  <button class="tab" onclick="goTab(5,this)"><span class="tab-num">06</span>Rules</button>
+  <button class="tab" onclick="goTab(6,this)"><span class="tab-num">07</span>Concepts</button>
+  <button class="tab" onclick="goTab(7,this)"><span class="tab-num">08</span>Quiz</button>
+</div>
+
+<!-- ══ PANEL 0: The Data ══════════════════════════════════════════════════ -->
+<div class="panel active" id="panel-0">
+  <div class="card">
+    <div class="card-title">Training dataset — 12 loan applicants</div>
+    <table class="data-table" id="data-table"></table>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Class distribution</div>
+      <canvas id="c0a" height="180"></canvas>
+    </div>
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Feature overview</div>
+      <canvas id="c0b" height="180"></canvas>
+    </div>
+  </div>
+  <div class="insight ins-green">
+    <span>💡</span>
+    <span>CART only needs these four features: <strong>income</strong> (k$/yr), <strong>credit score</strong> (300–850), <strong>debt ratio</strong> (%), and <strong>employment years</strong>. It will learn which thresholds best separate Approved from Rejected.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 1: Gini Impurity ════════════════════════════════════════════ -->
+<div class="panel" id="panel-1">
+  <div class="card">
+    <div class="card-title">Gini impurity — drag the split threshold to minimise impurity</div>
+    <canvas id="c1" height="300"></canvas>
+  </div>
+  <div class="ctrl-row">
+    <label>Split: Credit Score ≥</label>
+    <input type="range" id="split-thresh" min="400" max="800" step="10" value="600" oninput="drawGini()">
+    <span class="val" id="thresh-v">600</span>
+  </div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val" id="g-root">—</div><div class="stat-lbl">Root Gini</div></div>
+    <div class="stat"><div class="stat-val" id="g-left">—</div><div class="stat-lbl">Left Gini</div></div>
+    <div class="stat"><div class="stat-val" id="g-right">—</div><div class="stat-lbl">Right Gini</div></div>
+  </div>
+  <div class="stat-grid" style="margin-top:.6rem;">
+    <div class="stat"><div class="stat-val" id="g-gain">—</div><div class="stat-lbl">Gini Gain</div></div>
+    <div class="stat"><div class="stat-val" id="g-nl">—</div><div class="stat-lbl">Left size</div></div>
+    <div class="stat"><div class="stat-val" id="g-nr">—</div><div class="stat-lbl">Right size</div></div>
+  </div>
+  <div class="insight ins-blue">
+    <span>💡</span>
+    <span>Gini impurity = 1 − Σ pᵢ². A pure node (all one class) has Gini = 0. CART tries every possible threshold on every feature and picks the split that produces the greatest <strong>weighted Gini reduction</strong>.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 2: Build the Tree ═══════════════════════════════════════════ -->
+<div class="panel" id="panel-2">
+  <div class="card">
+    <div class="card-title">Watch CART grow — add splits one at a time</div>
+    <canvas id="c2" height="320"></canvas>
+    <div class="legend" style="display:flex;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink2);margin-top:8px;">
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#2b9a66;display:inline-block;"></span>Approved</span>
+      <span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#e05a2b;display:inline-block;"></span>Rejected</span>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:.9rem;flex-wrap:wrap;">
+    <button onclick="treeStep(-1)" style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:6px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;">← Previous</button>
+    <span id="step-label" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--ink2);flex:1;text-align:center;"></span>
+    <button onclick="treeStep(1)" style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:6px 14px;border-radius:6px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;">Next split →</button>
+  </div>
+  <div id="split-explain" style="font-size:0.8rem;color:var(--ink2);line-height:1.65;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;"></div>
+</div>
+
+<!-- ══ PANEL 3: Tree Visual ═══════════════════════════════════════════════ -->
+<div class="panel" id="panel-3">
+  <div class="card">
+    <div class="card-title">Full trained tree — click any node to highlight its rule</div>
+    <canvas id="c3" height="420" style="cursor:pointer;"></canvas>
+  </div>
+  <div id="node-detail" style="font-size:0.81rem;color:var(--ink2);line-height:1.65;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:8px;min-height:56px;"></div>
+  <div class="insight ins-green" style="margin-top:.75rem;">
+    <span>💡</span>
+    <span>Each internal node shows the <strong>split condition</strong>, the Gini impurity, and the sample count. Leaf nodes show the final prediction with its class distribution.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 4: Pruning ══════════════════════════════════════════════════ -->
+<div class="panel" id="panel-4">
+  <div class="two-col">
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Tree size vs accuracy</div>
+      <canvas id="c4a" height="220"></canvas>
+    </div>
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Pruned tree (current α)</div>
+      <canvas id="c4b" height="220"></canvas>
+    </div>
+  </div>
+  <div class="ctrl-row">
+    <label>Cost-complexity α</label>
+    <input type="range" id="alpha" min="0" max="5" step="0.5" value="0" oninput="drawPruning()">
+    <span class="val" id="alpha-v">0.0</span>
+  </div>
+  <div class="stat-grid">
+    <div class="stat"><div class="stat-val" id="p-leaves">—</div><div class="stat-lbl">Leaves</div></div>
+    <div class="stat"><div class="stat-val" id="p-depth">—</div><div class="stat-lbl">Depth</div></div>
+    <div class="stat"><div class="stat-val" id="p-acc">—</div><div class="stat-lbl">Val accuracy</div></div>
+  </div>
+  <div class="insight ins-orange" style="margin-top:.75rem;">
+    <span>⚠️</span>
+    <span>Without pruning, a CART tree perfectly memorises training data (100% train accuracy) but overfits. <strong>Cost-complexity pruning</strong> adds penalty α per leaf — increasing α progressively collapses the tree toward its root.</span>
+  </div>
+  <div class="insight ins-green" style="margin-top:.5rem;">
+    <span>✅</span>
+    <span>The optimal α is found via cross-validation. In scikit-learn: <code>DecisionTreeClassifier(ccp_alpha=α)</code>. The sweet spot balances training accuracy with model complexity.</span>
+  </div>
+</div>
+
+<!-- ══ PANEL 5: Decision Rules ═══════════════════════════════════════════ -->
+<div class="panel" id="panel-5">
+  <div class="card">
+    <div class="card-title">Decision rules extracted from the tree</div>
+    <div id="rules-container"></div>
+  </div>
+  <div class="card" style="margin-top:.5rem;">
+    <div class="card-title">Try a new applicant</div>
+    <div class="two-col" style="margin-bottom:.75rem;">
+      <div>
+        <div class="ctrl-row"><label>Income (k$)</label><input type="range" id="r-income" min="20" max="120" step="5" value="60" oninput="runRules()"><span class="val" id="ri-v">60</span></div>
+        <div class="ctrl-row"><label>Credit Score</label><input type="range" id="r-credit" min="300" max="850" step="10" value="650" oninput="runRules()"><span class="val" id="rc-v">650</span></div>
+      </div>
+      <div>
+        <div class="ctrl-row"><label>Debt Ratio (%)</label><input type="range" id="r-debt" min="5" max="70" step="5" value="30" oninput="runRules()"><span class="val" id="rd-v">30</span></div>
+        <div class="ctrl-row"><label>Employment (yrs)</label><input type="range" id="r-emp" min="0" max="20" step="1" value="4" oninput="runRules()"><span class="val" id="re-v">4</span></div>
+      </div>
+    </div>
+    <div id="rule-path" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;line-height:1.9;color:var(--ink2);"></div>
+    <div id="rule-verdict" style="margin-top:.75rem;padding:.85rem 1.1rem;border-radius:10px;text-align:center;font-family:'DM Serif Display',serif;font-size:1.5rem;border:1px solid var(--border);"></div>
+  </div>
+</div>
+
+<!-- ══ PANEL 6: Feature Importance + vs Random Forest ═══════════════════ -->
+<div class="panel" id="panel-6">
+  <div class="two-col">
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">Feature importance (Gini reduction)</div>
+      <canvas id="c6a" height="220"></canvas>
+    </div>
+    <div>
+      <div class="card-title" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;">CART vs Random Forest</div>
+      <canvas id="c6b" height="220"></canvas>
+    </div>
+  </div>
+  <div class="pills" id="concept-pills-6">
+    <button class="pill active" onclick="show6('importance',this)">Feature importance</button>
+    <button class="pill" onclick="show6('rf',this)">What is Random Forest?</button>
+    <button class="pill" onclick="show6('bias',this)">Bias-variance tradeoff</button>
+    <button class="pill" onclick="show6('when',this)">When to use which</button>
+  </div>
+  <div class="concept-box" id="concept-6"></div>
+</div>
+
+<!-- ══ PANEL 7: Concepts ═════════════════════════════════════════════════ -->
+<div class="panel" id="panel-7">
+  <div class="pills">
+    <button class="pill active" onclick="showConcept('algo',this)">CART algorithm</button>
+    <button class="pill" onclick="showConcept('gini',this)">Gini vs entropy</button>
+    <button class="pill" onclick="showConcept('overfit',this)">Overfitting</button>
+    <button class="pill" onclick="showConcept('prune',this)">Pruning types</button>
+    <button class="pill" onclick="showConcept('missing',this)">Missing values</button>
+    <button class="pill" onclick="showConcept('pros',this)">Pros & cons</button>
+  </div>
+  <div class="concept-box" id="conceptDetail"></div>
+  <div id="quiz-container" style="display:none;"></div>
+</div>
+
+<!-- ══ PANEL 8 placeholder (quiz moved here) ═════════════════════════════ -->
+<div class="panel" id="panel-quiz" style="display:none;"></div>
+
+</div><!-- /wrap -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+// ── Dataset ────────────────────────────────────────────────────────────────
+const DATA = [
+  {id:1,  income:85,  credit:720, debt:18, emp:6,  label:1},
+  {id:2,  income:42,  credit:580, debt:45, emp:2,  label:0},
+  {id:3,  income:110, credit:780, debt:12, emp:10, label:1},
+  {id:4,  income:35,  credit:490, debt:60, emp:1,  label:0},
+  {id:5,  income:65,  credit:650, debt:28, emp:4,  label:1},
+  {id:6,  income:28,  credit:420, debt:68, emp:0,  label:0},
+  {id:7,  income:92,  credit:740, debt:15, emp:8,  label:1},
+  {id:8,  income:50,  credit:610, debt:35, emp:3,  label:0},
+  {id:9,  income:78,  credit:700, debt:22, emp:7,  label:1},
+  {id:10, income:38,  credit:530, debt:52, emp:2,  label:0},
+  {id:11, income:120, credit:800, debt:8,  emp:15, label:1},
+  {id:12, income:55,  credit:640, debt:38, emp:3,  label:1},
+];
+
+// ── Tab navigation ─────────────────────────────────────────────────────────
+const TAB_INITS = [initData, initGini, initBuild, initTree, initPruning, initRules, initConcepts, initQuiz];
+function goTab(i, btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('panel-'+i).classList.add('active');
+  TAB_INITS[i]();
+}
+// map panel ids
+['panel-0','panel-1','panel-2','panel-3','panel-4','panel-5','panel-6','panel-7'].forEach((id,i)=>{
+  const el = document.getElementById(id) || (() => { const d=document.createElement('div'); d.id=id; d.className='panel'; document.querySelector('.wrap').appendChild(d); return d; })();
+});
+
+// ══ PANEL 0: DATA ══════════════════════════════════════════════════════════
+let c0aChart=null, c0bChart=null;
+function initData() {
+  // Table
+  const cols = ['ID','Income (k$)','Credit Score','Debt Ratio (%)','Employment (yrs)','Label'];
+  $('data-table').innerHTML = `<thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+  <tbody>${DATA.map(d=>`<tr>
+    <td>${d.id}</td><td>${d.income}</td><td>${d.credit}</td><td>${d.debt}%</td><td>${d.emp}</td>
+    <td><span class="badge ${d.label?'badge-approve':'badge-reject'}">${d.label?'Approved':'Rejected'}</span></td>
+  </tr>`).join('')}</tbody>`;
+
+  // Pie chart
+  const cv0a=$('c0a'), W0=cv0a.offsetWidth, H0=180;
+  cv0a.width=W0; cv0a.height=H0;
+  if(c0aChart){c0aChart.destroy();}
+  c0aChart=new Chart(cv0a.getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Approved','Rejected'],datasets:[{data:[DATA.filter(d=>d.label).length,DATA.filter(d=>!d.label).length],backgroundColor:['#2b9a66','#e05a2b'],borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#4a4a6a'}}}}
+  });
+
+  // Bar chart feature ranges
+  const cv0b=$('c0b'), W1=cv0b.offsetWidth, H1=180;
+  cv0b.width=W1; cv0b.height=H1;
+  if(c0bChart){c0bChart.destroy();}
+  const features=['Income','Credit','Debt%','Emp.yrs'];
+  const app=DATA.filter(d=>d.label), rej=DATA.filter(d=>!d.label);
+  const avg=(arr,k)=>(arr.reduce((s,d)=>s+d[k],0)/arr.length).toFixed(1);
+  c0bChart=new Chart(cv0b.getContext('2d'),{
+    type:'bar',
+    data:{labels:features,datasets:[
+      {label:'Approved avg',data:[avg(app,'income'),avg(app,'credit')/10,avg(app,'debt'),avg(app,'emp')],backgroundColor:'rgba(43,154,102,0.7)'},
+      {label:'Rejected avg',data:[avg(rej,'income'),avg(rej,'credit')/10,avg(rej,'debt'),avg(rej,'emp')],backgroundColor:'rgba(224,90,43,0.7)'},
+    ]},
+    options:{responsive:false,animation:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},color:'#4a4a6a'}}},
+      scales:{x:{ticks:{color:'#aaa',font:{size:10}},grid:{display:false}},y:{ticks:{color:'#aaa',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}}}
+  });
+}
+
+// ══ PANEL 1: GINI ══════════════════════════════════════════════════════════
+function gini(pts) {
+  if(!pts.length) return 0;
+  const n=pts.length, p=pts.filter(d=>d.label).length/n;
+  return 1-p*p-(1-p)*(1-p);
+}
+function weightedGini(left,right) {
+  const n=left.length+right.length;
+  return (left.length/n)*gini(left)+(right.length/n)*gini(right);
+}
+
+function initGini(){ drawGini(); }
+function drawGini() {
+  const thresh=+$('split-thresh').value;
+  $('thresh-v').textContent=thresh;
+  const left=DATA.filter(d=>d.credit<thresh), right=DATA.filter(d=>d.credit>=thresh);
+  const rootG=gini(DATA), leftG=gini(left), rightG=gini(right);
+  const wg=weightedGini(left,right);
+  const gain=rootG-wg;
+
+  $('g-root').textContent=rootG.toFixed(3);
+  $('g-left').textContent=leftG.toFixed(3);
+  $('g-right').textContent=rightG.toFixed(3);
+  $('g-gain').textContent=gain.toFixed(3);
+  $('g-nl').textContent=left.length;
+  $('g-nr').textContent=right.length;
+
+  const cv=$('c1'), W=cv.offsetWidth, H=300;
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const pad={l:50,r:20,t:30,b:50};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  const minC=400,maxC=800;
+  const scX=c=>(c-minC)/(maxC-minC)*iW+pad.l;
+  const scY=g=>pad.t+iH*(1-g);
+
+  // gini curve
+  const steps=200;
+  const xs=[], gs=[];
+  for(let i=0;i<=steps;i++){
+    const t=minC+i*(maxC-minC)/steps;
+    xs.push(t);
+    const l2=DATA.filter(d=>d.credit<t), r2=DATA.filter(d=>d.credit>=t);
+    gs.push(weightedGini(l2,r2));
+  }
+
+  // shade left/right
+  ctx.fillStyle='rgba(224,90,43,0.07)';
+  ctx.fillRect(pad.l,pad.t,scX(thresh)-pad.l,iH);
+  ctx.fillStyle='rgba(43,154,102,0.07)';
+  ctx.fillRect(scX(thresh),pad.t,pad.l+iW-scX(thresh),iH);
+
+  // axes
+  ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+iH); ctx.lineTo(pad.l+iW,pad.t+iH); ctx.stroke();
+  // axis labels
+  ctx.fillStyle='#8888aa'; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  ctx.fillText('Credit Score threshold',pad.l+iW/2,H-8);
+  ctx.save(); ctx.translate(14,pad.t+iH/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText('Weighted Gini',0,0); ctx.restore();
+  [400,500,600,700,800].forEach(v=>{ ctx.fillStyle='#aaa'; ctx.fillText(v,scX(v),pad.t+iH+16); });
+
+  // gini curve
+  ctx.beginPath();
+  xs.forEach((x,i)=>{
+    const cx=scX(x), cy=scY(gs[i]);
+    i===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+  });
+  ctx.strokeStyle='#2b7be0'; ctx.lineWidth=2.5; ctx.stroke();
+
+  // threshold line
+  const tx=scX(thresh);
+  ctx.beginPath(); ctx.moveTo(tx,pad.t); ctx.lineTo(tx,pad.t+iH);
+  ctx.strokeStyle='#1a7f4b'; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+
+  // dot on curve
+  const curG=weightedGini(left,right);
+  ctx.beginPath(); ctx.arc(tx,scY(curG),7,0,2*Math.PI);
+  ctx.fillStyle='#1a7f4b'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+
+  // label
+  ctx.fillStyle='#1a7f4b'; ctx.font='600 12px DM Sans,sans-serif'; ctx.textAlign='left';
+  ctx.fillText('Gain='+gain.toFixed(3), tx+10, scY(curG)+4);
+
+  // data points along x axis
+  DATA.forEach(d=>{
+    const px=scX(d.credit);
+    ctx.beginPath(); ctx.arc(px,pad.t+iH+32,5,0,2*Math.PI);
+    ctx.fillStyle=d.label?'#2b9a66':'#e05a2b'; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1; ctx.stroke();
+  });
+  ctx.textAlign='left';
+}
+
+// ══ PANEL 2: BUILD TREE ════════════════════════════════════════════════════
+let buildStep=0;
+const SPLITS=[
+  {feature:'credit',thresh:620,label:'Credit Score ≥ 620',giniGain:0.204,desc:'The best first split uses Credit Score ≥ 620, giving Gini gain of 0.204. Left: 5 rejected, 0 approved. Right: 2 rejected, 5 approved.'},
+  {feature:'income',thresh:60, label:'Income ≥ 60k',     giniGain:0.160,desc:'In the right branch (Credit ≥ 620), Income ≥ 60k separates well. Left of this split: 2 rejected, 1 approved. Right: 4 approved.'},
+  {feature:'debt',  thresh:40, label:'Debt Ratio < 40%',  giniGain:0.111,desc:'In the mixed right-left node (Credit ≥ 620, Income < 60k), Debt Ratio < 40% gives the best further split. Isolates 1 approve from 2 rejects.'},
+];
+
+function initBuild(){ buildStep=0; renderBuildStep(); }
+function treeStep(dir){ buildStep=Math.max(0,Math.min(SPLITS.length,buildStep+dir)); renderBuildStep(); }
+
+function renderBuildStep(){
+  $('step-label').textContent=`Split ${buildStep} of ${SPLITS.length}`;
+  $('split-explain').textContent=buildStep===0?'Root node — all 12 applicants. Gini = '+gini(DATA).toFixed(3)+'. CART will search every feature × threshold combination.':SPLITS[buildStep-1].desc;
+
+  const cv=$('c2'), W=cv.offsetWidth, H=320;
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // scatter: income vs credit
+  const pad={l:50,r:20,t:20,b:45};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  const scX=v=>(v-20)/(130-20)*iW+pad.l;
+  const scY=v=>pad.t+iH-(v-400)/(850-400)*iH;
+
+  // region shading based on current splits
+  if(buildStep>=1){
+    const tx=scX(60); // income=60
+    const creditThresh=620;
+    // shade the credit split first
+    const cy=scY(creditThresh);
+    ctx.fillStyle='rgba(224,90,43,0.08)'; ctx.fillRect(pad.l,cy,iW,pad.t+iH-cy);
+    ctx.fillStyle='rgba(43,154,102,0.08)'; ctx.fillRect(pad.l,pad.t,iW,cy-pad.t);
+  }
+  if(buildStep>=2){
+    const incomeX=scX(60), creditY=scY(620);
+    ctx.fillStyle='rgba(43,154,102,0.12)'; ctx.fillRect(incomeX,pad.t,pad.l+iW-incomeX,creditY-pad.t);
+    ctx.fillStyle='rgba(224,90,43,0.06)'; ctx.fillRect(pad.l,pad.t,incomeX-pad.l,creditY-pad.t);
+  }
+
+  // axes
+  ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad.l,pad.t); ctx.lineTo(pad.l,pad.t+iH); ctx.lineTo(pad.l+iW,pad.t+iH); ctx.stroke();
+  ctx.fillStyle='#aaa'; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  ctx.fillText('Income (k$)',pad.l+iW/2,H-6);
+  ctx.save(); ctx.translate(14,pad.t+iH/2); ctx.rotate(-Math.PI/2); ctx.fillText('Credit Score',0,0); ctx.restore();
+  [40,60,80,100,120].forEach(v=>{ctx.fillStyle='#aaa';ctx.fillText(v,scX(v),pad.t+iH+14);});
+  [400,500,600,700,800].forEach(v=>{ctx.fillStyle='#aaa';ctx.textAlign='right';ctx.fillText(v,pad.l-5,scY(v)+4);});
+  ctx.textAlign='left';
+
+  // split lines
+  if(buildStep>=1){
+    ctx.beginPath(); ctx.moveTo(pad.l,scY(620)); ctx.lineTo(pad.l+iW,scY(620));
+    ctx.strokeStyle='#1a7f4b'; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#1a7f4b'; ctx.font='600 11px IBM Plex Mono,monospace';
+    ctx.fillText('Credit ≥ 620',pad.l+4,scY(620)-6);
+  }
+  if(buildStep>=2){
+    const creditY=scY(620);
+    ctx.beginPath(); ctx.moveTo(scX(60),pad.t); ctx.lineTo(scX(60),creditY);
+    ctx.strokeStyle='#2b7be0'; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle='#2b7be0'; ctx.font='600 11px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText('Income ≥ 60',scX(60),pad.t+14);
+  }
+  if(buildStep>=3){
+    ctx.beginPath();
+    // debt is not directly on this scatter — add a note annotation
+    ctx.fillStyle='rgba(255,200,0,0.18)';
+    ctx.fillRect(pad.l,scY(620),scX(60)-pad.l,pad.t+iH-scY(620));
+    ctx.fillStyle='#c97a00'; ctx.font='11px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText('Debt<40% sub-split',pad.l+(scX(60)-pad.l)/2,scY(620)+22);
+  }
+  ctx.textAlign='left';
+
+  // data points
+  DATA.forEach(d=>{
+    ctx.beginPath(); ctx.arc(scX(d.income),scY(d.credit),7,0,2*Math.PI);
+    ctx.fillStyle=d.label?'#2b9a66':'#e05a2b'; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=1.8; ctx.stroke();
+  });
+}
+
+// ══ PANEL 3: TREE VISUAL ═══════════════════════════════════════════════════
+// Node definitions: {id,x,y,w,h,label,sub,color,isLeaf,children}
+const NODES=[
+  {id:0,x:0.5,y:0.06,label:'Credit Score',sub:'≥ 620 ?',gini:'0.486',n:12,isLeaf:false,children:[1,2]},
+  {id:1,x:0.22,y:0.30,label:'REJECTED',sub:'5 Rejected / 0 Appr.',gini:'0.000',n:5,isLeaf:true,pred:0,children:[]},
+  {id:2,x:0.75,y:0.30,label:'Income',sub:'≥ 60k ?',gini:'0.278',n:7,isLeaf:false,children:[3,4]},
+  {id:3,x:0.55,y:0.56,label:'Debt Ratio',sub:'< 40% ?',gini:'0.444',n:3,isLeaf:false,children:[5,6]},
+  {id:4,x:0.88,y:0.56,label:'APPROVED',sub:'4 Appr. / 0 Rej.',gini:'0.000',n:4,isLeaf:true,pred:1,children:[]},
+  {id:5,x:0.44,y:0.80,label:'APPROVED',sub:'1 Appr. / 0 Rej.',gini:'0.000',n:1,isLeaf:true,pred:1,children:[]},
+  {id:6,x:0.66,y:0.80,label:'REJECTED',sub:'2 Rej. / 0 Appr.',gini:'0.000',n:2,isLeaf:true,pred:0,children:[]},
+];
+const EDGE_LABELS=[[0,1,'NO (< 620)'],[0,2,'YES (≥ 620)'],[2,3,'NO (< 60k)'],[2,4,'YES (≥ 60k)'],[3,5,'YES (< 40%)'],[3,6,'NO (≥ 40%)']];
+let highlightNode=-1;
+
+function initTree(){ highlightNode=-1; drawTree(); $('node-detail').textContent='Click a node to see details.'; }
+function drawTree(){
+  const cv=$('c3'), W=cv.offsetWidth, H=420;
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const NW=140, NH=52;
+  const nx=n=>n.x*W, ny=n=>n.y*H+NH/2;
+
+  // edges
+  EDGE_LABELS.forEach(([from,to,lbl])=>{
+    const f=NODES[from],t=NODES[to];
+    const fx=nx(f),fy=ny(f)+NH/2,tx2=nx(t),ty2=ny(t)-NH/2;
+    ctx.beginPath(); ctx.moveTo(fx,fy); ctx.lineTo(tx2,ty2);
+    ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=1.5; ctx.stroke();
+    const mx=(fx+tx2)/2, my=(fy+ty2)/2;
+    ctx.fillStyle='#8888aa'; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText(lbl,mx,my-4);
+  });
+
+  // nodes
+  NODES.forEach(n=>{
+    const x=nx(n)-NW/2, y=ny(n)-NH/2;
+    const hl=highlightNode===n.id;
+    const col=n.isLeaf?(n.pred?'#2b9a66':'#e05a2b'):'#1a1a2e';
+    ctx.fillStyle=n.isLeaf?(n.pred?'rgba(43,154,102,0.1)':'rgba(224,90,43,0.1)'):'rgba(26,26,46,0.05)';
+    ctx.beginPath(); roundRect(ctx,x,y,NW,NH,8); ctx.fill();
+    ctx.strokeStyle=hl?'#ffd700':col; ctx.lineWidth=hl?3:1.5;
+    ctx.beginPath(); roundRect(ctx,x,y,NW,NH,8); ctx.stroke();
+    // label
+    ctx.fillStyle=col; ctx.font='500 12px DM Sans,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(n.label,nx(n),ny(n)-6);
+    ctx.fillStyle='#8888aa'; ctx.font='10px IBM Plex Mono,monospace';
+    ctx.fillText(n.sub,nx(n),ny(n)+10);
+    ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.font='9px IBM Plex Mono,monospace';
+    ctx.fillText('Gini='+n.gini+'  n='+n.n,nx(n),ny(n)+24);
+  });
+  ctx.textAlign='left';
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+$('c3').addEventListener('click',e=>{
+  const cv=$('c3'), W=cv.offsetWidth, H=420, NW=140, NH=52;
+  const r=cv.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  let hit=-1;
+  NODES.forEach(n=>{
+    const nx=n.x*W-NW/2, ny2=n.y*H+NH/2-NH/2;
+    if(mx>=nx&&mx<=nx+NW&&my>=ny2&&my<=ny2+NH) hit=n.id;
+  });
+  if(hit>=0){
+    highlightNode=hit; drawTree();
+    const n=NODES[hit];
+    if(n.isLeaf){
+      $('node-detail').innerHTML=`<strong>Leaf node</strong> — Prediction: <strong>${n.pred?'✅ Approved':'❌ Rejected'}</strong> &nbsp;|&nbsp; ${n.sub} &nbsp;|&nbsp; Gini = ${n.gini} (pure leaf)`;
+    } else {
+      $('node-detail').innerHTML=`<strong>Internal node</strong> — Split on <strong>${n.label} ${n.sub}</strong> &nbsp;|&nbsp; Gini = ${n.gini} &nbsp;|&nbsp; n = ${n.n} samples`;
+    }
+  }
+});
+
+// ══ PANEL 4: PRUNING ═══════════════════════════════════════════════════════
+let c4aChart=null;
+const PRUNE_DATA=[
+  {alpha:0,   leaves:6, depth:3, acc:75},
+  {alpha:0.5, leaves:5, depth:3, acc:78},
+  {alpha:1,   leaves:4, depth:2, acc:82},
+  {alpha:1.5, leaves:3, depth:2, acc:80},
+  {alpha:2,   leaves:3, depth:2, acc:80},
+  {alpha:2.5, leaves:2, depth:1, acc:73},
+  {alpha:3,   leaves:2, depth:1, acc:73},
+  {alpha:3.5, leaves:1, depth:0, acc:58},
+  {alpha:4,   leaves:1, depth:0, acc:58},
+  {alpha:4.5, leaves:1, depth:0, acc:58},
+  {alpha:5,   leaves:1, depth:0, acc:58},
+];
+
+function initPruning(){ drawPruning(); }
+function drawPruning(){
+  const alpha=+$('alpha').value;
+  $('alpha-v').textContent=alpha.toFixed(1);
+  const row=PRUNE_DATA.find(r=>r.alpha>=alpha)||PRUNE_DATA[PRUNE_DATA.length-1];
+  $('p-leaves').textContent=row.leaves;
+  $('p-depth').textContent=row.depth;
+  $('p-acc').textContent=row.acc+'%';
+
+  // left: accuracy curve
+  const cv4a=$('c4a'), W4=cv4a.offsetWidth, H4=220;
+  cv4a.width=W4; cv4a.height=H4;
+  if(c4aChart){c4aChart.destroy();}
+  const alphaIdx=PRUNE_DATA.findIndex(r=>r.alpha===alpha);
+  const ptColors=PRUNE_DATA.map((_,i)=>i===alphaIdx?'#e05a2b':'#1a7f4b');
+  const ptSizes=PRUNE_DATA.map((_,i)=>i===alphaIdx?9:4);
+  c4aChart=new Chart(cv4a.getContext('2d'),{
+    type:'line',
+    data:{labels:PRUNE_DATA.map(r=>r.alpha),datasets:[{
+      label:'Val accuracy',data:PRUNE_DATA.map(r=>r.acc),
+      borderColor:'#1a7f4b',borderWidth:2.5,pointRadius:ptSizes,pointBackgroundColor:ptColors,fill:false,tension:0.3
+    }]},
+    options:{responsive:false,animation:false,plugins:{legend:{display:false}},
+      scales:{x:{title:{display:true,text:'α (ccp_alpha)',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}},
+              y:{min:50,max:100,title:{display:true,text:'Accuracy %',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.04)'}}}}
+  });
+
+  // right: mini pruned tree
+  drawPrunedTree(row.leaves);
+}
+
+function drawPrunedTree(leaves){
+  const cv=$('c4b'), W=cv.offsetWidth, H=220;
+  cv.width=W; cv.height=H;
+  const ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const NW=100, NH=38;
+
+  function box(x,y,lbl,sub,col){
+    ctx.fillStyle=col+'18'; ctx.beginPath(); roundRect(ctx,x-NW/2,y,NW,NH,6); ctx.fill();
+    ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.beginPath(); roundRect(ctx,x-NW/2,y,NW,NH,6); ctx.stroke();
+    ctx.fillStyle=col; ctx.font='500 10px DM Sans,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(lbl,x,y+15);
+    ctx.fillStyle='#8888aa'; ctx.font='9px IBM Plex Mono,monospace';
+    ctx.fillText(sub,x,y+28);
+  }
+  function line(x1,y1,x2,y2,lbl){
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+    ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=1.2; ctx.stroke();
+    if(lbl){ ctx.fillStyle='#aaa'; ctx.font='9px IBM Plex Mono,monospace'; ctx.textAlign='center';
+      ctx.fillText(lbl,(x1+x2)/2,(y1+y2)/2-3); }
+  }
+
+  if(leaves<=1){
+    box(W/2,H/2-19,'APPROVED','All → Approved','#2b9a66');
+  } else if(leaves<=2){
+    box(W/2,20,'Credit Score','≥ 620?','#1a1a2e');
+    line(W/2,58,W*0.28,110,'NO'); box(W*0.28,110,'REJECTED','Rej.','#e05a2b');
+    line(W/2,58,W*0.72,110,'YES'); box(W*0.72,110,'APPROVED','Appr.','#2b9a66');
+  } else if(leaves<=3){
+    box(W/2,14,'Credit Score','≥ 620?','#1a1a2e');
+    line(W/2,52,W*0.22,80,'NO'); box(W*0.22,80,'REJECTED','5 Rej.','#e05a2b');
+    line(W/2,52,W*0.72,80,'YES'); box(W*0.72,80,'Income','≥ 60k?','#1a1a2e');
+    line(W*0.72,118,W*0.55,156,'NO'); box(W*0.55,156,'REJECTED','2 Rej.','#e05a2b');
+    line(W*0.72,118,W*0.88,156,'YES'); box(W*0.88,156,'APPROVED','4 Appr.','#2b9a66');
+  } else {
+    // full tree (4+ leaves)
+    box(W/2,10,'Credit Score','≥ 620?','#1a1a2e');
+    line(W/2,48,W*0.2,78,'NO'); box(W*0.2,78,'REJECTED','5 Rej.','#e05a2b');
+    line(W/2,48,W*0.75,78,'YES'); box(W*0.75,78,'Income','≥ 60k?','#1a1a2e');
+    line(W*0.75,116,W*0.55,145,'NO'); box(W*0.55,145,'Debt Ratio','< 40%?','#1a1a2e');
+    line(W*0.75,116,W*0.9,145,'YES'); box(W*0.9,145,'APPROVED','4 Appr.','#2b9a66');
+    line(W*0.55,183,W*0.42,178+26,'YES'); box(W*0.42,178+26,'APPROVED','1 Appr.','#2b9a66');
+    line(W*0.55,183,W*0.68,178+26,'NO'); box(W*0.68,178+26,'REJECTED','2 Rej.','#e05a2b');
+  }
+  ctx.textAlign='left';
+}
+
+// ══ PANEL 5: RULES ═════════════════════════════════════════════════════════
+const RULES=[
+  {cond:'Credit Score < 620',result:'REJECTED',path:['Credit Score < 620'],pred:0},
+  {cond:'Credit Score ≥ 620 AND Income ≥ 60k',result:'APPROVED',path:['Credit Score ≥ 620','Income ≥ 60k'],pred:1},
+  {cond:'Credit Score ≥ 620 AND Income < 60k AND Debt Ratio < 40%',result:'APPROVED',path:['Credit Score ≥ 620','Income < 60k','Debt Ratio < 40%'],pred:1},
+  {cond:'Credit Score ≥ 620 AND Income < 60k AND Debt Ratio ≥ 40%',result:'REJECTED',path:['Credit Score ≥ 620','Income < 60k','Debt Ratio ≥ 40%'],pred:0},
+];
+
+function initRules(){
+  $('rules-container').innerHTML=RULES.map((r,i)=>`
+    <div class="rule-box ${r.pred?'':'reject'}">
+      <span style="opacity:.6;">IF </span>${r.path.join('<span style="opacity:.6;"> AND </span>')}
+      <br><span style="opacity:.6;">→ THEN </span><strong>${r.result}</strong>
+    </div>`).join('');
+  runRules();
+}
+function runRules(){
+  const income=+$('r-income').value, credit=+$('r-credit').value;
+  const debt=+$('r-debt').value,   emp=+$('r-emp').value;
+  $('ri-v').textContent=income; $('rc-v').textContent=credit;
+  $('rd-v').textContent=debt;   $('re-v').textContent=emp;
+
+  let path=[], pred=0;
+  if(credit<620){ path=['❌ Credit Score '+credit+' < 620 → go LEFT']; pred=0; }
+  else if(income>=60){ path=['✅ Credit Score '+credit+' ≥ 620 → go RIGHT','✅ Income '+income+'k ≥ 60k → go RIGHT']; pred=1; }
+  else if(debt<40){ path=['✅ Credit Score '+credit+' ≥ 620 → go RIGHT','❌ Income '+income+'k < 60k → go LEFT','✅ Debt Ratio '+debt+'% < 40% → go LEFT']; pred=1; }
+  else { path=['✅ Credit Score '+credit+' ≥ 620 → go RIGHT','❌ Income '+income+'k < 60k → go LEFT','❌ Debt Ratio '+debt+'% ≥ 40% → go RIGHT']; pred=0; }
+
+  $('rule-path').innerHTML=path.join('<br>');
+  $('rule-verdict').style.cssText=`padding:.85rem 1.1rem;border-radius:10px;text-align:center;font-family:'DM Serif Display',serif;font-size:1.5rem;margin-top:.75rem;border:1px solid;${pred?'background:#eefff5;border-color:#2bc97a;color:#0e5c35;':'background:#fff0ee;border-color:#e05a2b;color:#7a1a1a;'}`;
+  $('rule-verdict').textContent=pred?'✅ APPROVED':'❌ REJECTED';
+}
+
+// ══ PANEL 6: FEATURE IMPORTANCE + RF ════════════════════════════════════════
+let c6aChart=null, c6bChart=null;
+function initConcepts(){
+  drawImportance();
+  drawRFComparison();
+  show6('importance', document.querySelector('#panel-6 .pill'));
+}
+
+function drawImportance(){
+  const cv=$('c6a'), W=cv.offsetWidth, H=220;
+  cv.width=W; cv.height=H;
+  if(c6aChart) c6aChart.destroy();
+  c6aChart=new Chart(cv.getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:['Credit Score','Income','Debt Ratio','Employment'],
+      datasets:[{label:'Importance',data:[0.52,0.28,0.14,0.06],backgroundColor:['#1a7f4b','#2b7be0','#e05a2b','#8888aa'],borderRadius:5}]
+    },
+    options:{responsive:false,animation:false,indexAxis:'y',plugins:{legend:{display:false}},
+      scales:{x:{min:0,max:0.6,title:{display:true,text:'Gini importance',font:{size:10},color:'#888'},ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},
+              y:{ticks:{color:'#4a4a6a',font:{size:10}},grid:{display:false}}}}
+  });
+}
+
+function drawRFComparison(){
+  const cv=$('c6b'), W=cv.offsetWidth, H=220;
+  cv.width=W; cv.height=H;
+  if(c6bChart) c6bChart.destroy();
+  c6bChart=new Chart(cv.getContext('2d'),{
+    type:'bar',
+    data:{
+      labels:['Accuracy','Variance','Interpretability','Train speed'],
+      datasets:[
+        {label:'CART',data:[72,85,95,90],backgroundColor:'rgba(26,127,75,0.7)',borderRadius:3},
+        {label:'Random Forest',data:[88,25,30,40],backgroundColor:'rgba(43,123,224,0.7)',borderRadius:3},
+      ]
+    },
+    options:{responsive:false,animation:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},color:'#4a4a6a'}}},
+      scales:{x:{ticks:{color:'#aaa',font:{size:9}},grid:{display:false}},
+              y:{min:0,max:100,ticks:{color:'#aaa',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}}}}
+  });
+}
+
+const concepts6={
+  importance:{title:'Feature importance',body:`CART measures how much each feature reduces Gini impurity across all splits it is used in:<span class="cformula">Importance(f) = Σ (n_node/n_total) × ΔGini  for all splits on f</span>This is then normalised so all importances sum to 1. <strong>Credit Score</strong> dominates (0.52) as it is the root split — affecting all 12 samples. Features used deeper in the tree affect fewer samples, so their importance is lower.`},
+  rf:{title:'What is Random Forest?',body:`A Random Forest trains <strong>B independent decision trees</strong>, each on a bootstrap sample of the data (bagging) and a random subset of features at each split:<span class="cformula">ŷ = majority_vote(tree₁(x), tree₂(x), …, treeB(x))</span>The randomness decorrelates the trees. When trees disagree, the errors cancel out — this dramatically reduces variance without increasing bias much. Typical settings: 100–500 trees, max_features = √d features per split.`},
+  bias:{title:'Bias-variance tradeoff',body:`A single CART tree:<span class="cformula">Low bias (fits training data exactly at max depth)</span><span class="cformula">High variance (small data changes → very different tree)</span>Pruning reduces variance at the cost of some bias. Random Forest attacks variance differently — it averages many high-variance, low-bias trees. The ensemble variance = ρσ² + (1-ρ)σ²/B, where ρ is the tree correlation. Lower ρ (more randomness) → lower ensemble variance.`},
+  when:{title:'When to use CART vs Random Forest',body:`<strong>Use CART when:</strong> you need an interpretable, explainable model (stakeholders, regulators), the dataset is very small, or you need decision rules that a human can follow step by step.<br><br><strong>Use Random Forest when:</strong> predictive accuracy is the priority, you have moderate-to-large data, you can sacrifice interpretability, and you want built-in feature importance that is more stable than a single tree's.`},
+};
+function show6(key,btn){
+  document.querySelectorAll('#panel-6 .pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active');
+  const c=concepts6[key];
+  $('concept-6').innerHTML=`<div class="concept-title">${c.title}</div><div class="concept-body">${c.body}</div>`;
+}
+
+// ══ PANEL 7: CONCEPTS ══════════════════════════════════════════════════════
+const CONCEPTS={
+  algo:{title:'CART algorithm',body:`CART grows a binary tree by recursively finding the best split:<span class="cformula">1. For each feature f and threshold t, compute weighted Gini after split</span><span class="cformula">2. Choose (f*, t*) that maximises Gini reduction</span><span class="cformula">3. Recurse on left and right subsets until stopping criterion</span>Stopping criteria: min_samples_split, min_samples_leaf, max_depth, or pure node (Gini=0). After growing, optionally apply cost-complexity pruning.`},
+  gini:{title:'Gini impurity vs Entropy',body:`Both measure node impurity — how mixed the classes are:<span class="cformula">Gini(t) = 1 − Σ pᵢ²        (CART default)</span><span class="cformula">Entropy(t) = −Σ pᵢ log₂(pᵢ) (used in ID3/C4.5)</span>Both reach 0 at pure nodes and peak at 0.5 (Gini) / 1.0 (Entropy) for balanced binary classes. In practice they produce nearly identical trees. Gini is cheaper to compute (no log), which is why CART uses it.`},
+  overfit:{title:'Overfitting in decision trees',body:`An unconstrained CART tree will grow until every leaf is pure — memorising every training point. Signs of overfitting:<span class="cformula">Train accuracy: 100%  →  Val accuracy: 65%</span>Solutions: (1) limit max_depth, (2) min_samples_leaf, (3) cost-complexity pruning, (4) use Random Forest or Gradient Boosting instead. Always compare train vs validation accuracy — a large gap signals overfit.`},
+  prune:{title:'Pruning types',body:`<strong>Pre-pruning (early stopping):</strong> stop growing when a split does not improve impurity by at least min_impurity_decrease, or when a node has fewer than min_samples_split samples. Fast but may stop too early.<br><br><strong>Post-pruning (cost-complexity):</strong> grow the full tree then collapse internal nodes if:<span class="cformula">R(T_pruned) ≤ R(T_full) + α × |leaves|</span>Scikit-learn uses this via <code>ccp_alpha</code>. Find optimal α via cross-validation on the sequence of pruned subtrees.`},
+  missing:{title:'Missing values',body:`Standard CART handles missing values via <strong>surrogate splits</strong>: when the primary split feature is missing for a sample, use the next-best correlated feature as a substitute. Scikit-learn does not implement surrogate splits — it uses mean/mode imputation or drops rows instead. Alternatives that handle missingness natively: XGBoost (learns default direction), LightGBM, CatBoost.`},
+  pros:{title:'Pros & cons',body:`<strong>Pros:</strong> interpretable (human-readable rules), handles mixed feature types, no scaling needed, handles non-linear boundaries, fast to train, built-in feature importance.<br><br><strong>Cons:</strong> high variance (small data changes produce very different trees), biased toward high-cardinality features when using Gini, axis-aligned splits only, tends to overfit without pruning, rarely the best standalone model for prediction accuracy.`},
+};
+function showConcept(key,btn){
+  document.querySelectorAll('#panel-7 .pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active');
+  $('conceptDetail').innerHTML=`<div class="concept-title">${CONCEPTS[key].title}</div><div class="concept-body">${CONCEPTS[key].body}</div>`;
+}
+function initConcepts7(){
+  showConcept('algo', document.querySelector('#panel-7 .pill'));
+}
+
+// ══ QUIZ ═══════════════════════════════════════════════════════════════════
+const QUESTIONS=[
+  {q:'What does CART use to choose the best split at each node?',
+   opts:['Entropy reduction','Weighted Gini impurity reduction','Accuracy on training set','Random feature selection'],
+   correct:1,fb:'Correct! CART evaluates every (feature, threshold) pair and picks the one that produces the greatest weighted Gini reduction — the sum of child Gini values, weighted by child size.'},
+  {q:'A leaf node with Gini = 0 means…',
+   opts:['The node has no samples','All samples in the node belong to the same class','The split was perfect across all features','The tree should be pruned here'],
+   correct:1,fb:'Correct! Gini = 1 − Σpᵢ² = 0 only when one pᵢ = 1, i.e. all samples are the same class. This is a pure leaf — CART stops splitting here.'},
+  {q:'Cost-complexity pruning with a higher α produces…',
+   opts:['A deeper, more complex tree','A shallower, simpler tree','No change to the tree','Higher training accuracy'],
+   correct:1,fb:'Correct! Higher α penalises each extra leaf more heavily, causing more internal nodes to be collapsed. The tree shrinks toward its root as α increases.'},
+  {q:'Feature importance in CART is measured by…',
+   opts:['How many times a feature appears in the tree','The total weighted Gini reduction attributed to that feature','The depth at which the feature first appears','The number of samples reaching each split'],
+   correct:1,fb:'Correct! Importance = Σ (n_node/n_total) × ΔGini across all splits that use the feature, normalised to sum to 1. Splits higher in the tree affect more samples and thus contribute more.'},
+  {q:'How does Random Forest reduce variance compared to a single CART tree?',
+   opts:['It grows deeper trees','It averages predictions across many decorrelated trees','It uses Entropy instead of Gini','It removes all pruning constraints'],
+   correct:1,fb:'Correct! Random Forest trains B trees on bootstrap samples with random feature subsets. Averaging decorrelated trees reduces variance dramatically while keeping bias low — the ensemble "wisdom of crowds" effect.'},
+];
+let answered={};
+function initQuiz(){ if(!Object.keys(answered).length) buildQuiz(); }
+function buildQuiz(){
+  const container=$('quiz-container')||$('panel-7');
+  let qc=$('quiz-render');
+  if(!qc){ qc=document.createElement('div'); qc.id='quiz-render'; $('panel-7').appendChild(qc); }
+  qc.style.display='block';
+  qc.innerHTML=QUESTIONS.map((q,i)=>`
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:0.84rem;font-weight:500;color:var(--ink);margin-bottom:.55rem;">${i+1}. ${q.q}</div>
+      ${q.opts.map((o,j)=>`<div class="quiz-opt" id="qopt-${i}-${j}" onclick="answerQ(${i},${j})">${o}</div>`).join('')}
+      <div class="quiz-fb" id="qfb-${i}"></div>
+    </div>`).join('')+
+    `<button onclick="resetQ()" style="font-family:'IBM Plex Mono',monospace;font-size:0.63rem;padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-top:.25rem;">Reset quiz</button>`;
+}
+function answerQ(qi,oi){
+  if(answered[qi]!==undefined)return; answered[qi]=oi;
+  const q=QUESTIONS[qi],el=$('qopt-'+qi+'-'+oi),fb=$('qfb-'+qi);
+  if(oi===q.correct){
+    el.classList.add('correct');
+    fb.style.cssText='display:block;background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;padding:10px 14px;border-radius:8px;font-size:.77rem;line-height:1.55;margin-top:.45rem;';
+    fb.textContent='✅ '+q.fb;
+  } else {
+    el.classList.add('wrong'); $('qopt-'+qi+'-'+q.correct).classList.add('correct');
+    fb.style.cssText='display:block;background:#fff0ee;border:1px solid #fcd5c0;color:#7a2e0e;padding:10px 14px;border-radius:8px;font-size:.77rem;line-height:1.55;margin-top:.45rem;';
+    fb.textContent='❌ Not quite. '+q.fb;
+  }
+}
+function resetQ(){ answered={}; buildQuiz(); }
+
+// remap tab 7 to concepts page that now includes quiz at bottom
+function initQuiz(){ initConcepts7(); buildQuiz(); }
+
+// ── Tab dispatch fix ────────────────────────────────────────────────────────
+const TAB_INITS2=[initData,initGini,initBuild,initTree,initPruning,initRules,initConcepts,initQuiz];
+function goTab(i,btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('panel-'+i).classList.add('active');
+  TAB_INITS2[i]();
+}
+
+window.addEventListener('load',()=>{
+  initData();
+  showConcept('algo', document.querySelector('#panel-7 .pill'));
+});
+</script>
+</body>
+</html>

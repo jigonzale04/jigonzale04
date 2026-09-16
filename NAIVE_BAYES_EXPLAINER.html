@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naive Bayes — Interactive Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f7f4ef;--ink:#1a1a2e;--ink2:#4a4a6a;--ink3:#8888aa;
+    --acc:#2b7be0;--acc2:#e05a2b;--acc3:#2b9a66;
+    --surface:#fff;--surface2:#f0ede8;--border:#ddd8d0;
+  }
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+  .wrap{max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem;}
+  .hero{margin-bottom:2.5rem;border-bottom:1px solid var(--border);padding-bottom:1.5rem;}
+  .hero-tag{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--acc);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;}
+  .hero h1{font-family:'DM Serif Display',serif;font-size:2.4rem;line-height:1.1;color:var(--ink);margin-bottom:.5rem;}
+  .hero h1 em{font-style:italic;color:var(--acc);}
+  .hero p{font-size:0.9rem;color:var(--ink2);line-height:1.7;max-width:580px;}
+  .steps{display:flex;gap:0;margin-bottom:2rem;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);}
+  .step-btn{flex:1;padding:10px 8px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--ink3);transition:all .2s;border-right:1px solid var(--border);line-height:1.4;}
+  .step-btn:last-child{border-right:none;}
+  .step-btn:hover{background:var(--surface2);color:var(--ink);}
+  .step-btn.active{background:var(--ink);color:#fff;}
+  .step-num{display:block;font-size:0.55rem;opacity:.6;margin-bottom:2px;}
+  .panel{display:none;}.panel.active{display:block;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.25rem;}
+  .card-title{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem;}
+  canvas{display:block;width:100%;border-radius:8px;}
+  .ctrl-row{display:flex;align-items:center;gap:10px;margin-bottom:.75rem;}
+  .ctrl-row label{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:var(--ink2);min-width:130px;}
+  .ctrl-row input[type=range]{flex:1;accent-color:var(--acc);}
+  .ctrl-row .val{font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:600;color:var(--ink);min-width:50px;text-align:right;}
+  .formula-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:var(--ink);margin-bottom:1rem;text-align:center;line-height:2.2;}
+  .insight{display:flex;gap:10px;padding:10px 14px;border-radius:8px;font-size:0.78rem;line-height:1.55;margin-top:.75rem;}
+  .insight-blue{background:#eef3ff;border:1px solid #bdd0f7;color:#1a3a7a;}
+  .insight-orange{background:#fff3ee;border:1px solid #fcd5c0;color:#7a2e0e;}
+  .insight-green{background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .pill{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:4px 12px;border-radius:999px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:var(--surface);color:var(--ink2);}
+  .pill:hover,.pill.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .concept-detail{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;min-height:80px;}
+  .concept-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--ink);margin-bottom:.5rem;}
+  .concept-body{font-size:0.82rem;color:var(--ink2);line-height:1.7;}
+  .concept-formula{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;background:var(--surface2);border-radius:6px;padding:6px 10px;margin:.5rem 0;display:block;color:var(--ink);}
+  .legend{display:flex;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);margin-top:8px;flex-wrap:wrap;}
+  .legend span{display:flex;align-items:center;gap:5px;}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:1rem;}
+  .stat{background:var(--surface2);border-radius:8px;padding:10px 12px;text-align:center;}
+  .stat-val{font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--ink);}
+  .stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:0.58rem;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;margin-top:2px;}
+  .quiz-opt{padding:10px 14px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:0.82rem;transition:all .15s;background:var(--surface);}
+  .quiz-opt:hover{border-color:var(--acc);background:#eef3ff;}
+  .quiz-opt.correct{background:#eefff5;border-color:#2bc97a;color:#0e5c35;}
+  .quiz-opt.wrong{background:#fff0ee;border-color:#ef4444;color:#7a1a1a;}
+  .quiz-feedback{font-size:0.78rem;padding:10px 14px;border-radius:8px;margin-top:.5rem;display:none;line-height:1.55;}
+  /* Spam demo styles */
+  .word-grid{display:flex;flex-wrap:wrap;gap:8px;margin:1rem 0;}
+  .word-chip{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:5px 11px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--ink2);transition:all .2s;user-select:none;}
+  .word-chip.spam{background:#ffeaea;border-color:#ef4444;color:#7a1a1a;}
+  .word-chip.ham{background:#eefff5;border-color:#2bc97a;color:#0e5c35;}
+  .word-chip.selected{transform:scale(1.06);font-weight:600;}
+  .verdict-box{border-radius:10px;padding:1rem 1.25rem;text-align:center;margin-top:1rem;border:1px solid var(--border);transition:all .3s;}
+  .verdict-spam{background:#ffeaea;border-color:#ef4444;}
+  .verdict-ham{background:#eefff5;border-color:#2bc97a;}
+  .verdict-title{font-family:'DM Serif Display',serif;font-size:1.4rem;margin-bottom:.25rem;}
+  .verdict-sub{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);}
+  .prob-bar-wrap{margin:.5rem 0;}
+  .prob-bar-label{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink2);margin-bottom:3px;display:flex;justify-content:space-between;}
+  .prob-bar{height:8px;border-radius:4px;background:var(--surface2);overflow:hidden;}
+  .prob-bar-fill{height:100%;border-radius:4px;transition:width .4s ease;}
+  @media(max-width:580px){.two-col{grid-template-columns:1fr;}.hero h1{font-size:1.8rem;}.step-btn{font-size:0.55rem;padding:8px 3px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-tag">// interactive explainer</div>
+    <h1>Naive <em>Bayes</em></h1>
+    <p>A probabilistic classifier built on Bayes' theorem that assumes features are <strong>conditionally independent</strong> given the class. Fast, interpretable, and surprisingly effective — especially for text classification.</p>
+  </div>
+
+  <div class="steps">
+    <button class="step-btn active" onclick="goStep(0,this)"><span class="step-num">01</span>Bayes' Rule</button>
+    <button class="step-btn" onclick="goStep(1,this)"><span class="step-num">02</span>The Naive Part</button>
+    <button class="step-btn" onclick="goStep(2,this)"><span class="step-num">03</span>Spam Filter</button>
+    <button class="step-btn" onclick="goStep(3,this)"><span class="step-num">04</span>Gaussian NB</button>
+    <button class="step-btn" onclick="goStep(4,this)"><span class="step-num">05</span>Concepts</button>
+    <button class="step-btn" onclick="goStep(5,this)"><span class="step-num">06</span>Quiz</button>
+  </div>
+
+  <!-- PANEL 0: Bayes' Rule -->
+  <div class="panel active" id="panel-0">
+    <div class="formula-box">
+      P(class | features) = <span style="color:#2b7be0;font-weight:600;">P(features | class)</span> × <span style="color:#e05a2b;font-weight:600;">P(class)</span> / P(features)
+    </div>
+    <div class="card">
+      <div class="card-title">Drag the sliders — see how prior and likelihood shape the posterior</div>
+      <canvas id="c0" height="260"></canvas>
+    </div>
+    <div class="ctrl-row">
+      <label>P(Spam) — prior</label>
+      <input type="range" id="prior" min="0.05" max="0.95" step="0.05" value="0.30" oninput="drawBayes()">
+      <span class="val" id="prior-v">0.30</span>
+    </div>
+    <div class="ctrl-row">
+      <label>P(word|Spam) — likelihood</label>
+      <input type="range" id="lk-spam" min="0.05" max="0.99" step="0.05" value="0.80" oninput="drawBayes()">
+      <span class="val" id="lks-v">0.80</span>
+    </div>
+    <div class="ctrl-row">
+      <label>P(word|Ham) — likelihood</label>
+      <input type="range" id="lk-ham" min="0.01" max="0.90" step="0.05" value="0.10" oninput="drawBayes()">
+      <span class="val" id="lkh-v">0.10</span>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" id="b-prior">—</div><div class="stat-lbl">Prior P(Spam)</div></div>
+      <div class="stat"><div class="stat-val" id="b-likelihood">—</div><div class="stat-lbl">Likelihood ratio</div></div>
+      <div class="stat"><div class="stat-val" id="b-posterior">—</div><div class="stat-lbl">Posterior P(Spam|word)</div></div>
+    </div>
+    <div class="insight insight-blue">
+      <span>💡</span>
+      <span>The <strong>posterior</strong> is the probability we care about. It starts at the prior and gets updated by the evidence (likelihood ratio). A strong likelihood can flip a low prior into a high posterior.</span>
+    </div>
+  </div>
+
+  <!-- PANEL 1: The Naive Assumption -->
+  <div class="panel" id="panel-1">
+    <div class="card">
+      <div class="card-title">Feature independence — visualising the naive assumption</div>
+      <canvas id="c1" height="300"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#2b7be0"></span>Class A</span>
+        <span><span class="dot" style="background:#e05a2b"></span>Class B</span>
+      </div>
+    </div>
+    <div class="formula-box" style="font-size:0.76rem;">
+      P(x₁, x₂, … xₙ | class) <span style="color:#e05a2b">≈</span> P(x₁|class) × P(x₂|class) × … × P(xₙ|class)
+    </div>
+    <div class="ctrl-row">
+      <label>Feature correlation</label>
+      <input type="range" id="corr" min="0" max="0.95" step="0.05" value="0" oninput="drawIndep()">
+      <span class="val" id="corr-v">0.00</span>
+    </div>
+    <div class="insight insight-orange">
+      <span>⚠️</span>
+      <span>The "naive" assumption is that features are <strong>conditionally independent</strong> given the class. This is almost never true in reality — yet Naive Bayes often works well in practice because we only need the right <em>ranking</em> of class probabilities, not exact values.</span>
+    </div>
+    <div class="insight insight-green" style="margin-top:.5rem">
+      <span>✅</span>
+      <span>When correlation is high, the model double-counts correlated evidence. Despite this, classification accuracy stays surprisingly robust — a phenomenon called the <strong>optimistic bias</strong> of Naive Bayes.</span>
+    </div>
+  </div>
+
+  <!-- PANEL 2: Spam Filter Demo -->
+  <div class="panel" id="panel-2">
+    <div class="card">
+      <div class="card-title">Click words to add them to your message — watch Naive Bayes decide</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink3);margin-bottom:.5rem;">SPAM WORDS (high P(word|spam))</div>
+      <div class="word-grid" id="spam-words"></div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink3);margin:.75rem 0 .5rem;">HAM WORDS (high P(word|ham))</div>
+      <div class="word-grid" id="ham-words"></div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--ink3);margin:.75rem 0 .35rem;">YOUR MESSAGE</div>
+      <div id="msg-display" style="font-size:0.85rem;color:var(--ink2);min-height:28px;padding:8px 12px;background:var(--surface2);border-radius:8px;font-style:italic;margin-bottom:.75rem;">(empty)</div>
+      <div class="prob-bar-wrap">
+        <div class="prob-bar-label"><span>P(Spam)</span><span id="pspam-val">50%</span></div>
+        <div class="prob-bar"><div class="prob-bar-fill" id="bar-spam" style="width:50%;background:#ef4444;"></div></div>
+      </div>
+      <div class="prob-bar-wrap">
+        <div class="prob-bar-label"><span>P(Ham)</span><span id="pham-val">50%</span></div>
+        <div class="prob-bar"><div class="prob-bar-fill" id="bar-ham" style="width:50%;background:#2bc97a;"></div></div>
+      </div>
+      <div class="verdict-box" id="verdict">
+        <div class="verdict-title" id="verdict-title">Add words to classify</div>
+        <div class="verdict-sub" id="verdict-sub">log-probability score: —</div>
+      </div>
+      <button onclick="clearMsg()" style="margin-top:.85rem;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;">Clear message</button>
+    </div>
+    <div class="insight insight-blue">
+      <span>💡</span>
+      <span>Naive Bayes uses <strong>log probabilities</strong> to avoid numerical underflow when multiplying many small values. Log-sum is equivalent to multiplication: log P(x₁|c) + log P(x₂|c) + … </span>
+    </div>
+  </div>
+
+  <!-- PANEL 3: Gaussian NB -->
+  <div class="panel" id="panel-3">
+    <div class="card">
+      <div class="card-title">Gaussian NB — likelihood modelled as a normal distribution per feature</div>
+      <canvas id="c3" height="300"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#2b7be0"></span>Class A</span>
+        <span><span class="dot" style="background:#e05a2b"></span>Class B</span>
+        <span style="color:var(--ink3)">Vertical line = query point</span>
+      </div>
+    </div>
+    <div class="ctrl-row">
+      <label>Query value x</label>
+      <input type="range" id="qx" min="-4" max="12" step="0.1" value="4" oninput="drawGaussian()">
+      <span class="val" id="qx-v">4.0</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Class A mean (μ_A)</label>
+      <input type="range" id="mu-a" min="-2" max="6" step="0.5" value="1" oninput="drawGaussian()">
+      <span class="val" id="mua-v">1.0</span>
+    </div>
+    <div class="ctrl-row">
+      <label>Class B mean (μ_B)</label>
+      <input type="range" id="mu-b" min="2" max="10" step="0.5" value="6" oninput="drawGaussian()">
+      <span class="val" id="mub-v">6.0</span>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" id="g-pa">—</div><div class="stat-lbl">P(x|Class A)</div></div>
+      <div class="stat"><div class="stat-val" id="g-pb">—</div><div class="stat-lbl">P(x|Class B)</div></div>
+      <div class="stat"><div class="stat-val" id="g-pred">—</div><div class="stat-lbl">Prediction</div></div>
+    </div>
+    <div class="insight insight-blue" style="margin-top:1rem">
+      <span>💡</span>
+      <span>For each class and each feature, Gaussian NB fits a normal distribution N(μ, σ²) to the training data. At prediction time it evaluates the PDF at the query value — the class with higher likelihood wins (assuming equal priors).</span>
+    </div>
+  </div>
+
+  <!-- PANEL 4: Concepts -->
+  <div class="panel" id="panel-4">
+    <div class="pills">
+      <button class="pill active" onclick="showConcept('types',this)">NB variants</button>
+      <button class="pill" onclick="showConcept('laplace',this)">Laplace smoothing</button>
+      <button class="pill" onclick="showConcept('logprob',this)">Log-probabilities</button>
+      <button class="pill" onclick="showConcept('vslog',this)">vs Logistic regression</button>
+      <button class="pill" onclick="showConcept('text',this)">Text classification</button>
+      <button class="pill" onclick="showConcept('pros',this)">Pros & cons</button>
+    </div>
+    <div class="concept-detail" id="conceptDetail"></div>
+  </div>
+
+  <!-- PANEL 5: Quiz -->
+  <div class="panel" id="panel-5">
+    <div id="quiz-container"></div>
+    <button onclick="resetQuiz()" style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;padding:6px 16px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;margin-top:.5rem;">Reset quiz</button>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+function goStep(i, btn) {
+  document.querySelectorAll('.step-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  $('panel-'+i).classList.add('active');
+  if(i===0) drawBayes();
+  if(i===1) drawIndep();
+  if(i===2) initSpam();
+  if(i===3) drawGaussian();
+  if(i===4) showConcept('types', document.querySelector('.pill'));
+  if(i===5) buildQuiz();
+}
+
+// ─── PANEL 0: Bayes' Rule visualiser ─────────────────────────────────────────
+function drawBayes() {
+  const prior = +$('prior').value;
+  const lkS   = +$('lk-spam').value;
+  const lkH   = +$('lk-ham').value;
+  $('prior-v').textContent = prior.toFixed(2);
+  $('lks-v').textContent   = lkS.toFixed(2);
+  $('lkh-v').textContent   = lkH.toFixed(2);
+
+  // P(word) = P(w|spam)*P(spam) + P(w|ham)*P(ham)
+  const pHam  = 1 - prior;
+  const pWord = lkS * prior + lkH * pHam;
+  const post  = (lkS * prior) / pWord;
+  const ratio = (lkS / lkH).toFixed(2);
+
+  $('b-prior').textContent     = (prior*100).toFixed(0)+'%';
+  $('b-likelihood').textContent = ratio+'×';
+  $('b-posterior').textContent  = (post*100).toFixed(0)+'%';
+
+  const cv = $('c0'), W = cv.offsetWidth, H = +cv.getAttribute('height');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const pad = 40, bw = 54, gap = 28;
+  const bars = [
+    {label:'P(Spam)\nprior', val:prior,  color:'#e05a2b', x:pad},
+    {label:'P(w|Spam)\nlikelihood', val:lkS, color:'#2b7be0', x:pad+bw+gap},
+    {label:'P(w|Ham)\nlikelihood', val:lkH,  color:'#888', x:pad+2*(bw+gap)},
+    {label:'P(Spam|w)\nposterior', val:post, color:'#2b9a66', x:pad+3*(bw+gap)},
+  ];
+
+  const maxH = H - 80;
+  bars.forEach(b => {
+    const bh = b.val * maxH;
+    const y  = H - 40 - bh;
+    ctx.fillStyle = b.color + '22';
+    ctx.fillRect(b.x, H-40-maxH, bw, maxH);
+    ctx.fillStyle = b.color;
+    ctx.fillRect(b.x, y, bw, bh);
+    // value label
+    ctx.fillStyle = b.color;
+    ctx.font = '600 13px DM Sans,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText((b.val*100).toFixed(0)+'%', b.x+bw/2, y-8);
+    // bottom label
+    ctx.fillStyle = '#8888aa';
+    ctx.font = '10px IBM Plex Mono,monospace';
+    b.label.split('\n').forEach((line,i) => ctx.fillText(line, b.x+bw/2, H-24+i*13));
+  });
+
+  // arrow from prior to posterior
+  const ax1 = pad+bw+4, ax2 = pad+3*(bw+gap)-4, ay = H-40-maxH/2;
+  ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1.5; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(ax1,ay); ctx.lineTo(ax2,ay); ctx.stroke();
+  ctx.setLineDash([]);
+  // arrow head
+  ctx.beginPath(); ctx.moveTo(ax2-8,ay-5); ctx.lineTo(ax2,ay); ctx.lineTo(ax2-8,ay+5);
+  ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.textAlign='left';
+}
+
+// ─── PANEL 1: Naive independence visualiser ───────────────────────────────────
+function drawIndep() {
+  const corr = +$('corr').value;
+  $('corr-v').textContent = corr.toFixed(2);
+  const cv = $('c1'), W = cv.offsetWidth, H = +cv.getAttribute('height');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  // Generate correlated 2D Gaussian samples per class
+  function genPts(n, mx, my, sx, sy, r, color) {
+    const pts = [];
+    for(let i=0;i<n;i++){
+      let u1,u2,z1,z2;
+      do{ u1=Math.random(); } while(u1===0);
+      do{ u2=Math.random(); } while(u2===0);
+      z1 = Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2);
+      z2 = Math.sqrt(-2*Math.log(u1))*Math.sin(2*Math.PI*u2);
+      const x = mx + sx*(z1);
+      const y = my + sy*(r*z1 + Math.sqrt(1-r*r)*z2);
+      pts.push({x,y,color});
+    }
+    return pts;
+  }
+
+  const seed = 42; // stable visuals - use fixed points instead
+  const clsA = genPts(60, 3, 3, 1.2, 1.2, corr, '#2b7be0');
+  const clsB = genPts(60, 7, 7, 1.2, 1.2, corr, '#e05a2b');
+  const all  = [...clsA,...clsB];
+
+  // scale to canvas
+  const minX=0,maxX=10,minY=0,maxY=10;
+  const scX = x => (x-minX)/(maxX-minX)*(W-60)+30;
+  const scY = y => H-30-(y-minY)/(maxY-minY)*(H-60);
+
+  // draw NB decision boundary (vertical + horizontal lines from class means)
+  const muAx = clsA.reduce((s,p)=>s+p.x,0)/clsA.length;
+  const muBx = clsB.reduce((s,p)=>s+p.x,0)/clsB.length;
+  const midX = (muAx+muBx)/2;
+  ctx.beginPath(); ctx.moveTo(scX(midX),30); ctx.lineTo(scX(midX),H-30);
+  ctx.strokeStyle='rgba(0,0,0,0.18)'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle='rgba(43,123,224,0.07)'; ctx.fillRect(30,30,scX(midX)-30,H-60);
+  ctx.fillStyle='rgba(224,90,43,0.07)';  ctx.fillRect(scX(midX),30,W-30-scX(midX),H-60);
+  ctx.fillStyle='#8888aa'; ctx.font='11px IBM Plex Mono,monospace'; ctx.textAlign='center';
+  ctx.fillText('NB boundary', scX(midX), 22);
+
+  all.forEach(p=>{
+    const x=scX(p.x), y=scY(p.y);
+    ctx.beginPath(); ctx.arc(x,y,5,0,2*Math.PI);
+    ctx.fillStyle=p.color+'cc'; ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1; ctx.stroke();
+  });
+
+  // correlation label
+  ctx.fillStyle='var(--ink3,#8888aa)'; ctx.font='11px IBM Plex Mono,monospace'; ctx.textAlign='left';
+  ctx.fillText('feature correlation ρ = '+corr.toFixed(2), 34, H-10);
+  ctx.textAlign='left';
+}
+
+// ─── PANEL 2: Spam filter ─────────────────────────────────────────────────────
+const spamWords = [
+  {w:'FREE',    pS:0.92, pH:0.04},
+  {w:'WINNER',  pS:0.88, pH:0.05},
+  {w:'CLICK',   pS:0.82, pH:0.08},
+  {w:'CASH',    pS:0.85, pH:0.06},
+  {w:'URGENT',  pS:0.80, pH:0.07},
+  {w:'OFFER',   pS:0.78, pH:0.10},
+  {w:'PRIZE',   pS:0.90, pH:0.03},
+  {w:'LIMITED', pS:0.75, pH:0.12},
+];
+const hamWords = [
+  {w:'meeting',  pS:0.04, pH:0.82},
+  {w:'report',   pS:0.05, pH:0.80},
+  {w:'schedule', pS:0.03, pH:0.88},
+  {w:'project',  pS:0.06, pH:0.78},
+  {w:'invoice',  pS:0.08, pH:0.72},
+  {w:'thanks',   pS:0.07, pH:0.75},
+  {w:'update',   pS:0.09, pH:0.70},
+  {w:'review',   pS:0.05, pH:0.76},
+];
+const allWords = [...spamWords,...hamWords];
+let selectedWords = [];
+
+function initSpam() {
+  // render spam chips
+  $('spam-words').innerHTML = spamWords.map((w,i)=>
+    `<span class="word-chip spam" id="chip-${i}" onclick="toggleWord(${i})">${w.w}</span>`
+  ).join('');
+  // render ham chips
+  $('ham-words').innerHTML = hamWords.map((w,i)=>
+    `<span class="word-chip ham" id="chip-${i+8}" onclick="toggleWord(${i+8})">${w.w}</span>`
+  ).join('');
+  selectedWords = [];
+  updateVerdict();
+}
+
+function toggleWord(i) {
+  const chip = $('chip-'+i);
+  const idx = selectedWords.indexOf(i);
+  if(idx===-1){ selectedWords.push(i); chip.classList.add('selected'); }
+  else { selectedWords.splice(idx,1); chip.classList.remove('selected'); }
+  updateVerdict();
+}
+
+function clearMsg() {
+  selectedWords = [];
+  document.querySelectorAll('.word-chip').forEach(c=>c.classList.remove('selected'));
+  updateVerdict();
+}
+
+function updateVerdict() {
+  const words = selectedWords.map(i=>allWords[i]);
+  // display message
+  $('msg-display').textContent = words.length ? words.map(w=>w.w).join(' · ') : '(empty)';
+
+  if(words.length===0){
+    $('bar-spam').style.width='50%'; $('bar-ham').style.width='50%';
+    $('pspam-val').textContent='50%'; $('pham-val').textContent='50%';
+    $('verdict-title').textContent='Add words to classify';
+    $('verdict-sub').textContent='log-probability score: —';
+    $('verdict').className='verdict-box';
+    return;
+  }
+
+  // Naive Bayes: log-probabilities, equal prior
+  const priorS = Math.log(0.5), priorH = Math.log(0.5);
+  let logS = priorS, logH = priorH;
+  words.forEach(w => {
+    logS += Math.log(w.pS);
+    logH += Math.log(w.pH);
+  });
+
+  // softmax to get probabilities
+  const maxLog = Math.max(logS,logH);
+  const eS = Math.exp(logS-maxLog), eH = Math.exp(logH-maxLog);
+  const sum = eS+eH;
+  const pS = eS/sum, pH = eH/sum;
+
+  $('bar-spam').style.width = (pS*100).toFixed(1)+'%';
+  $('bar-ham').style.width  = (pH*100).toFixed(1)+'%';
+  $('pspam-val').textContent = (pS*100).toFixed(1)+'%';
+  $('pham-val').textContent  = (pH*100).toFixed(1)+'%';
+
+  const isSpam = pS > pH;
+  $('verdict-title').textContent = isSpam ? '🚨 SPAM' : '✅ Ham';
+  $('verdict-sub').textContent   = `log score: spam ${logS.toFixed(2)}  ham ${logH.toFixed(2)}`;
+  $('verdict').className = 'verdict-box ' + (isSpam ? 'verdict-spam' : 'verdict-ham');
+}
+
+// ─── PANEL 3: Gaussian NB ─────────────────────────────────────────────────────
+function gauss(x, mu, sigma) {
+  return Math.exp(-0.5*((x-mu)/sigma)**2) / (sigma*Math.sqrt(2*Math.PI));
+}
+
+function drawGaussian() {
+  const qx  = +$('qx').value;
+  const muA = +$('mu-a').value;
+  const muB = +$('mu-b').value;
+  $('qx-v').textContent  = qx.toFixed(1);
+  $('mua-v').textContent = muA.toFixed(1);
+  $('mub-v').textContent = muB.toFixed(1);
+
+  const sigA = 1.5, sigB = 1.5;
+  const cv = $('c3'), W = cv.offsetWidth, H = +cv.getAttribute('height');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const xMin=-5, xMax=13;
+  const scX = x => (x-xMin)/(xMax-xMin)*(W-60)+30;
+  const baseline = H-45;
+  const scY = y => baseline - y*(baseline-30);
+
+  // max PDF for scaling
+  const peakA = gauss(muA,muA,sigA);
+  const peakB = gauss(muB,muB,sigB);
+  const peak  = Math.max(peakA,peakB)*1.1;
+  const normY = y => y/peak;
+
+  // Draw filled curves
+  function drawCurve(mu, sig, color) {
+    const steps=200;
+    ctx.beginPath();
+    for(let i=0;i<=steps;i++){
+      const x=xMin+(xMax-xMin)*i/steps;
+      const y=gauss(x,mu,sig);
+      const cx=scX(x), cy=scY(normY(y));
+      i===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+    }
+    ctx.lineTo(scX(xMax),baseline); ctx.lineTo(scX(xMin),baseline); ctx.closePath();
+    ctx.fillStyle=color+'28'; ctx.fill();
+    ctx.beginPath();
+    for(let i=0;i<=steps;i++){
+      const x=xMin+(xMax-xMin)*i/steps;
+      const y=gauss(x,mu,sig);
+      const cx=scX(x), cy=scY(normY(y));
+      i===0?ctx.moveTo(cx,cy):ctx.lineTo(cx,cy);
+    }
+    ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.stroke();
+    // mean line
+    ctx.beginPath(); ctx.moveTo(scX(mu),scY(normY(gauss(mu,mu,sig)))); ctx.lineTo(scX(mu),baseline);
+    ctx.strokeStyle=color+'88'; ctx.lineWidth=1; ctx.setLineDash([4,3]); ctx.stroke(); ctx.setLineDash([]);
+    // mean label
+    ctx.fillStyle=color; ctx.font='11px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText('μ='+mu.toFixed(1), scX(mu), baseline+14);
+  }
+
+  drawCurve(muA, sigA, '#2b7be0');
+  drawCurve(muB, sigB, '#e05a2b');
+
+  // x axis
+  ctx.beginPath(); ctx.moveTo(30,baseline); ctx.lineTo(W-30,baseline);
+  ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=1; ctx.stroke();
+
+  // query vertical line
+  const qcx = scX(qx);
+  ctx.beginPath(); ctx.moveTo(qcx,30); ctx.lineTo(qcx,baseline);
+  ctx.strokeStyle='#ffd700'; ctx.lineWidth=2.5; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]);
+
+  // dots on curves at query
+  const pA = gauss(qx,muA,sigA), pB = gauss(qx,muB,sigB);
+  [[pA,'#2b7be0'],[pB,'#e05a2b']].forEach(([p,c])=>{
+    ctx.beginPath(); ctx.arc(qcx,scY(normY(p)),6,0,2*Math.PI);
+    ctx.fillStyle=c; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+  });
+
+  // stats
+  $('g-pa').textContent  = pA.toExponential(2);
+  $('g-pb').textContent  = pB.toExponential(2);
+  $('g-pred').textContent= pA>pB?'Class A':'Class B';
+  ctx.textAlign='left';
+}
+
+// ─── PANEL 4: Concepts ────────────────────────────────────────────────────────
+const concepts = {
+  types:{title:'Naive Bayes variants',body:`Three main variants handle different feature types:<span class="concept-formula">Gaussian NB   — continuous features, models P(x|c) as N(μ,σ²)</span><span class="concept-formula">Multinomial NB — discrete counts (e.g. word frequencies)</span><span class="concept-formula">Bernoulli NB  — binary features (word present / absent)</span>Multinomial NB is the standard for text classification (bag-of-words). Gaussian NB is used for numeric data like sensor readings or measurements.`},
+  laplace:{title:'Laplace smoothing',body:`If a word never appears in spam training data, P(word|spam)=0, which zeroes out the entire product. Laplace (additive) smoothing fixes this:<span class="concept-formula">P(xᵢ|c) = (count(xᵢ,c) + α) / (N_c + α·|V|)</span>where α=1 is the Laplace parameter, N_c is total token count in class c, and |V| is vocabulary size. This ensures no probability is exactly zero. Smaller α = less smoothing.`},
+  logprob:{title:'Log-probabilities',body:`Multiplying many small probabilities causes <strong>numerical underflow</strong> (float rounds to 0). Working in log-space avoids this:<span class="concept-formula">log P(c|x) ∝ log P(c) + Σ log P(xᵢ|c)</span>Addition in log-space equals multiplication in probability space. The class with the highest log-score wins. Scikit-learn uses this internally via <code>predict_log_proba</code>.`},
+  vslog:{title:'vs Logistic regression',body:`Naive Bayes is a <strong>generative</strong> model — it models how the data was generated by estimating P(x|c) and P(c). Logistic regression is <strong>discriminative</strong> — it learns P(c|x) directly.<span class="concept-formula">NB:  models P(x|c) and uses Bayes' rule → P(c|x)</span><span class="concept-formula">LR:  directly models P(c|x) via sigmoid/softmax</span>Logistic regression typically outperforms NB with large training sets. NB wins with small data or when features are truly independent.`},
+  text:{title:'Text classification workflow',body:`Classic Naive Bayes spam filter pipeline:<span class="concept-formula">1. Tokenise emails → bag-of-words vector</span><span class="concept-formula">2. Estimate P(word|spam) and P(word|ham) from training</span><span class="concept-formula">3. Apply Laplace smoothing (α=1)</span><span class="concept-formula">4. Classify: argmax_c [log P(c) + Σ log P(wᵢ|c)]</span>Still competitive on short-text tasks. The bag-of-words assumption discards word order — a limitation shared with Multinomial NB.`},
+  pros:{title:'Pros & cons',body:`<strong>Pros:</strong> extremely fast to train (single pass), works with tiny datasets, handles many features well, strong baseline for text, inherently multi-class, probabilistic output.<br><br><strong>Cons:</strong> the independence assumption is almost always wrong (correlated features get double-counted), Gaussian NB assumes normally distributed features, probability estimates are often poorly calibrated even when rankings are correct.`},
+};
+function showConcept(key,btn){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); btn.classList.add('active');
+  const c=concepts[key];
+  $('conceptDetail').innerHTML=`<div class="concept-title">${c.title}</div><div class="concept-body">${c.body}</div>`;
+}
+
+// ─── PANEL 5: Quiz ────────────────────────────────────────────────────────────
+const questions=[
+  {q:'What does "naive" mean in Naive Bayes?',
+   opts:['The algorithm is simple to implement','Features are assumed conditionally independent given the class','It only works on small datasets','It ignores the prior probability'],
+   correct:1, feedback:'Correct! Naive Bayes assumes P(x₁,x₂,…|c) = P(x₁|c)·P(x₂|c)·… — treating all features as independent given the class. This is almost never true but often works in practice.'},
+  {q:'Why do we use log-probabilities instead of raw probabilities?',
+   opts:['Logs are faster to compute','To avoid numerical underflow from multiplying many small values','To make probabilities sum to 1','Because Bayes\' theorem requires it'],
+   correct:1, feedback:'Correct! Multiplying thousands of small probabilities (e.g. word likelihoods) drives the product toward zero beyond floating-point precision. Log-sum prevents underflow.'},
+  {q:'What does Laplace smoothing (α=1) solve?',
+   opts:['It reduces the number of features needed','It prevents zero-probability estimates for unseen words','It normalises features to unit scale','It removes stop words automatically'],
+   correct:1, feedback:'Correct! A word absent from training data gives P(word|class)=0, zeroing out the entire product. Laplace smoothing adds α to every count so no probability is exactly zero.'},
+  {q:'Which Naive Bayes variant is standard for bag-of-words text classification?',
+   opts:['Gaussian NB','Bernoulli NB','Multinomial NB','Complement NB'],
+   correct:2, feedback:'Correct! Multinomial NB models word count frequencies, making it the natural fit for bag-of-words. Bernoulli NB uses binary presence/absence. Gaussian NB is for continuous numeric features.'},
+];
+let answered={};
+function buildQuiz(){
+  $('quiz-container').innerHTML=questions.map((q,i)=>`
+    <div style="margin-bottom:1.5rem;">
+      <div style="font-size:0.85rem;font-weight:500;color:var(--ink);margin-bottom:.6rem;">${i+1}. ${q.q}</div>
+      ${q.opts.map((o,j)=>`<div class="quiz-opt" id="opt-${i}-${j}" onclick="answer(${i},${j})">${o}</div>`).join('')}
+      <div class="quiz-feedback" id="fb-${i}"></div>
+    </div>`).join('');
+}
+function answer(qi,oi){
+  if(answered[qi]!==undefined)return; answered[qi]=oi;
+  const q=questions[qi],el=$('opt-'+qi+'-'+oi),fb=$('fb-'+qi);
+  if(oi===q.correct){
+    el.classList.add('correct');
+    fb.style.cssText='display:block;background:#eefff5;border:1px solid #b5f0d0;color:#0e5c35;padding:10px 14px;border-radius:8px;font-size:.78rem;line-height:1.55;margin-top:.5rem;';
+    fb.textContent='✅ '+q.feedback;
+  } else {
+    el.classList.add('wrong'); $('opt-'+qi+'-'+q.correct).classList.add('correct');
+    fb.style.cssText='display:block;background:#fff0ee;border:1px solid #fcd5c0;color:#7a2e0e;padding:10px 14px;border-radius:8px;font-size:.78rem;line-height:1.55;margin-top:.5rem;';
+    fb.textContent='❌ Not quite. '+q.feedback;
+  }
+}
+function resetQuiz(){ answered={}; buildQuiz(); }
+
+window.addEventListener('load',()=>{ drawBayes(); showConcept('types',document.querySelector('.pill')); buildQuiz(); });
+</script>
+</body>
+</html>
